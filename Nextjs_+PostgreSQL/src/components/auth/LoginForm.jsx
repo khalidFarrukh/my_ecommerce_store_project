@@ -1,18 +1,53 @@
 "use client";
+
 import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 
 export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // if middleware added callbackUrl (?callbackUrl=/profile)
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  console.log("callbackurl = ", callbackUrl);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
+
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
       [e.target.id]: e.target.value,
     }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
+
+    setLoading(false);
+
+    if (!result || result.error) {
+      setError("Invalid email or password");
+      return;
+    }
+
+    router.push(callbackUrl);
   };
 
   return (
@@ -25,7 +60,10 @@ export default function LoginForm() {
         Sign in to access an enhanced shopping experience.
       </p>
 
-      <form className="w-full flex flex-col gap-3 items-center">
+      <form
+        className="w-full flex flex-col gap-3 items-center"
+        onSubmit={handleSubmit}
+      >
         <FloatingInput
           id="email"
           label="Email"
@@ -44,8 +82,14 @@ export default function LoginForm() {
           onChange={handleChange}
         />
 
-        <button className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer">
-          Login
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer disabled:opacity-50"
+        >
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </>

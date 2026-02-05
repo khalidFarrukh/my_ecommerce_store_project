@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import ReduxProvider from './ReduxProvider';
+import ReduxProvider from '../providers/ReduxProvider';
 import { AppContextProvider } from "@/context/AppContext";
 import Header from "@/components/Header";
 import CustomCartBox from "@/components/smallCartBox";
@@ -9,6 +9,8 @@ import Footer from "@/components/Footer";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CategoriesSection from "@/components/CategoriesSection";
 import SideBar from "@/components/sidebar";
+import { Providers } from "./providers";
+import GlobalSessionGuard from "@/components/auth/GlobalSessionGuard";
 
 const inter = Inter({
   variable: "--font-inter", // optional
@@ -46,20 +48,19 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.variable} ${poppins.variable} antialiased w-full`}
       >
-        <ReduxProvider>
-          <AppContextProvider>
+        <Providers>
+          <GlobalSessionGuard />
+          <SideBar />
+          {/* FIXED HEADER OUTSIDE CONTAINER */}
+          <Header />
 
-            <SideBar />
-            {/* FIXED HEADER OUTSIDE CONTAINER */}
-            <Header />
 
+          <CategoriesSection Categories={Categories} />
 
-            <CategoriesSection Categories={Categories} />
-
-            {/* PAGE CONTENT WRAPPER */}
-            <div className="pt-[calc(60px+98px)]"> {/* offset for fixed header */}
-              <div
-                className="
+          {/* PAGE CONTENT WRAPPER */}
+          <div className="pt-[calc(60px+98px)]"> {/* offset for fixed header */}
+            <div
+              className="
                   max-w-[1440px]
                   px-6
                   mx-auto
@@ -67,15 +68,13 @@ export default function RootLayout({ children }) {
                   flex-col
                   text-[var(--myTextColorNormal)]
                 "
-              >
+            >
 
-                {children}
-              </div>
+              {children}
             </div>
-            <Footer />
-
-          </AppContextProvider>
-        </ReduxProvider>
+          </div>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

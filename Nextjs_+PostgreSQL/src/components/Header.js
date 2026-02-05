@@ -7,6 +7,7 @@ import Link from "next/link";
 import CustomCartBox from "./smallCartBox";
 import { closeSidebar, openSidebar } from "@/store/sidebarSlice";
 import { useDispatch } from "react-redux";
+import AccountLink from "./AccountLink";
 
 export default function Header() {
   const {
@@ -115,24 +116,7 @@ export default function Header() {
               >
                 Search
               </Link>
-              <Link
-                href="/account"
-                //onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className=
-                {`
-                hidden
-                lg:flex
-                cursor-pointer
-                text-[12px]
-                font-semibold
-                hover:text-black
-                h-full
-                items-center
-                mr-6
-              `}
-              >
-                Account
-              </Link>
+              <AccountLink />
               <Link
                 href="/cart"
                 onMouseEnter={() => setIsCartBtnHovered(true)}
