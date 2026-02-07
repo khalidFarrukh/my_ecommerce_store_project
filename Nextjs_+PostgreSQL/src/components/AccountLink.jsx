@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function AccountLink() {
   const { status } = useSession();
   const pathname = usePathname();
-
+  const isLoading = status === "loading";
   const selectedUrl =
     status === "authenticated"
       ? "/profile"
-      : status === "loading"
-        ? "#"
-        : `/account?callbackUrl=${pathname}`;
-
+      : `/account?callbackUrl=${pathname}`;
+  const startsWithAccount = pathname.startsWith("/account");
   return (
-    <Link
-      className="
+    <>
+      {!startsWithAccount && (
+        <Link
+          className={`
         hidden
         lg:flex
         cursor-pointer
@@ -27,10 +27,13 @@ export default function AccountLink() {
         h-full
         items-center
         mr-6
-      "
-      href={selectedUrl}
-    >
-      Account
-    </Link>
+       ${isLoading ? "pointer-events-none opacity-50" : ""}
+      `}
+          href={selectedUrl}
+        >
+          {status === "authenticated" ? "Account" : "Sign in"}
+        </Link>
+      )}
+    </>
   );
 }

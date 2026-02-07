@@ -125,15 +125,15 @@ export const products = [
         stock: 50,
         default: true
       },
-      {
-        id: "vinyl-us",
-        options: {
-          "plug": "US"
-        },
-        price: 349,
-        discount: 0,
-        stock: 30
-      }
+      // {
+      //   id: "vinyl-us",
+      //   options: {
+      //     "plug": "US"
+      //   },
+      //   price: 349,
+      //   discount: 0,
+      //   stock: 30
+      // }
     ],
     info: {
       material: "Aluminium",

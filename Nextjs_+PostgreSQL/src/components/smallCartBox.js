@@ -10,6 +10,7 @@ export default function CustomCartBox() {
     isCartBtnHovered,
     setIsCartBtnHovered
   } = useAppContext();
+  const cartItems = 1;
   return (
     <>
       <div
@@ -35,14 +36,28 @@ export default function CustomCartBox() {
         <h1 className="h-max flex items-center justify-center">Cart</h1>
         <div className="flex-1 flex flex-col gap-3 items-center justify-between">
           <div className="flex-1 flex flex-col gap-3 items-center justify-center">
-            <div className="w-[30px] h-[30px] flex items-center justify-center bg-black rounded-full text-white text-sm">{0}</div>
+            <div className="w-[30px] h-[30px] flex items-center justify-center bg-black rounded-full text-white text-sm">{cartItems}</div>
             <div className="text-sm ">Your Shopping Bag is Empty</div>
           </div>
-          <Link href={"/collections/all-products"}
-            className="h-max p-3 bg-black text-sm text-white rounded-[10px] cursor-pointer"
-          >
-            Explore products
-          </Link>
+          {
+            !cartItems &&
+
+            <Link href={"/collections/all-products"}
+              className="h-max p-3 bg-black text-sm text-white rounded-[10px] cursor-pointer"
+            >
+              All products
+            </Link>
+          }
+
+          {
+            cartItems &&
+
+            <Link href={"/cart"}
+              className="h-max p-3 bg-black text-sm text-white rounded-[10px] cursor-pointer"
+            >
+              Show more
+            </Link>
+          }
         </div>
       </div>
     </>

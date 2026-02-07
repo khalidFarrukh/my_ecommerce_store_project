@@ -1,17 +1,8 @@
-"use client";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-import { useSession } from "next-auth/react";
-
-export default function ProfilePage() {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") {
-    return <p>Loading...</p>;
-  }
-
-  if (!session) {
-    return null; // middleware + global guard handle redirects
-  }
+export default async function ProfilePage() {
+  const session = await auth();
 
   return (
     <main className="w-full max-w-3xl mx-auto p-6">

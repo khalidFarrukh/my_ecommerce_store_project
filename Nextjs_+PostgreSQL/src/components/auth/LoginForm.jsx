@@ -12,8 +12,6 @@ export default function LoginForm() {
   // if middleware added callbackUrl (?callbackUrl=/profile)
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
-  console.log("callbackurl = ", callbackUrl);
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -47,7 +45,9 @@ export default function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
+    const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
+
+    router.push(safeCallBack);
   };
 
   return (
@@ -61,7 +61,7 @@ export default function LoginForm() {
       </p>
 
       <form
-        className="w-full flex flex-col gap-3 items-center"
+        className="w-full flex flex-col gap-3 items-center "
         onSubmit={handleSubmit}
       >
         <FloatingInput
@@ -77,6 +77,7 @@ export default function LoginForm() {
           id="password"
           label="Password"
           type="password"
+          autoComplete="current-password"
           required
           value={form.password}
           onChange={handleChange}
@@ -89,7 +90,7 @@ export default function LoginForm() {
           disabled={loading}
           className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer disabled:opacity-50"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
     </>

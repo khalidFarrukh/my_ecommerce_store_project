@@ -5,6 +5,7 @@ export default function FloatingInput({
   id,
   label,
   type = "text",
+  autoComplete = "",
   required = false,
   value,
   onChange,
@@ -16,6 +17,7 @@ export default function FloatingInput({
       <input
         id={id}
         type={type}
+        autoComplete={autoComplete}
         required={required}
         value={value}
         onChange={onChange}

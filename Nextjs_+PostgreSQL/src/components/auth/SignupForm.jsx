@@ -2,13 +2,21 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignupForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
   const [form, setForm] = useState({
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -24,6 +32,8 @@ export default function SignupForm() {
       alert("Passwords do not match");
       return;
     }
+
+    setLoading(true);
 
     const res = await fetch("/api/auth/signup", {
       method: "POST",
@@ -46,6 +56,11 @@ export default function SignupForm() {
     } else {
       alert(data.error);
     }
+
+    setLoading(false);
+
+    const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
+    router.push(safeCallBack);
   };
 
   return (
@@ -90,9 +105,10 @@ export default function SignupForm() {
 
         <button
           type="submit"
-          className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer"
+          disabled={loading}
+          className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer disabled:opacity-50"
         >
-          Join
+          {loading ? "Joining..." : "Join"}
         </button>
       </form>
     </>
