@@ -5,21 +5,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Card1 from "./Card1";
 
-export default function HomeMainSection({ collection_name, collection_id }) {
+export default function HomeMainSection({ collection_name, collection_route }) {
   const [products, setProducts] = useState([]);
   useEffect(() => {
     if (products.length === 0)
-      fetch("/api/collections/" + collection_id + "?offset=0&limit=3")
+      fetch("/api/collections/" + collection_route + "?offset=0&limit=3")
         .then((res) => res.json())
         .then((res) => {
           setProducts(res.data);
         })
         .catch((err) => console.error("Error fetching products:", err));
   }, []);
-
-  useEffect(() => {
-    console.log(products);
-  }, [products])
 
   return (
     <>
@@ -54,7 +50,7 @@ export default function HomeMainSection({ collection_name, collection_id }) {
             </h1>
 
             <Link
-              href={"collections/" + collection_id}
+              href={`/collections/${collection_route}`}
               className=
               {`
                 absolute

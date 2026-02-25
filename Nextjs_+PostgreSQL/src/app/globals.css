@@ -2,35 +2,111 @@
 /* Add Flowbite styles */
 
 :root {
-  --background: #ffffff;
+  --background_1: #ffffff;
+  --background_2: #fafafa;
   --foreground: #171717;
+  --buttonHovered: #dddddd;
+  --buttonTextHovered: #222222;
   --myBorderColor: #e5e7eb;
-  --myTextColorNormal: #4b5563;
+  --myTextColorMain: #4b5563;
   --myTextColorBlue: #3b82f6;
   --myTextColorHeading: black;
   --myTextColorLightGray: #9ca3af;
 }
 
+.dark {
+  --background_1: #0a0a0a;
+  --background_2: #222222;
+  --foreground: #ededed;
+  --buttonHovered: #222222;
+  --buttonTextHovered: #dddddd;
+
+  --myBorderColor: #555555;
+  --myTextColorMain: #d1d5db;
+  --myTextColorHeading: #ffffff;
+}
+
 @theme inline {
-  --color-background: var(--background);
+  --color-background_1: var(--background_1);
+  --color-background_2: var(--background_2);
   --color-foreground: var(--foreground);
+  --color-buttonHovered: var(--buttonHovered);
+  --color-buttonTextHovered: var(--buttonTextHovered);
+  --color-myBorderColor: var(--myBorderColor);
+  --color-myTextColorMain: var(--myTextColorMain);
   --font-inter: var(--font-inter);
   --font-poppins: var(--font-poppins);
+  --breakpoint-w851: 851px;
   --breakpoint-w768: 768px;
   --breakpoint-w650: 650px;
   --breakpoint-w512: 512px;
 }
 
-@media (prefers-color-scheme: dark) {
+.button {
+  background-color: var(--background_1);
+  color: var(--foreground);
+  border: 1px solid gray;
+  border-radius: 6px;
+}
+
+
+.button:hover {
+  background-color: var(--foreground);
+  color: var(--background_1);
+}
+
+.button:focus {
+  background-color: var(--background_1);
+  color: var(--foreground);
+}
+
+.button2 {
+  background-color: var(--foreground);
+  color: var(--background_1);
+  border: 1px solid var(--myBorderColor);
+  border-radius: 6px;
+}
+
+.button2:hover,
+.inc_dec:hover {
+  background-color: var(--buttonHovered);
+  color: var(--buttonTextHovered);
+}
+
+.button2:active,
+.inc_dec:active {
+  background-color: var(--background_1);
+  color: var(--foreground);
+}
+
+.inc_dec {
+  background-color: var(--foreground);
+  color: var(--background_1);
+  border: 1px solid var(--myBorderColor);
+}
+
+/* .button2:focus {
+  background-color: var(--foreground);
+  color: var(--background_1);
+} */
+
+
+
+/* bg-background_1 text-foreground border border-myBorderColor hover:bg-foreground hover:text-background_1 hover:border-background_1 focus:bg-background_1 focus:text-foreground focus:border-myBorderColor */
+
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
+
+
 
 body {
 
   color: var(--foreground);
+  background-color: var(--background_1);
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -39,6 +115,34 @@ body {
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE & Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  /* IE & Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  /* thin bar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  /* hide track */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+}
+
+/* Hides top/bottom (and left/right) arrow buttons */
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }

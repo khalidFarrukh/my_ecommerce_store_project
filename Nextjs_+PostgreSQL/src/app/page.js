@@ -1,7 +1,14 @@
 import HomeMainSection from "@/components/HomeMainSection";
-import { collections } from "./api/data";
+import { convertTextStringToDashString, getCollections } from "@/utils/utilities";
 
-export default function Home() {
+
+export default async function Home() {
+
+  let collections = await getCollections();
+
+  collections = collections.sort((a, b) => {
+    return a._id.localeCompare(b._id);
+  });
 
   return (
     <>
@@ -25,9 +32,11 @@ export default function Home() {
           `} />
         {
           collections.map((collection, index) => {
-            if (!collection?.turnedoff) {
+
+            if (Boolean(!collection?.turnedoff)) {
+              const collectionRoute = convertTextStringToDashString(collection.name);
               return (
-                <HomeMainSection key={index} collection_name={collection.name} collection_id={collection.id} />
+                <HomeMainSection key={index} collection_name={collection.name} collection_route={collectionRoute} />
               )
             }
           })

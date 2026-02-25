@@ -28,12 +28,12 @@ export default function FloatingInput({
           px-4
           pt-6
           text-base
-          bg-[#fafafa]
+          bg-background_2
           border
-          border-[var(--myBorderColor)]
+          border-myBorderColor
           rounded-md
           outline-none
-          focus:border-black
+          focus:border-foreground
         "
         {...inputProps}
       />
@@ -45,7 +45,7 @@ export default function FloatingInput({
           left-4
           top-1/2
           -translate-y-1/2
-          text-gray-500
+          text-[gray]
           text-md
           transition-all
           duration-200
@@ -53,12 +53,14 @@ export default function FloatingInput({
 
           peer-focus:top-2
           peer-focus:text-xs
-          peer-focus:text-black
+          peer-focus:text-foreground
           peer-focus:translate-y-0
 
           peer-valid:top-2
           peer-valid:text-xs
           peer-valid:translate-y-0
+
+          
         "
       >
         {label}

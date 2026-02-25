@@ -4,15 +4,17 @@ import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 
 import sidebarReducer from './sidebarSlice';
-import medusaSelectedProductReducer from './medusaselectedproductSlice'
+import cartReducer from './cartSlice';
+
 
 const rootReducer = combineReducers({
   sidebar: sidebarReducer,
-  medusaSelectedProduct: medusaSelectedProductReducer,
+  cart: cartReducer,
+
 });
 
 const persistConfig = {
-  key: 'root',
+  key: 'JinStoreData',
   storage,
 };
 

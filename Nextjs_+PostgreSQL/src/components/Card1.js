@@ -3,29 +3,26 @@ import Image from "next/image";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
-import { useDispatch } from 'react-redux';
-import { setMedusaSelectedProduct } from '@/store/medusaselectedproductSlice';
-
 import { getVariantPricing } from "@/utils/productVariant";
+import { convertTextStringToDashString } from "@/utils/utilities";
 
 export default function Card1({ className, productObj, id }) {
-  const dispatch = useDispatch();
 
-  const { price, discount, finalPrice } =
-    getVariantPricing(productObj);
-
+  const { variant, price, discount, finalPrice } = getVariantPricing(productObj);
+  const product_route = convertTextStringToDashString(productObj.name);
   return (
     <>
       <Link
         key={id}
         onClick={() => {
           window.scrollTo(0, 0); // scroll to top immediately
-          dispatch(setMedusaSelectedProduct(productObj))
         }}
-        href={"/products/" + String(productObj.category + "/" + String(productObj.route))}
+        href={"/products/" + String(productObj.category) + "/" + product_route}
         className=
         {`
-          w-[100%]
+          w-full
+          text-myTextColorMain
+          group
         `}
       >
         <article
@@ -46,9 +43,9 @@ export default function Card1({ className, productObj, id }) {
               w-full
               h-full
               rounded-[12px]
-              bg-[#fafafa]
-              border-1
-              border-[var(--myBorderColor)]
+              bg-background_2
+              border
+              border-myBorderColor
               transition-all
               duration-150
               hover:shadow-sm
@@ -59,7 +56,8 @@ export default function Card1({ className, productObj, id }) {
             `}
           >
             <Image
-              src={productObj.thumbLink}
+              className="scale-100 group-hover:scale-120 transition-normal duration-100"
+              src={variant?.images[0]["src"]}
               alt={productObj.name}
               width={1200}
               height={1200}
@@ -74,7 +72,6 @@ export default function Card1({ className, productObj, id }) {
               mt-3
               w-full
               text-[95%]
-              text-[var(--myTextColorNormal)]
               font-semibold
               reverse
             `}
@@ -82,7 +79,7 @@ export default function Card1({ className, productObj, id }) {
             <div
               className=
               {`
-                break-words
+                wrap-break-words
                 w-full
                 whitespace-normal
               `}

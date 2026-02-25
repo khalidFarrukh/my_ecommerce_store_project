@@ -6,21 +6,18 @@ import { LogoNext } from '@geist-ui/icons';
 export default function Footer() {
 
   return (
-    <>
-      <footer
-        className="
+    <footer
+      className="
           border-t
-          border-[#e5e7eb]
+          border-myBorderColor
+          h-[600px]
           
         "
-      >
-
-
-        <div
-          className=
-          {`
+    >
+      <div
+        className=
+        {`
             
-            z-[40]
             relative
             w-full
             h-[600px]
@@ -30,23 +27,23 @@ export default function Footer() {
             max-w-[1440px]
             px-6
             mx-auto
-            text-[var(--myTextColorNormal)]
+            text-[var(--myTextColorMain)]
             flex
             flex-col
 
+          `}
+      >
+        <div
+          className=
+          {`
+            pt-12
+            w-[100%]
+            h-[90%]
           `}
         >
           <div
             className=
             {`
-            pt-12
-            w-[100%]
-            h-[90%]
-          `}
-          >
-            <div
-              className=
-              {`
               w-[100%]
               h-[100%]
               font-poppins
@@ -55,43 +52,43 @@ export default function Footer() {
               md:flex-row
               md:items-center
             `}
-            >
-              <div
-                className=
-                {`
+          >
+            <div
+              className=
+              {`
                 mb-6
                 md:w-[50%]
                 md:h-full
                 md:mb-0
                 flex
               `}
-              >
-                <Link
-                  href="/"
-                  className=
-                  {`
-                  size-fit
-                  text-[var(--myTextColorNormal)]
-                  font-semibold
-                `}
-                >
-                  MEDUSA STORE
-                </Link>
-
-              </div>
-              <div
+            >
+              <Link
+                href="/"
                 className=
                 {`
+                  size-fit
+                  text-[var(--myTextColorMain)]
+                  font-semibold
+                `}
+              >
+                MEDUSA STORE
+              </Link>
+
+            </div>
+            <div
+              className=
+              {`
                 relative
-                text-[var(--myTextColorNormal)]
+                text-[var(--myTextColorMain)]
                 w-full
                 md:w-[50%]
                 h-full
               `}
-              >
-                <div
-                  className=
-                  {`
+            >
+              <div
+                className=
+                {`
                     w-full
                     absolute
                     flex
@@ -102,108 +99,108 @@ export default function Footer() {
                     h-full
                     right-0
                   `}
-                >
+              >
 
-                  <div
-                    className=
-                    {`
+                <div
+                  className=
+                  {`
                     w-fit
                   `}
-                  >
-                    <ul className=
-                      {`
+                >
+                  <ul className=
+                    {`
                         leading-7
                       text-[11px]
                     `}
-                    >
-                      <li
-                        className=
-                        {`
+                  >
+                    <li
+                      className=
+                      {`
                         font-semibold
                         text-black
                       `}
-                      >
-                        Categories
-                      </li>
-                      <li>
-                        <Link href="/"
-                          className=
-                          {`
+                    >
+                      Categories
+                    </li>
+                    <li>
+                      <Link href="/"
+                        className=
+                        {`
                           font-medium
                           text-black
                         `}
-                        >
-                          Clothing
-                        </Link>
-                      </li>
-                      <li className="pl-6">
-                        <Link href="/">
-                          Hoodies
-                        </Link>
-                      </li>
-                      <li className="pl-6">
-                        <Link href="/">
-                          Accessories
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/">
-                          Audio
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/">
-                          Furniture
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                  <div
-                    className=
-                    {`
+                      >
+                        Clothing
+                      </Link>
+                    </li>
+                    <li className="pl-6">
+                      <Link href="/">
+                        Hoodies
+                      </Link>
+                    </li>
+                    <li className="pl-6">
+                      <Link href="/">
+                        Accessories
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/">
+                        Audio
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/">
+                        Furniture
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                <div
+                  className=
+                  {`
                       w-fit
                     `}
-                  >
-                    <ul className=
-                      {`
+                >
+                  <ul className=
+                    {`
                         leading-7
                       text-[11px]
                     `}
-                    >
-                      <li
-                        className=
-                        {`
+                  >
+                    <li
+                      className=
+                      {`
                             font-semibold
                             text-black
                           `}
-                      >
-                        Collections
-                      </li>
-                      <li>
-                        <Link href="/">
-                          Latest Drops
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/">
-                          Weekly Picks
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/">
-                          Sale
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
+                    >
+                      Collections
+                    </li>
+                    <li>
+                      <Link href="/">
+                        Latest Drops
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/">
+                        Weekly Picks
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/">
+                        Sale
+                      </Link>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-
           </div>
-          <div
-            className=
-            {`
+
+        </div>
+        <div
+          className=
+          {`
             w-[100%]
             h-[10%]
             text-[#9ca3af]
@@ -213,20 +210,20 @@ export default function Footer() {
             relative
             
           `}
-          >
-            <div
-              className=
-              {`
+        >
+          <div
+            className=
+            {`
               break-words
               w-full
               whitespace-normal
             `}
-            >
-              © 2025 Medusa Store. All rights reserved.
-            </div>
-            <div
-              className=
-              {`
+          >
+            © 2025 Medusa Store. All rights reserved.
+          </div>
+          <div
+            className=
+            {`
               relative
               break-words
               w-full
@@ -234,43 +231,43 @@ export default function Footer() {
               text-right
               right-16
             `}
-            >
-              Powered by
-            </div>
-            <div
-              className=
-              {`
+          >
+            Powered by
+          </div>
+          <div
+            className=
+            {`
               absolute
               right-0
               flex
               
             `}
-            >
-              <div
-                className=
-                {`
+          >
+            <div
+              className=
+              {`
                 relative
                 flex
               `}
+            >
+              Me &
+              <Link
+                href="https://nextjs.org"
+                className=""
               >
-                Me &
-                <Link
-                  href="https://nextjs.org"
-                  className=""
-                >
-                  <Image
-                    src="./nextjsicon.svg"
-                    alt="next js logo"
-                    width={50}
-                    height={50}
-                    className="w-[20px] ml-[10px]"
-                  />
-                </Link>
-              </div>
+                <Image
+                  src="./nextjsicon.svg"
+                  alt="next js logo"
+                  width={50}
+                  height={50}
+                  className="w-[20px] ml-[10px]"
+                />
+              </Link>
             </div>
           </div>
         </div>
-      </footer>
-    </>
+      </div>
+    </footer>
+
   )
 }

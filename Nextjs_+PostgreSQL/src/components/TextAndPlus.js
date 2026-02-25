@@ -39,7 +39,8 @@ export default function TextAndPlus({ id, title, state, setState }) {
             h-8
             right-0
             mr-6
-            hover:bg-[#fafafa]
+            
+            hover:bg-background_2
             rounded-[50%]
             flex
             items-center

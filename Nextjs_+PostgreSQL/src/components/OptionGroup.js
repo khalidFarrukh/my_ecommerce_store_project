@@ -20,8 +20,8 @@ export default function OptionGroup({
             className={`
               px-3 py-1 border rounded cursor-pointer
               ${selectedValue === value
-                ? "border-black font-bold"
-                : "border-gray-300"}
+                ? "bg-foreground text-background_1 font-bold"
+                : "bg-background_1 text-foreground border-myBorderColor"}
             `}
           >
             {value}

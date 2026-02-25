@@ -6,45 +6,63 @@ import { useAppContext } from "../context/AppContext";
 import Link from "next/link";
 import CustomCartBox from "./smallCartBox";
 import { closeSidebar, openSidebar } from "@/store/sidebarSlice";
-import { useDispatch } from "react-redux";
-import AccountLink from "./AccountLink";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchModal } from "@/context/SearchModalContext";
+import { useCartButtonContext } from "@/context/CartButtonContext";
+import React, { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function Header() {
-  const {
-    isMenuOpen,
-    setIsMenuOpen,
-    isCartBtnHovered,
-    setIsCartBtnHovered,
-    isSearchBtnClicked,
-    setIsSearchBtnClicked,
-    menuBtnRef,
-    isSearchBarOpen,
-    setIsSearchBarOpen,
-    accBtnRef,
-    cartBtnRef
 
-  } = useAppContext();
+  const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
+
+  const cartState = useSelector(state => state.cart.cartState);
+
+  const { status } = useSession();
+  const pathname = usePathname();
+  const isLoading = status === "loading";
+  const selectedUrl =
+    status === "authenticated"
+      ? "/profile"
+      : `/account?callbackUrl=${pathname}`;
+  const startsWithAccount = pathname.startsWith("/account");
+
+  const cartItemsSize = React.useMemo(() => {
+    let variantCount = 0;
+    cartState.items.forEach(product => {
+      variantCount += product.variants.length;
+    });
+    return variantCount;
+  }, [cartState]);
+
+  useEffect(() => {
+    if (pathname === "/cart")
+      setIsCartBtnHovered(false);
+  }, [pathname])
 
   const dispatch = useDispatch();
+  const { openSearchModal } = useSearchModal();
   return (
     <>
       <header
         className=
         {`
-          z-[50]
+          z-50
           fixed
           w-full
+          font-poppins
           h-[60px]
-          text-[var(--myTextColorNormal)]
-          bg-white
+          text-[var(--myTextColorMain)]
+          bg-background_1
           border-b
-          border-[var(--myBorderColor)]
+          border-myBorderColor
         `}
       >
         <nav
           className=
           {`
-            z-[50]
+            
             w-full
             max-w-[1440px]
             h-full
@@ -64,7 +82,7 @@ export default function Header() {
           `}
           >
             <button
-              ref={menuBtnRef}
+
               onClick={() => dispatch(openSidebar())}
               className=
               {`
@@ -73,7 +91,8 @@ export default function Header() {
                 cursor-pointer
                 text-[12px]
                 font-semibold
-                hover:text-black
+                h-full
+                hover:text-foreground
               `}
             >
               Menu
@@ -83,10 +102,13 @@ export default function Header() {
               className=
               {`
               mx-auto
-              font-poppins
-              text-[120%]
+              text-[19px]
+              h-full
+              text-center
               font-semibold
-              hover:text-black
+              hover:text-foreground
+              flex
+              items-center
             `}
             >
               MEDUSA STORE
@@ -101,8 +123,9 @@ export default function Header() {
               items-center
             `}
             >
-              <Link
-                href="/search"
+              <button
+                type="button"
+                onClick={openSearchModal}
                 className=
                 {`
                 hidden
@@ -110,35 +133,58 @@ export default function Header() {
                 cursor-pointer
                 text-[12px]
                 font-semibold
-                hover:text-black
+                h-full
+                hover:text-foreground
                 mr-6
               `}
               >
                 Search
-              </Link>
-              <AccountLink />
-              <Link
-                href="/cart"
-                onMouseEnter={() => setIsCartBtnHovered(true)}
-                onMouseLeave={() => setIsCartBtnHovered(false)}
-                //onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className=
-                {`
-                cursor-pointer
-                font-semibold
-                text-[12px]
-                hover:text-black
-                h-full
-                flex items-center
-              `}
-              >
-                {
-                  "Cart (" +
-                  0
-                  + ")"
-                }
-              </Link>
-              <CustomCartBox />
+              </button>
+
+              {!startsWithAccount && (
+                <Link
+                  className=
+                  {`
+                    hidden
+                    lg:flex
+                    cursor-pointer
+                    text-[12px]
+                    font-semibold
+                    hover:text-foreground
+                    h-full
+                    items-center
+                    ${pathname !== "/cart" ? "mr-6" : ""}
+                    ${isLoading ? "pointer-events-none opacity-50" : ""}
+                  `}
+                  href={selectedUrl}
+                >
+                  {status === "authenticated" ? "Account" : "Sign in"}
+                </Link>
+              )}
+
+              {
+                pathname !== "/cart" &&
+                <>
+                  <Link
+                    href="/cart"
+                    onMouseEnter={() => setIsCartBtnHovered(true)}
+                    onMouseLeave={() => setIsCartBtnHovered(false)}
+                    //onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className=
+                    {`
+                      cursor-pointer
+                      font-semibold
+                      text-[12px]
+                      hover:text-foreground
+                      h-full
+                      flex items-center
+                    `}
+                  >
+                    {`Cart (${cartItemsSize})`}
+                  </Link>
+                  <CustomCartBox />
+                </>
+              }
             </div>
           </div>
         </nav>

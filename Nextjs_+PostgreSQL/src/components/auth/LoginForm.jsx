@@ -56,7 +56,7 @@ export default function LoginForm() {
         Welcome Back
       </h1>
 
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-[gray]">
         Sign in to access an enhanced shopping experience.
       </p>
 
@@ -88,7 +88,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer disabled:opacity-50"
+          className="mt-3 w-full py-2 button2 cursor-pointer disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>

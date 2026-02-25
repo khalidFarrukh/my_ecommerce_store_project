@@ -69,7 +69,7 @@ export default function SignupForm() {
         Become member
       </h1>
 
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-[gray]">
         Create your profile, and get access to an enhanced shopping experience.
       </p>
       <form
@@ -106,7 +106,7 @@ export default function SignupForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-3 w-full py-2 bg-black text-white rounded cursor-pointer disabled:opacity-50"
+          className="mt-3 w-full py-2 button2 cursor-pointer disabled:opacity-50"
         >
           {loading ? "Joining..." : "Join"}
         </button>

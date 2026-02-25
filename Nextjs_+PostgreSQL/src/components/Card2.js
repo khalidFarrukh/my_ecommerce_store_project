@@ -1,7 +1,10 @@
 
 import Image from "next/image";
 
+import { getDefaultVariant } from "@/utils/productVariant";
+
 export default function Card2({ productObj }) {
+
   return (
     <>
       <div
@@ -20,7 +23,7 @@ export default function Card2({ productObj }) {
         `}
       >
         <Image
-          src={productObj.thumbLink}
+          src={defaultVariant.images[0]}
           alt={productObj.name}
           width={1200}
           height={1200}

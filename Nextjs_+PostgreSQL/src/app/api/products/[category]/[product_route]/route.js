@@ -1,9 +1,8 @@
-import { products } from "../../data"
+import { products } from "@/app/api/data";
 
 export async function GET(req, context) {
-  const { category, product } = await context.params;
-  const product_data = products.filter(item => item.category === category && item.name === product) ?? null;
-
+  const { category, product_route } = await context.params;
+  const product_data = products.find(item => item.category === category && item.name.toLowerCase().split(' ').join('-') === product_route) ?? null;
   if (!product_data) {
     return new Response(JSON.stringify({ error: "Product not found" }), {
       status: 404,

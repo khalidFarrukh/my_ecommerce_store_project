@@ -1,48 +1,61 @@
 
+import { useSearchModal } from "@/context/SearchModalContext";
+import { getDefaultVariant } from "@/utils/productVariant";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function Card3({ pthumbLink, pname }) {
+export default function Card3({ productObj, id }) {
+  const { closeSearchModal } = useSearchModal();
+  const defaultVariant = getDefaultVariant(productObj);
   return (
     <>
-      <div
+      <Link
+        href={"/products/" + String(productObj.category + "/" + String(productObj.route))}
+        onClick={closeSearchModal}
         className=
         {`
-          w-[16vw]
-          h-[20vw]
+          w-fit
+          h-fit
           rounded-[15px]
-          bg-white
-          border-1
-          border-[var(--myBorderColor)]
+          bg-background_2
+          border
+          border-myBorderColor
           flex
           flex-col
+          gap-3
+          p-5
+          pb-3
+          m-3
+          group
         `}
       >
         <div
           className=
           {`
-          w-[90%]
-          h-[80%]
-          mx-auto
-          mt-3
+          size-full          
           rounded-[10px]
-          bg-[#fafafa]
-          border-1
-          border-[var(--myBorderColor)]
+          bg-background_2
+          border
+          border-myBorderColor
           flex
           items-center
           justify-center
         `}
         >
           <Image
-            src={pthumbLink}
-            alt={pname}
+            className="scale-100 group-hover:scale-120 transition-normal duration-100"
+            src={defaultVariant.images[0]["src"]}
+            alt={productObj.name}
             width={1200}
             height={1200}
 
             priority
           />
         </div>
-      </div>
+        <div className="w-full">
+          {productObj.name}
+        </div>
+      </Link>
     </>
   );
 }

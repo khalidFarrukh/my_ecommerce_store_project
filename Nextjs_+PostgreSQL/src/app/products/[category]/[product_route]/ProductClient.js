@@ -6,39 +6,35 @@ import Card2 from "@/components/Card2";
 import TextAndPlus from "@/components/TextAndPlus";
 import { useParams } from 'next/navigation';
 import { useSelector } from "react-redux";
-import { useAppContext } from "@/context/AppContext";
+import { useProductPageContext } from "@/context/ProductPageContext";
 import { getDefaultVariant } from "@/utils/productVariant";
 import OptionGroup from "@/components/OptionGroup";
 import { buildOptionsFromVariantsByUnion } from "@/utils/buildOptionsFromVariantsByUnion";
 import Card1 from "@/components/Card1";
-import { useProducts } from "../layout";
 import SmallCardsList from "@/components/SmallCardsList";
+import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { addToCart } from "@/store/cartSlice";
+import { useAlertModal } from "@/context/AlertModalContext";
+import { convertDashStringToTextString } from "@/utils/utilities";
 
-export default function Product() {
+export default function ProductClient({ selectedProduct, relatedProducts }) {
   const {
     isProductPageArrowDown1,
     setIsProductPageArrowDown1,
     isProductPageArrowDown2,
     setIsProductPageArrowDown2
+  } = useProductPageContext();
 
-  } = useAppContext();
 
-  const allRelatedProducts = useProducts();
+  const dispatch = useDispatch();
+  const { openAlertModal } = useAlertModal();
+  const cartItems = useSelector(state => state.cart.cartState.items); // assuming your slice is cart.items
+  const [selected_quantity, setSelectedQuantity] = useState(1);
 
-  const { category, product } = useParams();
+  const selected_product = selectedProduct;
+  const otherRelatedProducts = relatedProducts;
 
-  const selected_product = React.useMemo(() => {
-    if (!allRelatedProducts.length || !product) return null;
-
-    return allRelatedProducts.find(
-      p => p.route === product
-    ) || null;
-  }, [allRelatedProducts, product]);
-
-  const otherRelatedProducts = React.useMemo(() => {
-    if (!allRelatedProducts || !selected_product) return [];
-    return allRelatedProducts.filter(p => p.id !== selected_product.id);
-  }, [allRelatedProducts, selected_product]);
 
   const availableOptions = React.useMemo(() => {
     if (!selected_product?.variants) return {}
@@ -49,20 +45,82 @@ export default function Product() {
 
   const defaultVariant = getDefaultVariant(selected_product);
 
-  useEffect(() => {
-    if (!defaultVariant?.options) return
-    setSelectedOptions({ ...defaultVariant.options })
-  }, [defaultVariant])
 
   const matchedVariant = React.useMemo(() => {
-    if (!selected_product?.variants) return null
+    if (!selected_product?.variants) return null;
 
     return selected_product.variants.find(variant =>
       Object.entries(selectedOptions).every(
         ([key, value]) => variant.options[key] === value
       )
-    ) || null
-  }, [selectedOptions, selected_product])
+    ) || null;
+  }, [selectedOptions, selected_product]);
+
+  useEffect(() => {
+    if (!defaultVariant?.options) return
+    setSelectedOptions({ ...defaultVariant.options })
+  }, [defaultVariant])
+
+  useEffect(() => {
+    setSelectedQuantity(1);
+  }, [matchedVariant]);
+
+  const increaseQty = () => {
+    if (!matchedVariant) return;
+    if (selected_quantity >= 3) return;
+
+    setSelectedQuantity(prev => prev + 1);
+  };
+
+  const decreaseQty = () => {
+    if (selected_quantity <= 1) return;
+
+    setSelectedQuantity(prev => prev - 1);
+  };
+
+  const handleAddToCart = () => {
+    if (!selected_product || !matchedVariant) return;
+
+    const cartItem = {
+      product_id: selected_product._id,
+      variant_id: matchedVariant.id,
+      quantity: selected_quantity
+    };
+
+    // Check if this product+variant already exists in cart
+    const existingMainProductIndex = cartItems.findIndex(
+      item => item.product_id === cartItem.product_id
+    );
+
+    if (existingMainProductIndex === -1) {
+      // Not in cart → simply add
+      dispatch(addToCart({ ...cartItem }));
+    } else {
+      const existingMainProduct = cartItems[existingMainProductIndex];
+
+      const existingVariantIndex = existingMainProduct.variants.findIndex(
+        variant => variant.variant_id === cartItem.variant_id
+      );
+
+      if (existingVariantIndex === -1) {
+        dispatch(addToCart({ ...cartItem }));
+      }
+      else {
+        const existingVariant = existingMainProduct.variants[existingVariantIndex];
+        // Sum quantities
+        const newQuantity = existingVariant.quantity + cartItem.quantity;
+        if (newQuantity <= 3) {
+          // Update quantity in cart slice
+          dispatch(addToCart({ ...cartItem }));
+        } else {
+          openAlertModal(
+            "Same product must not exceed the max limit of 3 in cart. Your current action causes the cart for this product to go beyond max limit of 3."
+          );
+        }
+      }
+
+    }
+  };
 
   const price = matchedVariant?.price
   const discount = matchedVariant?.discount ?? 0
@@ -84,10 +142,9 @@ export default function Product() {
       <main
         className=
         {`
-            z-1
             relative
             w-full
-            bg-white
+            bg-background_1
             my-3
             lg:my-5
             flex
@@ -117,35 +174,35 @@ export default function Product() {
                     lg:sticky lg:top-[35%]
                   `}
               >
-                <Link
-                  href={"/collections/" + selected_product.collection_id}
-                  className=
-                  {`
+                {
+                  selected_product.collectionIds.map((collectionId, index) => (
+                    <Link
+                      key={index}
+                      href={"/collections/" + collectionId}
+                      className=
+                      {`
                       block
                     `}
-                >
-                  <h3
-                    className=
-                    {`
-                        font-poppins
-                        text-[var(--myTextColorLightGray)]
-                        text-[105%]
-                        font-bold
-                        hover:text-black
-                      `}
-                  >
-                    {
-                      selected_product.collection_name
-                    }
-                  </h3>
-                </Link>
+                    >
+                      <h3
+                        className=
+                        {`
+                      text-myTextColorLightGray
+                      text-[105%]
+                      font-bold
+                      hover:text-foreground
+                    `}
+                      >
+                        {convertDashStringToTextString(collectionId)}
+                      </h3>
+                    </Link>
+                  ))
+                }
                 <h1
                   className=
                   {`
                       mt-3
                       w-full
-                      font-poppins
-                      text-black
                       text-[205%]
                       font-semibold
                     `}
@@ -159,7 +216,6 @@ export default function Product() {
                   {`
                       mt-3
                       w-full
-                      font-poppins
                       text-[90%]
                       `}
                 >
@@ -173,7 +229,7 @@ export default function Product() {
                       w-full
                       mt-5
                       border-t
-                      border-[var(--myBorderColor)]
+                      border-myBorderColor
                     `}
                 />
                 <TextAndPlus id={1} title="Product Information" state={isProductPageArrowDown1} setState={setIsProductPageArrowDown1} />
@@ -186,7 +242,7 @@ export default function Product() {
                       ease-in-out
                       
                       w-full
-                      ${isProductPageArrowDown1 ? "h-[0px] pointer-events-none pb-0" : "pb-3 h-[160px]"}
+                      ${isProductPageArrowDown1 ? "h-0 pointer-events-none pb-0" : "pb-3 h-[160px]"}
                     `}
                 >
                   <div
@@ -196,7 +252,7 @@ export default function Product() {
                         grid-cols-2 
                         gap-x-4
                         gap-y-4
-                        text-black
+                       
                         font-poppins
                         text-[80%]
                         font-extrabold
@@ -215,7 +271,7 @@ export default function Product() {
                         className=
                         {`
                             text-[90%]
-                            text-[var(--myTextColorNormal)]
+           
                             font-bold
                           `}
                       >
@@ -234,7 +290,7 @@ export default function Product() {
                         className=
                         {`
                             text-[90%]
-                            text-[var(--myTextColorNormal)]
+      
                             font-bold
                           `}
                       >
@@ -254,7 +310,7 @@ export default function Product() {
                         className=
                         {`
                             text-[90%]
-                            text-[var(--myTextColorNormal)]
+                        
                             font-bold
                           `}
                       >
@@ -274,7 +330,7 @@ export default function Product() {
                         className=
                         {`
                             text-[90%]
-                            text-[var(--myTextColorNormal)]
+          
                             font-bold
                           `}
                       >
@@ -294,7 +350,6 @@ export default function Product() {
                         className=
                         {`
                             text-[90%]
-                            text-[var(--myTextColorNormal)]
                             font-bold
                           `}
                       >
@@ -308,7 +363,7 @@ export default function Product() {
                   {`
                       w-full
                       border-t
-                      border-[var(--myBorderColor)]
+                      border-myBorderColor
                     `}
                 />
                 <TextAndPlus id={2} title="Shipping & Returns" state={isProductPageArrowDown2} setState={setIsProductPageArrowDown2} />
@@ -317,22 +372,41 @@ export default function Product() {
                   {`
                       w-full
                       border-t
-                      border-[var(--myBorderColor)]
+                      border-myBorderColor
                     `}
                 />
               </div>
             </div>
-            <div
-              className=
-              {`
-                  flex
-                  flex-col
-                  gap-5
-                `}
-            >
-              <Card2 productObj={selected_product} />
-              <Card2 productObj={selected_product} />
-              <Card2 productObj={selected_product} />
+            <div className="flex flex-col gap-5">
+              {
+                matchedVariant?.images?.map((image, index) => (
+                  <div
+                    key={`${matchedVariant.id}-${index}`}
+                    className="
+                    flex-1
+                    w-full
+                    h-full
+                    rounded-[12px]
+                    bg-background_2
+                    border
+                    border-myBorderColor
+                    flex
+                    items-center
+                    justify-center
+                  
+                  "
+                  >
+                    <Image
+
+                      src={image?.src}
+                      alt={selected_product.name}
+                      width={1200}
+                      height={1200}
+                      priority
+                    />
+                  </div>
+                ))
+              }
             </div>
 
             <div>
@@ -359,24 +433,21 @@ export default function Product() {
                     />
                   ))}
 
-                  {/* {
-                    matchedVariant &&
+                  {
+                    matchedVariant && matchedVariant?.stock < 10 &&
                     <div className="mb-4">
                       <p className="mb-2 font-semibold capitalize">
                         Available Stock
                       </p>
-
-                      <div className="flex gap-2 flex-wrap">
-                        {matchedVariant?.stock}
-                      </div>
+                      {matchedVariant?.stock}
                     </div>
-                  } */}
+                  }
 
                   {
                     matchedVariant ?
                       <div className=
                         {`
-                            w-full flex flex-col
+                            w-full flex flex-col 
                           `}
                       >
 
@@ -393,7 +464,7 @@ export default function Product() {
                             <div
                               className=
                               {`
-                            ml-3
+                            
                             line-through
                           `}
                             >
@@ -404,15 +475,51 @@ export default function Product() {
                             className=
                             {`
                                 ml-3
-                                ${"text-black font-bold text-2xl"}
+                                font-bold 
+                                text-2xl
+                             
                               `}
                           >
                             {finalPrice}.00
                           </div>
                         </div>
-                        <button className="w-full h-[36px] bg-[black] text-white cursor-pointer rounded-md">
+                        {/* Quantity Selector */}
+                        <div className="flex items-center justify-between mb-3">
+
+                          <p className="font-semibold">Quantity</p>
+
+                          <div className="flex items-center overflow-hidden">
+
+                            <button
+                              onClick={decreaseQty}
+                              disabled={selected_quantity === 1}
+                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              -
+                            </button>
+
+                            <div className="px-4 bg-background_1">
+                              {selected_quantity}
+                            </div>
+
+                            <button
+                              onClick={increaseQty}
+                              disabled={selected_quantity === 3}
+                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              +
+                            </button>
+
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleAddToCart}
+                          className="w-full h-[36px] border button2 cursor-pointer rounded-md"
+                        >
                           Add to Cart
                         </button>
+
                       </div>
                       :
                       <div className=
@@ -420,7 +527,7 @@ export default function Product() {
                             w-full flex flex-col
                           `}
                       >
-                        <div className="w-full h-[36px] bg-[#fafafa] text-[var(--myTextColorLightGray)] flex items-center justify-center cursor-not-allowed rounded-md">
+                        <div className="w-full h-[36px] bg-background_2 text-[var(--myTextColorLightGray)] flex items-center justify-center cursor-not-allowed rounded-md">
                           Out of stock
                         </div>
                       </div>
@@ -450,7 +557,19 @@ export default function Product() {
             </header>
 
             {/* products */}
-            <SmallCardsList productList={otherRelatedProducts} className={""} />
+            <SmallCardsList
+              productList={otherRelatedProducts}
+              className={`
+                grid
+                grid-cols-2
+                lg:grid-cols-4
+                mt-5
+                gap-x-5
+                gap-y-5
+                w-full
+                `}
+              card1_className={"!min-h-[300px] !h-[15vw] !lg:h-[15vw]"}
+            />
           </section>
         }
       </main>
