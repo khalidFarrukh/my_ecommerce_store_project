@@ -97,18 +97,6 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
     }
   }, [route, query, type]);
 
-
-  function getDefaultVariant(product) {
-    return (
-      product.variants.find(v => v.default) ||
-      product.variants[0]
-    );
-  }
-
-  function getDefaultPrice(product) {
-    return getDefaultVariant(product)?.price ?? 0;
-  }
-
   const sortedProducts = React.useMemo(() => {
     if (!products.length) return [];
 

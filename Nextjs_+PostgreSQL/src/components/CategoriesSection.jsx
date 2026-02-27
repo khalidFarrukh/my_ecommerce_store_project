@@ -107,7 +107,7 @@ export default function CategoriesSection({ categories }) {
                     return (
                       <Link key={index} href={`/products/${cRoute}`}>
                         <div
-                          className={`cursor-pointer px-3 py-1 button2 ${pathname === `/products/${cRoute}` ? "bg-foreground text-background_1" : "bg-background_1 text-foreground"}  hover:bg-foreground hover:text-background_1 transition-all delay-25`}
+                          className={`cursor-pointer px-3 py-1 button2 ${pathname === `/products/${cRoute}` ? "button2_active " : ""} transition-all delay-25`}
                         >
                           {category.name}
                         </div>

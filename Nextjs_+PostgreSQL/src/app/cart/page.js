@@ -213,7 +213,7 @@ export default function Cart() {
                     </div>
                     <button
                       onClick={() => setShowDeleteAllModal(true)}
-                      className="bg-[darkred] not-disabled:hover:bg-[red] p-2 rounded-[12px] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex gap-1"
+                      className="bg-[darkred] not-disabled:hover:bg-[red] p-2 rounded-md text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex gap-1"
                     ><Trash className="size-[20px]" /> Delete all</button>
                   </div>
                   <div className="w-full flex flex-col gap-3">
@@ -341,7 +341,7 @@ export default function Cart() {
                                         setCurrentCartVariantIndex(cartVariantIndex);
                                         setShowDeleteItemModal(true);
                                       }}
-                                      className="bg-[darkred] not-disabled:hover:bg-[red] h-fit p-2 rounded-[12px] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex gap-1"
+                                      className="bg-[darkred] not-disabled:hover:bg-[red] h-fit p-2 rounded-md text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex gap-1"
                                     ><Trash className="size-[20px]" /> </button>
                                   </div>
 
@@ -394,12 +394,12 @@ export default function Cart() {
                       </div>
                     </div>
                     {activeVariantsSize > 0 ? (
-                      <Link href={"/checkout"} className="uppercase h-max p-3 button text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
+                      <Link href={"/checkout"} className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
                         proceed to checkout
                       </Link>
                     ) : (
                       <span
-                        className="uppercase h-max p-3 bg-gray-400 text-sm text-white rounded-[10px] text-center cursor-not-allowed block"
+                        className="uppercase h-max p-3 rounded-md text-center text-sm cursor-not-allowed opacity-50 button2 block"
                         aria-disabled="true"
                       >
                         proceed to checkout

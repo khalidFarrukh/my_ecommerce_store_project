@@ -1,16 +1,20 @@
 @import "tailwindcss";
 /* Add Flowbite styles */
 
-:root {
+/* :root {
   --background_1: #ffffff;
   --background_2: #fafafa;
   --foreground: #171717;
   --buttonHovered: #dddddd;
   --buttonTextHovered: #222222;
+  --buttonActive: #dddddd;
+  --buttonTextActive: #222222;
+
   --myBorderColor: #e5e7eb;
   --myTextColorMain: #4b5563;
-  --myTextColorBlue: #3b82f6;
   --myTextColorHeading: black;
+
+  --myTextColorBlue: #3b82f6;
   --myTextColorLightGray: #9ca3af;
 }
 
@@ -20,6 +24,44 @@
   --foreground: #ededed;
   --buttonHovered: #222222;
   --buttonTextHovered: #dddddd;
+  --buttonActive: #222222;
+  --buttonTextActive: #dddddd;
+
+  --myBorderColor: #555555;
+  --myTextColorMain: #d1d5db;
+  --myTextColorHeading: #ffffff;
+} */
+:root {
+  --background_1: #ffffff;
+  --background_2: #fafafa;
+  --foreground: #171717;
+
+  --buttonNormal: #fafafa;
+  --buttonTextNormal: #000000;
+  --buttonHovered: #444444;
+  --buttonTextHovered: #ffffff;
+  --buttonActive: #000000;
+  --buttonTextActive: #ffffff;
+
+  --myBorderColor: #e5e7eb;
+  --myTextColorMain: #4b5563;
+  --myTextColorHeading: black;
+
+  --myTextColorBlue: #3b82f6;
+  --myTextColorLightGray: #9ca3af;
+}
+
+.dark {
+  --background_1: #0a0a0a;
+  --background_2: #222222;
+  --foreground: #ededed;
+
+  --buttonNormal: #222222;
+  --buttonTextNormal: #ffffff;
+  --buttonHovered: #bbbbbb;
+  --buttonTextHovered: #000000;
+  --buttonActive: #ffffff;
+  --buttonTextActive: #000000;
 
   --myBorderColor: #555555;
   --myTextColorMain: #d1d5db;
@@ -30,8 +72,12 @@
   --color-background_1: var(--background_1);
   --color-background_2: var(--background_2);
   --color-foreground: var(--foreground);
+  --color-buttonNormal: var(--buttonNormal);
+  --color-buttonTextNormal: var(--buttonTextNormal);
   --color-buttonHovered: var(--buttonHovered);
   --color-buttonTextHovered: var(--buttonTextHovered);
+  --color-buttonActive: var(--buttonActive);
+  --color-buttonTextActive: var(--buttonTextActive);
   --color-myBorderColor: var(--myBorderColor);
   --color-myTextColorMain: var(--myTextColorMain);
   --font-inter: var(--font-inter);
@@ -61,8 +107,8 @@
 }
 
 .button2 {
-  background-color: var(--foreground);
-  color: var(--background_1);
+  background-color: var(--buttonNormal);
+  color: var(--foreground);
   border: 1px solid var(--myBorderColor);
   border-radius: 6px;
 }
@@ -75,14 +121,26 @@
 
 .button2:active,
 .inc_dec:active {
-  background-color: var(--background_1);
-  color: var(--foreground);
+  background-color: var(--buttonActive);
+  color: var(--buttonTextActive);
 }
 
 .inc_dec {
-  background-color: var(--foreground);
-  color: var(--background_1);
+  background-color: var(--buttonNormal);
+  color: var(--foreground);
   border: 1px solid var(--myBorderColor);
+}
+
+.button2_active {
+  background-color: var(--foreground) !important;
+  color: var(--background_1) !important;
+  font-weight: bold;
+
+}
+
+.button2_active:hover {
+  background-color: var(--foreground) !important;
+  color: var(--background_1) !important;
 }
 
 /* .button2:focus {

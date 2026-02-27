@@ -1,9 +1,13 @@
 "use client";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function PageContentWrapper({ children }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   const not_allowed_on = ["/cart"];
   const isValid = React.useMemo(() => {
@@ -22,7 +26,7 @@ export default function PageContentWrapper({ children }) {
           mx-auto
           flex
           flex-col
-          text-[var(--myTextColorMain)]
+          text-myTextColorMain
         "
       >
         {children}

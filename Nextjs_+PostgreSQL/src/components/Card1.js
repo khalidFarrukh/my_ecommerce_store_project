@@ -5,17 +5,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { getVariantPricing } from "@/utils/productVariant";
 import { convertTextStringToDashString } from "@/utils/utilities";
+import { useSearchModal } from "@/context/SearchModalContext";
 
 export default function Card1({ className, productObj, id }) {
 
   const { variant, price, discount, finalPrice } = getVariantPricing(productObj);
   const product_route = convertTextStringToDashString(productObj.name);
+  const { closeSearchModal } = useSearchModal();
+  const classes = "w-"
   return (
     <>
       <Link
         key={id}
         onClick={() => {
-          window.scrollTo(0, 0); // scroll to top immediately
+          closeSearchModal();
         }}
         href={"/products/" + String(productObj.category) + "/" + product_route}
         className=
@@ -48,7 +51,8 @@ export default function Card1({ className, productObj, id }) {
               border-myBorderColor
               transition-all
               duration-150
-              hover:shadow-sm
+              hover:shadow-foreground/20
+              hover:shadow-md
               flex
               items-center
               justify-center
