@@ -9,7 +9,7 @@ export default function AlertModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 size-full flex items-center justify-center z-[110]">
+    <div className="fixed inset-0 size-full flex items-center justify-center z-110">
       <div
         onClick={closeAlertModal}
         className="fixed size-full backdrop-blur-md bg-background_2/20 pointer-events-auto z-0 cursor-pointer"
@@ -19,9 +19,9 @@ export default function AlertModal() {
         className={`
           relative
           z-1
-          max-w-[400px]
+          max-w-100
           w-full
-          min-h-[200px]
+          min-h-50
           my-auto
           border
           border-myBorderColor
@@ -38,13 +38,9 @@ export default function AlertModal() {
           <button
             onClick={closeAlertModal}
             className={`
-              group
-              w-[30px]
-              h-[30px]
-              bg-black
-              hover:bg-white
-              border
-              hover:border-black
+              w-7.5
+              h-7.5
+              button1
               rounded-full
               cursor-pointer
               flex
@@ -52,12 +48,7 @@ export default function AlertModal() {
               justify-center
             `}
           >
-            <X
-              className={`
-                text-white
-                group-hover:text-black
-              `}
-            />
+            <X />
           </button>
         </div>
         <div className="w-full flex-1 text-foreground text-[16px] leading-relaxed">

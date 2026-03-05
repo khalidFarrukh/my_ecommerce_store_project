@@ -101,13 +101,13 @@ export default function CategoriesSection({ categories }) {
                 ref={scrollRef}
                 className="w-full overflow-x-auto scrollbar-hide "
               >
-                <div className="w-max flex gap-4 whitespace-nowrap mr-1">
+                <div className="w-max flex items-center gap-4 whitespace-nowrap mr-1">
                   {categories.map((category, index) => {
                     const cRoute = convertTextStringToDashString(category.name);
                     return (
                       <Link key={index} href={`/products/${cRoute}`}>
                         <div
-                          className={`cursor-pointer px-3 py-1 button2 ${pathname === `/products/${cRoute}` ? "button2_active " : ""} transition-all delay-25`}
+                          className={`cursor-pointer  px-3 py-1 ${pathname === `/products/${cRoute}` ? "button1_active" : "button1"} transition-all delay-25`}
                         >
                           {category.name}
                         </div>

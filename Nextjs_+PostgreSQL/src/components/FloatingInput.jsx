@@ -24,16 +24,18 @@ export default function FloatingInput({
         className="
           peer
           w-full
-          h-[56px]
+          h-14
           px-4
           pt-6
           text-base
-          bg-background_2
+          bg-inputBgNormal
           border
           border-myBorderColor
           rounded-md
           outline-none
           focus:border-foreground
+          focus:ring-2
+          focus:ring-foreground/20
         "
         {...inputProps}
       />
@@ -45,7 +47,7 @@ export default function FloatingInput({
           left-4
           top-1/2
           -translate-y-1/2
-          text-[gray]
+          text-myTextColorMain
           text-md
           transition-all
           duration-200

@@ -64,7 +64,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body
-        className={`${inter.variable} ${poppins.variable} antialiased w-full `}
+        className={`${inter.variable} ${poppins.variable} antialiased w-full`}
       >
         <Providers>
           <GlobalSessionGuard />

@@ -1,24 +1,18 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import ProfileTabs from "./ProfileTabs";
 
 export default async function ProfilePage() {
   const session = await auth();
 
+  if (!session) {
+    redirect("/account");
+  }
+
   return (
-    <main className="w-full max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
+    <main className="w-full max-w-4xl mx-auto py-5 space-y-6">
 
-      <p>
-        <strong>Name:</strong> {session.user.name || "N/A"}
-      </p>
-
-      <p>
-        <strong>Email:</strong> {session.user.email}
-      </p>
-
-      <p>
-        <strong>Role:</strong> {session.user.role || "USER"}
-      </p>
+      <ProfileTabs session={session} />
     </main>
   );
 }

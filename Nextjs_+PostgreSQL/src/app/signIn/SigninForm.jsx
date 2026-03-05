@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 
-export default function LoginForm() {
+export default function LoginForm({ updateMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -39,6 +39,8 @@ export default function LoginForm() {
     });
 
     setLoading(false);
+
+    console.log("result -> ", result);
 
     if (!result || result.error) {
       setError("Invalid email or password");
@@ -82,13 +84,27 @@ export default function LoginForm() {
           value={form.password}
           onChange={handleChange}
         />
+        <p className="mt-3 text-center flex justify-end">
+          <button
+            type="button"
+            onClick={updateMode}
+            className="
+            text-sm 
+            text-myTextColorMain 
+            hover:underline 
+            cursor-pointer
+          "
+          >
+            Forgot password?
+          </button>
+        </p>
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="mt-3 w-full py-2 button2 cursor-pointer disabled:opacity-50"
+          className="mt-3 w-full py-2 button1 cursor-pointer disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>

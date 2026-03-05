@@ -20,8 +20,8 @@ export default function OptionGroup({
             className={`
               px-3 py-1 border rounded cursor-pointer
               ${selectedValue === value
-                ? "button2_active"
-                : "button2"}
+                ? "button1_active"
+                : "button1"}
             `}
           >
             {value}

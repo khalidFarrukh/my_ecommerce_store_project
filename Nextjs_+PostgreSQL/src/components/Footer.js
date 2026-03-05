@@ -62,6 +62,7 @@ export default function Footer() {
               w-max
               order-1
               md:order-0
+              text-wrap
             `}
           >
             © 2025 Medusa Store. All rights reserved.

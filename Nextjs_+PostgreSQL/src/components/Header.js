@@ -19,12 +19,14 @@ export default function Header() {
 
   const cartState = useSelector(state => state.cart.cartState);
 
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+
   const isLoading = status === "loading";
   const selectedUrl =
     status === "authenticated"
-      ? "/profile"
+      // ? "/profile"
+      ? session?.user.role === "user" ? "/profile" : "/admin/dashboard"
       : `/account?callbackUrl=${pathname}`;
   const startsWithAccount = pathname.startsWith("/account");
 

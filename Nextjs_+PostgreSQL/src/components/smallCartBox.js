@@ -63,7 +63,7 @@ export default function CustomCartBox() {
               </Link>
               :
               <Link href={"/cart"}
-                className="h-max p-3 text-sm button2 cursor-pointer"
+                className="h-max p-3 text-sm button1 cursor-pointer"
               >
                 Show cart
               </Link>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SignupForm() {
+export default function SignupForm({ updateMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -106,11 +106,20 @@ export default function SignupForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-3 w-full py-2 button2 cursor-pointer disabled:opacity-50"
+          className="mt-3 w-full py-2 button1 cursor-pointer disabled:opacity-50"
         >
           {loading ? "Joining..." : "Join"}
         </button>
       </form>
+      <p className="text-center text-sm">
+        Already have an account?{" "}
+        <button
+          onClick={updateMode}
+          className="underline font-medium cursor-pointer"
+        >
+          Sign in
+        </button>
+      </p>
     </>
   );
 }

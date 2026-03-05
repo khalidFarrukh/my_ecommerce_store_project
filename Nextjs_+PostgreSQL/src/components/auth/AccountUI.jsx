@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 // import { signIn } from "next-auth/react";
-import LoginForm from "./LoginForm";
+import LoginForm from "../../app/signIn/SigninForm";
 import SignupForm from "./SignupForm";
 import { useSearchParams } from "next/navigation";
+import LoginUI from "./LoginUI";
 
-export default function AccountUI() {
+export default function AccountUI({ children }) {
   const searchParams = useSearchParams();
 
   // if middleware added callbackUrl (?callbackUrl=/profile)
@@ -18,49 +19,9 @@ export default function AccountUI() {
       <section className="w-full flex flex-col items-center">
         <div className="w-full max-w-100 h-fit flex flex-col gap-5 items-center">
           {mode === "login" ? (
-            <>
-              <LoginForm />
-              <p className="text-center text-sm">
-                Not a member?{" "}
-                <button
-                  onClick={() => setMode("signup")}
-                  className="underline font-medium cursor-pointer"
-                >
-                  Join us
-                </button>
-              </p>
-              {/* <div className="my-5">Or</div>
-              <div className="w-full flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => signIn("google", { callbackUrl })}
-                  className="w-full border py-2 rounded"
-                >
-                  Continue with Google
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => signIn("facebook", { callbackUrl })}
-                  className="w-full border py-2 rounded"
-                >
-                  Continue with Facebook
-                </button>
-              </div> */}
-            </>
+            <LoginUI updateMode={() => setMode("signup")} />
           ) : (
-            <>
-              <SignupForm />
-              <p className="text-center text-sm">
-                Already have an account?{" "}
-                <button
-                  onClick={() => setMode("login")}
-                  className="underline font-medium cursor-pointer"
-                >
-                  Sign in
-                </button>
-              </p>
-            </>
+            <SignupForm updateMode={() => setMode("login")} />
           )}
         </div>
       </section>

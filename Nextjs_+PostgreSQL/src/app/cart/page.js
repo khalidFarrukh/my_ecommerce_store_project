@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { updateCartVariantQuantity, updateVariantCheckBox, updateProductCheckBox, updateAllItemCheckBox, deleteVariant, deleteProduct, deleteAllItems } from "@/store/cartSlice"
 import { getShippingPrice } from "@/utils/shipping";
 import Image from "next/image";
+import YesNoModal from "@/components/modals/YesNoModal";
 
 
 export default function Cart() {
@@ -312,7 +313,7 @@ export default function Cart() {
                                             <button
                                               onClick={() => decreaseQty(cartProductIndex, cartVariantIndex)}
                                               disabled={cartVariant.quantity === 1}
-                                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                              className="px-3 py-1 inc_dec_2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                               -
                                             </button>
@@ -324,7 +325,7 @@ export default function Cart() {
                                             <button
                                               onClick={() => increaseQty(cartProductIndex, cartVariantIndex)}
                                               disabled={cartVariant.quantity === 3}
-                                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                              className="px-3 py-1 inc_dec_2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                               +
                                             </button>
@@ -394,9 +395,11 @@ export default function Cart() {
                       </div>
                     </div>
                     {activeVariantsSize > 0 ? (
-                      <Link href={"/checkout"} className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
-                        proceed to checkout
-                      </Link>
+                      <div className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
+                        <Link href={"/checkout"}>
+                          proceed to checkout
+                        </Link>
+                      </div>
                     ) : (
                       <span
                         className="uppercase h-max p-3 rounded-md text-center text-sm cursor-not-allowed opacity-50 button2 block"
@@ -408,78 +411,32 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
-              {showDeleteAllModal && (
-                <div className="fixed inset-0 top-0 left-0 z-100 size-full flex items-center justify-center backdrop-blur-md bg-background_2/20">
-                  <div className="bg-background_1 rounded-[12px] p-6 w-[90%] max-w-[400px] flex flex-col gap-5 outline outline-myBorderColor">
+              {showDeleteAllModal &&
+                <YesNoModal
+                  text1={"Are you sure, you want to delete your whole cart?"}
+                  cancelFunction={() => {
+                    setCurrentCartProductIndex(-99);
+                    setCurrentCartVariantIndex(-99);
+                    setShowDeleteAllModal(false);
+                  }}
+                  yesFunction={() => {
+                    dispatch(deleteAllItems());
+                    setCurrentCartProductIndex(-99);
+                    setCurrentCartVariantIndex(-99);
+                    setShowDeleteAllModal(false);
+                  }}
+                />
+              }
 
-                    <h2 className="text-lg font-semibold text-center">
-                      Are you sure, you want to delete your whole cart?
-                    </h2>
-
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => {
-                          setCurrentCartProductIndex(-99);
-                          setCurrentCartVariantIndex(-99);
-                          setShowDeleteAllModal(false);
-                        }}
-                        className="px-4 py-2 border rounded-md cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          dispatch(deleteAllItems());
-                          setCurrentCartProductIndex(-99);
-                          setCurrentCartVariantIndex(-99);
-                          setShowDeleteAllModal(false);
-                        }}
-                        className="px-4 py-2 bg-[darkred] text-white rounded-md cursor-pointer hover:bg-red-600"
-                      >
-                        Yes
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-              )}
               {showDeleteItemModal &&
-                (
-                  <div className="fixed inset-0 top-0 left-0 z-100 size-full flex items-center justify-center">
-                    <div
-                      onClick={() => setShowDeleteItemModal(false)}
-                      className="fixed size-full backdrop-blur-md bg-background_2/20 pointer-events-auto z-0 cursor-pointer"
-                      aria-hidden
-                    />
-                    <div className="z-1 bg-background_1 rounded-[12px] p-6 w-[90%] max-w-[400px] flex flex-col gap-5 ">
-
-                      <h2 className="text-lg font-semibold text-center">
-                        Are you sure, you want to delete this item?
-                      </h2>
-
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={() => setShowDeleteItemModal(false)}
-                          className="px-4 py-2 button rounded-md cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            handleVariantDelete(currentCartProductIndex, currentCartVariantIndex);
-                            setShowDeleteItemModal(false);
-                          }}
-                          className="px-4 py-2 bg-[darkred] text-white rounded-md cursor-pointer hover:bg-red-600"
-                        >
-                          Yes
-                        </button>
-                      </div>
-
-                    </div>
-                  </div>
-                )
+                <YesNoModal
+                  text1={"Are you sure, you want to delete this item?"}
+                  cancelFunction={() => setShowDeleteItemModal(false)}
+                  yesFunction={() => {
+                    handleVariantDelete(currentCartProductIndex, currentCartVariantIndex);
+                    setShowDeleteItemModal(false);
+                  }}
+                />
               }
             </>
             :

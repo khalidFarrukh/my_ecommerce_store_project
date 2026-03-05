@@ -21,7 +21,7 @@ export default function PageContentWrapper({ children }) {
       {/* offset for fixed header */}
       <div
         className="
-          max-w-[1440px]
+          max-w-360
           px-6
           mx-auto
           flex

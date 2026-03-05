@@ -515,7 +515,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
 
                         <button
                           onClick={handleAddToCart}
-                          className="w-full h-[36px] border button2 cursor-pointer rounded-md"
+                          className="w-full h-[36px] border button1 cursor-pointer rounded-md"
                         >
                           Add to Cart
                         </button>

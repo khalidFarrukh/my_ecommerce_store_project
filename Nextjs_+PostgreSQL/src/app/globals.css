@@ -38,10 +38,12 @@
 
   --buttonNormal: #fafafa;
   --buttonTextNormal: #000000;
-  --buttonHovered: #444444;
-  --buttonTextHovered: #ffffff;
+  --buttonHovered: #e5e5e5;
+  --buttonTextHovered: #000000;
   --buttonActive: #000000;
   --buttonTextActive: #ffffff;
+
+  --inputBgNormal: #f0f0f0;
 
   --myBorderColor: #e5e7eb;
   --myTextColorMain: #4b5563;
@@ -58,10 +60,12 @@
 
   --buttonNormal: #222222;
   --buttonTextNormal: #ffffff;
-  --buttonHovered: #bbbbbb;
-  --buttonTextHovered: #000000;
+  --buttonHovered: #3a3a3a;
+  --buttonTextHovered: #ffffff;
   --buttonActive: #ffffff;
   --buttonTextActive: #000000;
+
+  --inputBgNormal: #0f0f0f;
 
   --myBorderColor: #555555;
   --myTextColorMain: #d1d5db;
@@ -78,75 +82,81 @@
   --color-buttonTextHovered: var(--buttonTextHovered);
   --color-buttonActive: var(--buttonActive);
   --color-buttonTextActive: var(--buttonTextActive);
+  --color-inputBgNormal: var(--inputBgNormal);
   --color-myBorderColor: var(--myBorderColor);
   --color-myTextColorMain: var(--myTextColorMain);
   --font-inter: var(--font-inter);
   --font-poppins: var(--font-poppins);
+  
   --breakpoint-w851: 851px;
   --breakpoint-w768: 768px;
   --breakpoint-w650: 650px;
   --breakpoint-w512: 512px;
 }
 
-.button {
-  background-color: var(--background_1);
+body {
+
   color: var(--foreground);
-  border: 1px solid gray;
-  border-radius: 6px;
-}
-
-
-.button:hover {
-  background-color: var(--foreground);
-  color: var(--background_1);
-}
-
-.button:focus {
   background-color: var(--background_1);
-  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.button2 {
+
+.button1 {
   background-color: var(--buttonNormal);
-  color: var(--foreground);
+  color: var(--buttonTextNormal);
+}
+
+.button1,
+.button1_active,
+.button2 {
   border: 1px solid var(--myBorderColor);
   border-radius: 6px;
 }
 
+
+.inc_dec {
+  background-color: var(--buttonNormal);
+  color: var(--buttonTextNormal);
+}
+
+.inc_dec_2,
+.button2 {
+  background-color: var(--background_1);
+  color: var(--foreground);
+}
+
+.inc_dec,
+.inc_dec_2 {
+  border: 1px solid var(--myBorderColor);
+}
+
+
+.button1:hover,
 .button2:hover,
-.inc_dec:hover {
+.inc_dec:hover,
+.inc_dec_2:hover {
   background-color: var(--buttonHovered);
   color: var(--buttonTextHovered);
 }
 
+.button1:active,
 .button2:active,
-.inc_dec:active {
+.inc_dec:active,
+.inc_dec_2:active {
   background-color: var(--buttonActive);
   color: var(--buttonTextActive);
 }
 
-.inc_dec {
-  background-color: var(--buttonNormal);
-  color: var(--foreground);
-  border: 1px solid var(--myBorderColor);
+.button1_active {
+  background-color: var(--buttonActive) !important;
+  color: var(--buttonTextActive) !important;
 }
 
-.button2_active {
-  background-color: var(--foreground) !important;
-  color: var(--background_1) !important;
-  font-weight: bold;
-
+.button1_active:hover {
+  background-color: var(--buttonActive) !important;
+  color: var(--buttonTextActive) !important;
 }
-
-.button2_active:hover {
-  background-color: var(--foreground) !important;
-  color: var(--background_1) !important;
-}
-
-/* .button2:focus {
-  background-color: var(--foreground);
-  color: var(--background_1);
-} */
 
 
 
@@ -159,14 +169,6 @@
   }
 } */
 
-
-
-body {
-
-  color: var(--foreground);
-  background-color: var(--background_1);
-  font-family: Arial, Helvetica, sans-serif;
-}
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

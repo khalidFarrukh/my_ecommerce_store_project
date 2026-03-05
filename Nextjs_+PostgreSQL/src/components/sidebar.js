@@ -41,7 +41,7 @@ export default function SideBar() {
               absolute
               w-[30px]
               h-[30px]
-              button2
+              button1
               !rounded-full
               top-[10px]
               right-[10px]

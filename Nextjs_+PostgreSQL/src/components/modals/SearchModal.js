@@ -85,9 +85,9 @@ export default function SearchModal() {
                 {`
                 
        
-                w-[30px]
-                h-[30px]
-                button2
+                w-7.5
+                h-7.5
+                button1
                 rounded-full!
                 cursor-pointer
                 flex
