@@ -3,8 +3,9 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-export default function SignupForm({ updateMode }) {
+export default function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -65,7 +66,7 @@ export default function SignupForm({ updateMode }) {
 
   return (
     <>
-      <h1 className="text-center font-semibold text-lg uppercase">
+      <h1 className="text-2xl sm:text-3xl font-semibold text-center">
         Become member
       </h1>
 
@@ -113,12 +114,12 @@ export default function SignupForm({ updateMode }) {
       </form>
       <p className="text-center text-sm">
         Already have an account?{" "}
-        <button
-          onClick={updateMode}
-          className="underline font-medium cursor-pointer"
+        <Link
+          href="/signIn"
+          className="hover:underline font-medium cursor-pointer"
         >
           Sign in
-        </button>
+        </Link>
       </p>
     </>
   );

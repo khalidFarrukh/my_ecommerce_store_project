@@ -9,8 +9,8 @@ export default function SmallCardsList({
     <div className={className}>
       {productList.map((item, index) => (
         <Card1
-          key={index}
-          id={index}
+          key={item._id}
+          id={item._id}
           productObj={item}
           className={card1_className}
         />

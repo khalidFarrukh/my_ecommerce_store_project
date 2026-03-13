@@ -1,94 +1,91 @@
-// import clientPromise from "@/lib/mongodb";
-
-// export async function GET(req, context) {
-//   try {
-//     // ✅ unwrap params (Next.js App Router rule)
-//     const { category } = await context.params;
-
-//     // ✅ connect to DB
-//     const client = await clientPromise;
-//     const db = client.db("my_ecommerce_db");
-
-//     // ✅ fetch products by category
-//     const products_data = await db
-//       .collection("products")
-//       .find({ category })
-//       .toArray();
-
-//     // ✅ handle empty result
-//     if (!products_data.length) {
-//       return new Response(
-//         JSON.stringify({ error: "No products found" }),
-//         { status: 404 }
-//       );
-//     }
-
-//     // ✅ convert ObjectId to string
-//     const formattedProducts = products_data.map(p => ({
-//       ...p,
-//       _id: p._id.toString()
-//     }));
-
-//     return new Response(JSON.stringify(formattedProducts), {
-//       headers: {
-//         "Content-Type": "application/json"
-//       }
-//     });
-
-//   } catch (error) {
-//     console.error("Category API Error:", error);
-
-//     return new Response(
-//       JSON.stringify({ error: "Server Error" }),
-//       { status: 500 }
-//     );
-//   }
-// }
-
-import { products } from "../../../data";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 export async function GET(req, context) {
   const { category } = await context.params;
-
   const url = new URL(req.url);
 
-  // Query params
   const offset = parseInt(url.searchParams.get("offset") || "0");
   const limit = parseInt(url.searchParams.get("limit") || "4");
   const exclude = url.searchParams.get("exclude");
 
-  // 1️⃣ Filter by category
-  let filteredProducts = products.filter(
-    item => item.category === category
-  );
+  const client = await clientPromise;
+  const db = client.db("my_ecommerce_db");
 
-  // 2️⃣ Exclude selected product (for related section)
+  const query = { category, status: "active" };
+
   if (exclude) {
-    filteredProducts = filteredProducts.filter(
-      item => item._id !== exclude
-    );
+    query._id = { $ne: new ObjectId(exclude) };
   }
 
-  const total = filteredProducts.length;
+  const total = await db.collection("products").countDocuments(query);
 
-  // 3️⃣ Pagination
-  const paginatedProducts = filteredProducts.slice(
-    offset,
-    offset + limit
-  );
+  const products = await db
+    .collection("products")
+    .find(query)
+    .skip(offset)
+    .limit(limit)
+    .toArray();
+
+  const formattedProducts = products.map(p => ({
+    ...p,
+    _id: p._id.toString()
+  }));
+
+  console.log(formattedProducts)
 
   return new Response(
     JSON.stringify({
       total,
       offset,
       limit,
-      data: paginatedProducts,
+      data: formattedProducts,
       hasMore: offset + limit < total,
     }),
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     }
   );
 }
+
+
+// import { products } from "../../../data";
+
+// export async function GET(req, context) {
+//   const { category } = await context.params;
+
+//   const url = new URL(req.url);
+
+//   // Query params
+//   const offset = parseInt(url.searchParams.get("offset") || "0");
+//   const limit = parseInt(url.searchParams.get("limit") || "4");
+//   const exclude = url.searchParams.get("exclude");
+
+//   // 1️⃣ Filter by category
+//   let filteredProducts = products.filter(
+//     item => item.category === category && item => item._id !== exclude
+//   );
+
+//   const total = filteredProducts.length;
+
+//   // 2️⃣ Pagination
+//   const paginatedProducts = filteredProducts.slice(
+//     offset,
+//     offset + limit
+//   );
+
+//   return new Response(
+//     JSON.stringify({
+//       total,
+//       offset,
+//       limit,
+//       data: paginatedProducts,
+//       hasMore: offset + limit < total,
+//     }),
+//     {
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     }
+//   );
+// }

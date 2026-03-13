@@ -118,7 +118,7 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
       case "created_at":
         return items.sort(
           (a, b) =>
-            new Date(b.created_at) - new Date(a.created_at)
+            new Date(b.createdAt) - new Date(a.createdAt)
         );
 
       default:
@@ -178,7 +178,7 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
 
   return (
     <>
-      <main
+      <div
         className=
         {`
 
@@ -283,7 +283,7 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
           </div>
 
         </section>
-      </main>
+      </div>
     </>
   );
 }

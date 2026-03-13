@@ -8,6 +8,7 @@ import { SearchModalProvider } from "@/context/SearchModalContext";
 import { AlertModalProvider } from "@/context/AlertModalContext";
 import { CartButtonProvider } from "@/context/CartButtonContext";
 import { ProductPageProvider } from "@/context/ProductPageContext";
+import { FooterProvider } from "@/context/FooterContext";
 
 export function Providers({ children, session }) {
   return (
@@ -19,7 +20,10 @@ export function Providers({ children, session }) {
               <AlertModalProvider>
                 <CartButtonProvider>
                   <ProductPageProvider>
-                    {children}
+                    <FooterProvider>
+
+                      {children}
+                    </FooterProvider>
                   </ProductPageProvider>
                 </CartButtonProvider>
               </AlertModalProvider>

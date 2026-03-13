@@ -31,9 +31,36 @@ export function convertTextStringToDashString(slug) {
     .join("-");
 }
 
+export function objectThatOnlyContainsProperties_to_arrayOfObjectsWithEachObjContainingItsIdAndProperty(obj) {
+  return Object.entries(obj).map(([key, value], index) => ({
+    id: index,
+    [key]: value
+  }));
+}
+export function arrayOfObjectsWithEachObjContainingItsIdAndProperty_to_objectThatOnlyContainsProperties(arr) {
+  const result = {};
+
+  arr.forEach((item) => {
+    const key = Object.keys(item).find((k) => k !== "id");
+    result[key] = item[key];
+  });
+
+  return result;
+}
+
+export function capitalizeEachFirstCharOfWord(str) {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export default {
   getCollections,
   getCategories,
   convertDashStringToTextString,
-  convertTextStringToDashString
+  convertTextStringToDashString,
+  objectThatOnlyContainsProperties_to_arrayOfObjectsWithEachObjContainingItsIdAndProperty,
+  arrayOfObjectsWithEachObjContainingItsIdAndProperty_to_objectThatOnlyContainsProperties,
+  capitalizeEachFirstCharOfWord
 };

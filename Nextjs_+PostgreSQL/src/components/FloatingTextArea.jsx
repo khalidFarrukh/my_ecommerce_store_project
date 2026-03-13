@@ -1,7 +1,6 @@
-"use client";
 import React, { useState } from "react";
 
-export default function FloatingInput({
+export default function FloatingTextArea({
   id,
   label,
   className = "",
@@ -14,24 +13,24 @@ export default function FloatingInput({
 
   return (
     <div className={`relative w-full ${className}`}>
-      <input
+      <textarea
         id={id}
         className={`
-          w-full
-          h-14
-          px-4
-          pt-6
-          text-base
-          bg-inputBgNormal
-          border
-          border-myBorderColor
-          rounded-md
-          outline-none
-          focus:border-foreground
-          focus:ring-2
-          focus:ring-foreground/20
-          ${inputClassName}
-        `}
+            w-full
+            h-14
+            px-4
+            pt-6
+            text-base
+            bg-inputBgNormal
+            border
+            border-myBorderColor
+            rounded-md
+            outline-none
+            focus:border-foreground
+            focus:ring-2
+            focus:ring-foreground/20
+            ${inputClassName}
+          `}
         {...inputprops}
         onFocus={(e) => {
           setFocused(true);
@@ -46,18 +45,17 @@ export default function FloatingInput({
       <label
         htmlFor={id}
         className={`
-          absolute
-          left-4
-          
-          transition-all
-          duration-200
-          pointer-events-none
-          ${
-            focused || hasValue
-              ? "top-2 text-xs translate-y-0 text-myTextColorMain"
-              : "top-1/2 -translate-y-1/2 text-md text-myBorderColor"
-          }
-        `}
+            absolute
+            left-4
+            transition-all
+            duration-200
+            pointer-events-none
+            ${
+              focused || hasValue
+                ? "top-2 text-xs translate-y-0 text-myTextColorMain"
+                : "top-1/2 -translate-y-1/2 text-md text-myBorderColor"
+            }
+          `}
       >
         {label}
         {inputprops.required && <span className="text-red-500"> *</span>}

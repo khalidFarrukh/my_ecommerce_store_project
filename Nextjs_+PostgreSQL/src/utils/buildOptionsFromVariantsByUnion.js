@@ -1,16 +1,36 @@
+// export function buildOptionsFromVariantsByUnion(variants) {
+//   const optionUnion = {}
+
+//   variants.forEach(variant => {
+//     Object.entries(variant.options).forEach(([key, value]) => {
+//       if (!optionUnion[key]) {
+//         optionUnion[key] = new Set()
+//       }
+//       optionUnion[key].add(value)
+//     })
+//   })
+
+//   // convert Sets → arrays
+//   Object.keys(optionUnion).forEach(key => {
+//     optionUnion[key] = Array.from(optionUnion[key])
+//   })
+
+//   return optionUnion
+// }
+
 export function buildOptionsFromVariantsByUnion(variants) {
   const optionUnion = {}
 
   variants.forEach(variant => {
-    Object.entries(variant.options).forEach(([key, value]) => {
-      if (!optionUnion[key]) {
-        optionUnion[key] = new Set()
+    variant.options.forEach(({ name, value }) => {
+      if (!optionUnion[name]) {
+        optionUnion[name] = new Set()
       }
-      optionUnion[key].add(value)
+
+      optionUnion[name].add(value)
     })
   })
 
-  // convert Sets → arrays
   Object.keys(optionUnion).forEach(key => {
     optionUnion[key] = Array.from(optionUnion[key])
   })

@@ -35,7 +35,6 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   const selected_product = selectedProduct;
   const otherRelatedProducts = relatedProducts;
 
-
   const availableOptions = React.useMemo(() => {
     if (!selected_product?.variants) return {}
     return buildOptionsFromVariantsByUnion(selected_product.variants)
@@ -46,20 +45,43 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   const defaultVariant = getDefaultVariant(selected_product);
 
 
+  // const matchedVariant = React.useMemo(() => {
+  //   if (!selected_product?.variants) return null;
+
+  //   return selected_product.variants.find(variant =>
+  //     Object.entries(selectedOptions).every(
+  //       ([key, value]) => variant.options[key] === value
+  //     )
+  //   ) || null;
+  // }, [selectedOptions, selected_product]);
+
   const matchedVariant = React.useMemo(() => {
     if (!selected_product?.variants) return null;
 
-    return selected_product.variants.find(variant =>
-      Object.entries(selectedOptions).every(
-        ([key, value]) => variant.options[key] === value
-      )
-    ) || null;
+    return (
+      selected_product.variants.find(variant =>
+        Object.entries(selectedOptions).every(([key, value]) =>
+          variant.options.some(
+            option => option.name === key && option.value === value
+          )
+        )
+      ) || null
+    );
   }, [selectedOptions, selected_product]);
 
+  console.log("matched -> ", matchedVariant);
+
   useEffect(() => {
-    if (!defaultVariant?.options) return
-    setSelectedOptions({ ...defaultVariant.options })
-  }, [defaultVariant])
+    if (!defaultVariant?.options) return;
+
+    const optionsObj = defaultVariant.options.reduce((acc, option) => {
+      acc[option.name] = option.value;
+      return acc;
+    }, {});
+
+    setSelectedOptions(optionsObj);
+
+  }, [defaultVariant]);
 
   useEffect(() => {
     setSelectedQuantity(1);
@@ -127,19 +149,19 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   const finalPrice = matchedVariant
     ? price - Math.round((price * discount) / 100)
     : null
-
+  console.log(otherRelatedProducts);
 
   if (!selected_product) {
     return (
-      <main className="w-full flex items-center justify-center py-40">
+      <div className="w-full flex items-center justify-center py-40">
         <p className="text-gray-400">Loading product…</p>
-      </main>
+      </div>
     );
   }
 
   return (
     <>
-      <main
+      <div
         className=
         {`
             relative
@@ -381,7 +403,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
               {
                 matchedVariant?.images?.map((image, index) => (
                   <div
-                    key={`${matchedVariant.id}-${index}`}
+                    key={image?.id}
                     className="
                     flex-1
                     w-full
@@ -393,7 +415,6 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     flex
                     items-center
                     justify-center
-                  
                   "
                   >
                     <Image
@@ -539,7 +560,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
           </div>
         </section>
         {
-          otherRelatedProducts.length > 1 &&
+          otherRelatedProducts.length > 0 &&
           <section
             className=
             {`
@@ -572,7 +593,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
             />
           </section>
         }
-      </main>
+      </div>
     </>
   );
 }

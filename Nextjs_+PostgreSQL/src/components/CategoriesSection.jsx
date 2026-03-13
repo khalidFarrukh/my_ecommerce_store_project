@@ -10,9 +10,15 @@ export default function CategoriesSection({ categories }) {
   const pathname = usePathname();
   const scrollRef = useRef(null);
 
-  const not_allowed_on = ["/cart"];
+  const not_allowed_on = [
+    "/cart",
+    "/signIn",
+    "/signUp",
+    "/forgotPassword",
+    "/resetPassword",
+  ];
   const canRenderCategories = React.useMemo(() => {
-    return !not_allowed_on.includes(pathname);
+    return !not_allowed_on.includes(pathname) && !pathname.startsWith("/admin");
   }, [pathname]);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -71,9 +77,21 @@ export default function CategoriesSection({ categories }) {
   };
 
   return (
-    canRenderCategories && (
-      <section className="fixed font-poppins z-[49] top-[60px] w-full h-fit bg-background_1 border-b border-[var(--myBorderColor)]">
-        <div className="max-w-[1440px] py-3 px-6 mx-auto">
+    canRenderCategories &&
+    categories.length > 0 && (
+      <section
+        aria-label="Product categories"
+        className="fixed font-poppins z-[49] top-[60px] w-full h-fit bg-background_1 border-b border-[var(--myBorderColor)]"
+      >
+        <div
+          className="
+          max-w-360
+          py-3
+          px-2.5
+          w375:px-5
+          mx-auto
+          "
+        >
           <h1
             className={`
           w-full
@@ -103,13 +121,12 @@ export default function CategoriesSection({ categories }) {
               >
                 <div className="w-max flex items-center gap-4 whitespace-nowrap mr-1">
                   {categories.map((category, index) => {
-                    const cRoute = convertTextStringToDashString(category.name);
                     return (
-                      <Link key={index} href={`/products/${cRoute}`}>
+                      <Link key={index} href={`/products/${category?._id}`}>
                         <div
-                          className={`cursor-pointer  px-3 py-1 ${pathname === `/products/${cRoute}` ? "button1_active" : "button1"} transition-all delay-25`}
+                          className={`cursor-pointer  px-3 py-1 ${pathname === `/products/${category?._id}` ? "button1_active" : "button1"} transition-all delay-25`}
                         >
-                          {category.name}
+                          {category?.name}
                         </div>
                       </Link>
                     );

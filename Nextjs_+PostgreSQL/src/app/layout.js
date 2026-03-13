@@ -64,7 +64,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body
-        className={`${inter.variable} ${poppins.variable} antialiased w-full`}
+        className={`${inter.variable} ${poppins.variable} antialiased w-full  min-h-screen flex flex-col`}
       >
         <Providers>
           <GlobalSessionGuard />
@@ -76,10 +76,11 @@ export default async function RootLayout({ children }) {
           <SearchModal />
           <AlertModal />
 
-          {/* PAGE CONTENT WRAPPER */}
-          <PageContentWrapper>
+          {/* Page content wrapper */}
+          <PageContentWrapper categories={categories}>
             {children}
           </PageContentWrapper>
+
           <Footer />
 
         </Providers>

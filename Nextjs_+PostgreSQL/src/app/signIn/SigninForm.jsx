@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
+import Link from "next/link";
 
-export default function LoginForm({ updateMode }) {
+export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -40,21 +41,34 @@ export default function LoginForm({ updateMode }) {
 
     setLoading(false);
 
-    console.log("result -> ", result);
-
     if (!result || result.error) {
       setError("Invalid email or password");
       return;
     }
 
+    const session = await getSession();
+
     const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
 
+    // 🚨 user trying to access admin route
+    if (safeCallBack.startsWith("/admin") && session?.user?.role !== "ADMIN") {
+      setError("Only admin have access on this page.");
+      return;
+    }
+
+    // ADMIN redirect
+    if (session?.user?.role === "ADMIN") {
+      router.push("/admin");
+      return;
+    }
+
+    // normal user redirect
     router.push(safeCallBack);
   };
 
   return (
     <>
-      <h1 className="text-center font-semibold text-lg uppercase">
+      <h1 className="text-2xl sm:text-3xl font-semibold text-center">
         Welcome Back
       </h1>
 
@@ -84,19 +98,19 @@ export default function LoginForm({ updateMode }) {
           value={form.password}
           onChange={handleChange}
         />
-        <p className="mt-3 text-center flex justify-end">
-          <button
-            type="button"
-            onClick={updateMode}
+        <p className="mt-3 w-full flex gap-1 items-center justify-end font-medium">
+          Forgot password?
+          <Link
+            href="/forgotPassword"
             className="
             text-sm 
             text-myTextColorMain 
             hover:underline 
             cursor-pointer
-          "
+            "
           >
-            Forgot password?
-          </button>
+            Click here
+          </Link>
         </p>
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -109,6 +123,15 @@ export default function LoginForm({ updateMode }) {
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
+      <p className="text-center text-sm">
+        Not a member?{" "}
+        <Link
+          href="/signUp"
+          className="hover:underline font-medium cursor-pointer"
+        >
+          Join us
+        </Link>
+      </p>
     </>
   );
 }

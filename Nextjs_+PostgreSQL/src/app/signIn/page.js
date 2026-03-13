@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
+import SignInForm from "./SignInForm";
 
-export default async function AccountPage({ children, searchParams }) {
+export default async function SignInPage({ searchParams }) {
   const session = await auth();
 
   const _searchParams = await searchParams;
@@ -18,6 +19,7 @@ export default async function AccountPage({ children, searchParams }) {
 
   return (
     <AccountUI >
-      {children}
-    </AccountUI>);
+      <SignInForm />
+    </AccountUI>
+  );
 }

@@ -1,17 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ResetPasswordForm() {
-  const { raw_token } = useParams();
+export default function ForgotPasswordForm() {
   const router = useRouter();
-
   const [form, setForm] = useState({
-    password: "",
-    confirmPassword: "",
+    email: "",
   });
 
   const [error, setError] = useState(null);
@@ -28,40 +25,25 @@ export default function ResetPasswordForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    if (form.password.length < 3) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const res = await fetch("/api/password-reset", {
+      const res = await fetch("/api/password-forgot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          token: raw_token,
-          newPassword: form.password,
-        }),
+        body: JSON.stringify({ email: form.email }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
+        throw new Error("Something went wrong");
       }
 
+      // Always show success message (security)
       setSuccess(true);
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      setError("Something went wrong. Please try again.");
     }
 
     setLoading(false);
@@ -70,12 +52,14 @@ export default function ResetPasswordForm() {
   return (
     <>
       <h1 className="text-2xl sm:text-3xl font-semibold text-center">
-        Reset Your Password
+        We are here to help
       </h1>
 
       {success ? (
         <div className="text-center space-y-3">
-          <p className="text-sm">Your password has been successfully reset.</p>
+          <p className="text-sm">
+            If an email id exists, a reset link has been sent to your email id.
+          </p>
 
           <Link
             href="/signIn"
@@ -87,29 +71,31 @@ export default function ResetPasswordForm() {
       ) : (
         <>
           <p className="text-center text-sm text-[gray]">
-            Enter your new password below.
+            Enter your email id to receive a password reset link.
           </p>
+
           <form
             className="w-full flex flex-col gap-3 items-center"
             onSubmit={handleSubmit}
           >
             <FloatingInput
-              id="password"
-              label="New Password"
-              type="password"
+              id="email"
+              label="Email"
+              type="email"
               required
-              value={form.password}
+              value={form.email}
               onChange={handleChange}
             />
 
-            <FloatingInput
-              id="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              required
-              value={form.confirmPassword}
-              onChange={handleChange}
-            />
+            <p className="mt-3 text-center flex items-center gap-2 justify-end w-full text-sm">
+              Remember your password?
+              <Link
+                href="/signIn"
+                className="text-myTextColorMain hover:underline cursor-pointer"
+              >
+                Sign in
+              </Link>
+            </p>
 
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
@@ -120,7 +106,7 @@ export default function ResetPasswordForm() {
               disabled={loading}
               className="mt-3 w-full py-2 button1 cursor-pointer disabled:opacity-50"
             >
-              {loading ? "Resetting..." : "Reset Password"}
+              {loading ? "Creating link..." : "Create link"}
             </button>
           </form>
         </>

@@ -7,8 +7,6 @@ export async function POST(req) {
   try {
     const { token, newPassword } = await req.json();
 
-    console.log({ token, newPassword });
-
     if (!token || !newPassword) {
       return NextResponse.json(
         { error: "Token and new password are required." },
@@ -19,14 +17,10 @@ export async function POST(req) {
     // Hash the token to match what is stored in DB
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-    console.log("hashed - ", hashedToken);
-
     // Find reset token record
     const resetRecord = await prisma.passwordResetToken.findUnique({
       where: { token: hashedToken },
     });
-
-    console.log("resetRecord - ", resetRecord);
 
     if (!resetRecord || resetRecord.expiresAt < new Date()) {
       return NextResponse.json(
@@ -39,9 +33,6 @@ export async function POST(req) {
     const user = await prisma.user.findUnique({
       where: { email: resetRecord.email },
     });
-
-
-    console.log("user - ", user);
 
     if (!user || !user.password) {
       return NextResponse.json(

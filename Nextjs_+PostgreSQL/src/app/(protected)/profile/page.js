@@ -6,13 +6,13 @@ export default async function ProfilePage() {
   const session = await auth();
 
   if (!session) {
-    redirect("/account");
+    redirect("/signIn");
   }
 
   return (
-    <main className="w-full max-w-4xl mx-auto py-5 space-y-6">
+    <section className="w-full max-w-4xl mx-auto py-5 space-y-6">
 
       <ProfileTabs session={session} />
-    </main>
+    </section>
   );
 }

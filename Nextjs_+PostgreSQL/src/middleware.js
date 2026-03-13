@@ -1,19 +1,37 @@
 // middleware.js
 
+import { getToken } from "next-auth/jwt";
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
 export default withAuth({
-  // redirect to /account if not authenticated
+  // redirect to /signIn if not authenticated
   pages: {
-    signIn: "/account",
+    signIn: "/signIn",
   },
 });
+
+
+export async function middleware(req) {
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const { pathname } = req.nextUrl;
+  if (pathname.startsWith("/admin")) {
+    if (!token || token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL(`/signIn?callbackUrl=${pathname}`, req.url));
+    }
+  }
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     // "/cart",
     "/profile",
     "/checkout",
-    "/admin",
+    "/admin/:path*",
   ],
 };

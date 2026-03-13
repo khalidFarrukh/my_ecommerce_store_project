@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image";
 import SideBar from "@/components/sidebar";
-import { MenuIcon } from "lucide-react";
+import { Laptop, MenuIcon, Moon, Search, ShoppingCart, Sun } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import Link from "next/link";
 import CustomCartBox from "./smallCartBox";
@@ -12,9 +12,10 @@ import { useCartButtonContext } from "@/context/CartButtonContext";
 import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Header() {
-
+  const { theme, setTheme } = useTheme();
   const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
 
   const cartState = useSelector(state => state.cart.cartState);
@@ -25,10 +26,8 @@ export default function Header() {
   const isLoading = status === "loading";
   const selectedUrl =
     status === "authenticated"
-      // ? "/profile"
-      ? session?.user.role === "user" ? "/profile" : "/admin/dashboard"
-      : `/account?callbackUrl=${pathname}`;
-  const startsWithAccount = pathname.startsWith("/account");
+      ? "/profile"
+      : `/signIn?callbackUrl=${pathname}`;
 
   const cartItemsSize = React.useMemo(() => {
     let variantCount = 0;
@@ -45,6 +44,18 @@ export default function Header() {
 
   const dispatch = useDispatch();
   const { openSearchModal } = useSearchModal();
+
+  const nextTheme = {
+    light: "dark",
+    dark: "system",
+    system: "light",
+  };
+
+  const icons = {
+    light: <Moon className="min-w-[20px] min-h-[20px] size-[20px]" />,
+    dark: <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />,
+    system: <Sun className="min-w-[20px] min-h-[20px] size-[20px]" />,
+  };
   return (
     <>
       <header
@@ -68,7 +79,8 @@ export default function Header() {
             w-full
             max-w-[1440px]
             h-full
-            px-6
+            px-2.5
+            w375:px-5
             mx-auto
           `}
         >
@@ -83,28 +95,43 @@ export default function Header() {
             items-center
           `}
           >
-            <button
-
-              onClick={() => dispatch(openSidebar())}
-              className=
-              {`
-                absolute
-                left-0
+            <div
+              className="
+              absolute
+              left-0
+              flex
+              flex-row
+              items-center
+              gap-3
+              w375:gap-5
+              "
+            >
+              <button
+                onClick={() => dispatch(openSidebar())}
+                className=
+                {`
                 cursor-pointer
                 text-[12px]
                 font-semibold
                 h-full
                 hover:text-foreground
               `}
-            >
-              Menu
-            </button>
+              >
+                Menu
+              </button>
+              <button
+                onClick={() => setTheme(nextTheme[theme] || "system")}
+                className="cursor-pointer h-full text-foreground"
+              >
+                {icons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
+              </button>
+            </div>
             <Link
               href="/"
               className=
               {`
               mx-auto
-              text-[19px]
+              text-lg 
               h-full
               text-center
               font-semibold
@@ -123,27 +150,49 @@ export default function Header() {
               right-0
               flex
               items-center
+              gap-3
+              w375:gap-5
             `}
             >
               <button
                 type="button"
                 onClick={openSearchModal}
-                className=
-                {`
-                hidden
-                lg:block
-                cursor-pointer
-                text-[12px]
-                font-semibold
-                h-full
-                hover:text-foreground
-                mr-6
-              `}
+                className={`
+                  
+                  cursor-pointer
+                  text-[12px]
+                  font-semibold
+                  h-full
+                  hover:text-foreground
+                `}
               >
-                Search
+                <Search className="min-w-[20px] min-h-[20px] size-[20px]" />
               </button>
-
-              {!startsWithAccount && (
+              {
+                session?.user.role === "ADMIN" &&
+                status === "authenticated" &&
+                pathname !== "/admin" &&
+                (
+                  <Link
+                    className=
+                    {`
+                      hidden
+                      lg:flex
+                      cursor-pointer
+                      text-[12px]
+                      font-semibold
+                      hover:text-foreground
+                      h-full
+                      items-center
+                      ${isLoading ? "pointer-events-none opacity-50" : ""}
+                    `}
+                    href={"/admin"}
+                  >
+                    Dashboard
+                  </Link>
+                )
+              }
+              {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) && (
                 <Link
                   className=
                   {`
@@ -155,12 +204,11 @@ export default function Header() {
                     hover:text-foreground
                     h-full
                     items-center
-                    ${pathname !== "/cart" ? "mr-6" : ""}
                     ${isLoading ? "pointer-events-none opacity-50" : ""}
                   `}
                   href={selectedUrl}
                 >
-                  {status === "authenticated" ? "Account" : "Sign in"}
+                  {status === "authenticated" ? "Profile" : "Sign in"}
                 </Link>
               )}
 
@@ -182,7 +230,8 @@ export default function Header() {
                       flex items-center
                     `}
                   >
-                    {`Cart (${cartItemsSize})`}
+                    <ShoppingCart className="min-w-[20px] min-h-[20px] size-[20px]" />
+                    {`(${cartItemsSize})`}
                   </Link>
                   <CustomCartBox />
                 </>
@@ -190,7 +239,7 @@ export default function Header() {
             </div>
           </div>
         </nav>
-      </header>
+      </header >
     </>
   )
 }

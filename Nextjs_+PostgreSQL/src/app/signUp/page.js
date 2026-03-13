@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
-import ResetPasswordForm from "./ResetPasswordForm";
+import SignUpForm from "./SignUpForm";
 
-export default async function resetPasswordPage({ searchParams }) {
+export default async function SignUpPage({ searchParams }) {
   const session = await auth();
 
   const _searchParams = await searchParams;
@@ -19,7 +19,6 @@ export default async function resetPasswordPage({ searchParams }) {
 
   return (
     <AccountUI >
-      <ResetPasswordForm />
-    </AccountUI>
-  );
+      <SignUpForm />
+    </AccountUI>);
 }

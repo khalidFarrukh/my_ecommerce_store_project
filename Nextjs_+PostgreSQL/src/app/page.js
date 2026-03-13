@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <>
-      <main
+      <div
         classcategory=
         {`
           z-[1]
@@ -41,7 +41,7 @@ export default async function Home() {
             }
           })
         }
-      </main>
+      </div>
     </>
   )
 }

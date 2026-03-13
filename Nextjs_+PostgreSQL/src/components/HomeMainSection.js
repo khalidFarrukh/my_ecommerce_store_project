@@ -96,8 +96,8 @@ export default function HomeMainSection({ collection_name, collection_route }) {
               products.map((item, index) => {
                 return (
                   <Card1
-                    key={index}
-                    id={index}
+                    key={item?._id}
+                    id={item?._id}
                     productObj={item}
                   />
                 )

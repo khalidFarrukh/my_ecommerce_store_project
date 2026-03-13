@@ -1,33 +1,32 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
 import { LogoNext } from '@geist-ui/icons';
+import { useEffect, useRef } from "react";
+import { useFooter } from "@/context/FooterContext";
 
 
 export default function Footer() {
-
+  const { footerRef } = useFooter();
   return (
     <footer
-      className="
-      mt-3
-          border-t
-          border-myBorderColor
-          h-fit
-        "
+      ref={footerRef}
+      className="mt-3 border-t border-myBorderColor h-fit"
     >
       <div
         className={`
           relative
           w-full
-          h-10
-          pt-12
+          pt-8
           max-w-360
-          px-6
+          px-2.5
+          w375:px-5
           mx-auto
           text-myTextColorMain
           flex
           items-center
           flex-col
-          gap-12
+          gap-8
 
         `}
       >
@@ -70,7 +69,7 @@ export default function Footer() {
           <div className="order-0 md:order-1 flex flex-row gap-3">
             Developed by
             <div className="underline">
-              {"FK Techonolgies"}
+              {"FK Services"}
 
             </div>
           </div>

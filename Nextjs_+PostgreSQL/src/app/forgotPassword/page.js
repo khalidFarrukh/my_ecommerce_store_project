@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 
-export default async function AccountPage({ searchParams }) {
+export default async function ForgotPasswordPage({ searchParams }) {
   const session = await auth();
 
   const _searchParams = await searchParams;
@@ -16,5 +17,8 @@ export default async function AccountPage({ searchParams }) {
     redirect(safeCallBack);
   }
 
-  return <AccountUI />;
+  return (
+    <AccountUI >
+      < ForgotPasswordForm />
+    </AccountUI>);
 }

@@ -1,14 +1,17 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+
+import scrollbarHide from 'tailwind-scrollbar-hide'
+
+export default {
     content: [
-        "./app/**/*.{js,ts,jsx,tsx}", // if using Next.js App Router
-        "./pages/**/*.{js,ts,jsx,tsx}", // if using Pages Router
+        "./app/**/*.{js,ts,jsx,tsx}", // App Router
+        "./pages/**/*.{js,ts,jsx,tsx}", // Pages Router
         "./components/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
         extend: {},
     },
     plugins: [
-        require('tailwind-scrollbar-hide'),
+        scrollbarHide,
     ],
 };

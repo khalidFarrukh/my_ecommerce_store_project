@@ -34,6 +34,7 @@
 :root {
   --background_1: #ffffff;
   --background_2: #fafafa;
+  --background_3: #f5f5f5;
   --foreground: #171717;
 
   --buttonNormal: #fafafa;
@@ -56,6 +57,7 @@
 .dark {
   --background_1: #0a0a0a;
   --background_2: #222222;
+  --background_3: #333333;
   --foreground: #ededed;
 
   --buttonNormal: #222222;
@@ -75,6 +77,7 @@
 @theme inline {
   --color-background_1: var(--background_1);
   --color-background_2: var(--background_2);
+  --color-background_3: var(--background_3);
   --color-foreground: var(--foreground);
   --color-buttonNormal: var(--buttonNormal);
   --color-buttonTextNormal: var(--buttonTextNormal);
@@ -87,11 +90,12 @@
   --color-myTextColorMain: var(--myTextColorMain);
   --font-inter: var(--font-inter);
   --font-poppins: var(--font-poppins);
-  
+
   --breakpoint-w851: 851px;
   --breakpoint-w768: 768px;
   --breakpoint-w650: 650px;
   --breakpoint-w512: 512px;
+  --breakpoint-w375: 375px;
 }
 
 body {
@@ -158,6 +162,28 @@ body {
   color: var(--buttonTextActive) !important;
 }
 
+.input1 {
+  background-color: var(--inputBgNormal);
+  color: var(--foreground);
+  border: 1px solid var(--myBorderColor);
+  border-radius: 6px;
+
+  padding: 8px 10px;
+  font-size: 14px;
+
+  outline: none;
+  width: 100%;
+}
+
+.input1::placeholder {
+  color: var(--myTextColorLightGray);
+}
+
+.input1:focus {
+  border-color: var(--foreground);
+  background-color: var(--background_1);
+}
+
 
 
 /* bg-background_1 text-foreground border border-myBorderColor hover:bg-foreground hover:text-background_1 hover:border-background_1 focus:bg-background_1 focus:text-foreground focus:border-myBorderColor */
@@ -204,5 +230,24 @@ body {
 /* Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  scrollbar-color: var(--color-background_2) transparent;
+}
+
+/* Autofill safe for theme colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px var(--inputBgNormal) inset;
+  -webkit-text-fill-color: var(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px var(--inputBgNormal) inset;
+  -webkit-text-fill-color: var(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
 }

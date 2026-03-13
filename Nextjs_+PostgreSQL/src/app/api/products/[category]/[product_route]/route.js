@@ -1,17 +1,54 @@
-import { products } from "@/app/api/data";
+import clientPromise from "@/lib/mongodb";
 
 export async function GET(req, context) {
   const { category, product_route } = await context.params;
-  const product_data = products.find(item => item.category === category && item.name.toLowerCase().split(' ').join('-') === product_route) ?? null;
-  if (!product_data) {
+
+  const client = await clientPromise;
+  const db = client.db("my_ecommerce_db");
+
+  // Fetch product by category and slugified name
+  const product = await db.collection("products").findOne({
+    category,
+    name: { $regex: `^${product_route.replace(/-/g, " ")}$`, $options: "i" },
+    status: "active",
+  });
+
+  if (!product) {
     return new Response(JSON.stringify({ error: "Product not found" }), {
       status: 404,
     });
   }
 
-  return new Response(JSON.stringify(product_data), {
+  // Convert _id to string for frontend
+  const formattedProduct = {
+    ...product,
+    _id: product._id.toString(),
+  };
+
+  return new Response(JSON.stringify(formattedProduct), {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 }
+
+
+
+// import { products } from "@/app/api/data";
+// import { convertTextStringToDashString } from "@/utils/utilities";
+
+// export async function GET(req, context) {
+//   const { category, product_route } = await context.params;
+//   const product_data = products.find(item => item.category === category && convertTextStringToDashString(item.name) === product_route) ?? null;
+//   if (!product_data) {
+//     return new Response(JSON.stringify({ error: "Product not found" }), {
+//       status: 404,
+//     });
+//   }
+
+//   return new Response(JSON.stringify(product_data), {
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//   });
+// }

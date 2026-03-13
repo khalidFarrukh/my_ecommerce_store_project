@@ -178,19 +178,20 @@ export default function Cart() {
 
   return (
 
-    <main
+    <div
       className=
       {`
           relative
           w-full
+          min-h-screen
           bg-background_1
-          my-3
+          mb-3
           flex
           flex-col
           items-center
         `}
     >
-      <section
+      <div
         className=
         {`
             w-full
@@ -203,7 +204,7 @@ export default function Cart() {
         {
           cartState.items.length > 0 ?
             <>
-              <h1 className="text-[30px] font-bold ">Cart</h1>
+              <h1 className="text-[30px] mt-3 font-bold ">Cart</h1>
               <div className="w-full flex flex-col md:flex-row gap-3">
                 <div className="flex-1 flex flex-col gap-3">
 
@@ -472,7 +473,7 @@ export default function Cart() {
             </div>
 
         }
-      </section>
-    </main >
+      </div>
+    </div >
   );
 }

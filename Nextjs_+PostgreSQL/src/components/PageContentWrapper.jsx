@@ -2,35 +2,45 @@
 import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
 
-export default function PageContentWrapper({ children }) {
+export default function PageContentWrapper({ children, categories }) {
   const pathname = usePathname();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  const not_allowed_on = ["/cart"];
+  const not_allowed_on = [
+    "/cart",
+    "/signIn",
+    "/signUp",
+    "/forgotPassword",
+    "/resetPassword",
+  ];
   const isValid = React.useMemo(() => {
-    return !not_allowed_on.includes(pathname);
+    return !not_allowed_on.includes(pathname) && !pathname.startsWith("/admin");
+  }, [pathname]);
+
+  const flex_center_allowed_on = [
+    "/signIn",
+    "/signUp",
+    "/forgotPassword",
+    "/resetPassword",
+  ];
+  const isValidFlexCenter = React.useMemo(() => {
+    return flex_center_allowed_on.includes(pathname);
   }, [pathname]);
 
   return (
-    <div
-      className={`${isValid ? "pt-[calc(60px+98px)]" : "pt-[60px]"} font-poppins h-full bg-background_1`}
+    <main
+      className={`flex-1 flex flex-col ${isValidFlexCenter ? "items-center justify-center" : ""} font-poppins bg-background_1`}
     >
-      {/* offset for fixed header */}
       <div
-        className="
-          max-w-360
-          px-6
-          mx-auto
-          flex
-          flex-col
-          text-myTextColorMain
-        "
+        className={`${isValid ? (categories.length > 0 ? "pt-[calc(60px+98px)]" : "pt-[60px]") : "pt-[60px]"} w-full`}
       >
-        {children}
+        <div className="max-w-360 w-full px-2.5 w375:px-5 mx-auto flex flex-col text-myTextColorMain">
+          {children}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
