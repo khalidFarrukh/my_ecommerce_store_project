@@ -1,30 +1,34 @@
-import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req) {
-  const session = await auth();
-
-  if (!session || session?.user?.role !== "ADMIN") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-    });
-  }
-
   const url = new URL(req.url);
 
+  const status = url.searchParams.get("status");
   const offset = parseInt(url.searchParams.get("offset") || "0");
   const limit = parseInt(url.searchParams.get("limit") || "20");
+  const search = url.searchParams.get("search") || "";
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
 
-  const total = await db.collection("products").countDocuments();
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (search) {
+    query.name = { $regex: search, $options: "i" };
+  }
+
+  const total = await db.collection("products").countDocuments(query);
 
   const products = await db
     .collection("products")
-    .find({})
+    .find(query)
     .skip(offset)
     .limit(limit)
+    .sort({ createdAt: -1 })
     .toArray();
 
   const formatted = products.map(p => ({

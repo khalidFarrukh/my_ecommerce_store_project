@@ -96,6 +96,7 @@
   --breakpoint-w650: 650px;
   --breakpoint-w512: 512px;
   --breakpoint-w375: 375px;
+  --breakpoint-w320: 320px;
 }
 
 body {

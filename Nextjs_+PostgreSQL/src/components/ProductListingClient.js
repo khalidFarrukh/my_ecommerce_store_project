@@ -5,13 +5,13 @@ import Link from "next/link";
 import Card1 from "@/components/Card1";
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useSelector } from "react-redux";
-import { getVariantPricing } from "@/utils/productVariant";
+import { getDefaultVariantPricing } from "@/utils/productVariant";
 import { useRef } from "react";
 import SmallCardsList from "@/components/SmallCardsList"
-import { convertTextStringToDashString } from "@/utils/utilities";
+import { convertDashStringToTextString, convertTextStringToDashString } from "@/utils/utilities";
 import { useSearchModal } from "@/context/SearchModalContext";
 
-export default function ProductListingClient({ data, visible_path_name, path_name, route, type }) {
+export default function ProductListingClient({ visible_path_name, path_name, route, type }) {
   const { searchedProducts } = useSearchModal();
   const searchParams = useSearchParams();
   const query = searchParams.get("search") || "";
@@ -106,13 +106,13 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
       case "price_asc":
         return items.sort(
           (a, b) =>
-            getVariantPricing(a).price - getVariantPricing(b).price
+            getDefaultVariantPricing(a).price - getDefaultVariantPricing(b).price
         );
 
       case "price_desc":
         return items.sort(
           (a, b) =>
-            getVariantPricing(b).price - getVariantPricing(a).price
+            getDefaultVariantPricing(b).price - getDefaultVariantPricing(a).price
         );
 
       case "created_at":
@@ -157,16 +157,12 @@ export default function ProductListingClient({ data, visible_path_name, path_nam
     }
   };
 
-  const dataMeta = React.useMemo(() => {
-    return data.find((d) => convertTextStringToDashString(d?.name) === route) || null;
-  }, [data]);
-
   const Title = () => {
     switch (type) {
       case "collection":
-        return dataMeta?.name
+        return convertDashStringToTextString(route);
       case "category":
-        return "Category - " + dataMeta?.name
+        return "Category - " + convertDashStringToTextString(route)
       case "search":
         return "Search Products"
       default:

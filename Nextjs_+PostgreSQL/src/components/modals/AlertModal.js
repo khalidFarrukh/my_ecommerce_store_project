@@ -51,7 +51,7 @@ export default function AlertModal() {
             <X />
           </button>
         </div>
-        <div className="w-full flex-1 text-foreground text-[16px] leading-relaxed">
+        <div className="w-full flex-1 flex items-center justify-center text-foreground text-[16px] leading-relaxed">
           {message}
         </div>
       </div>

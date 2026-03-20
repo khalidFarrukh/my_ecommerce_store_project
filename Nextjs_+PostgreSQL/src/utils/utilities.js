@@ -1,4 +1,6 @@
-export async function getCollections() {
+
+
+export async function getAllCollections() {
   const res = await fetch("http://localhost:3000/api/collections", {
     cache: "no-store"
   });
@@ -24,8 +26,8 @@ export function convertDashStringToTextString(slug) {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
-export function convertTextStringToDashString(slug) {
-  return slug
+export function convertTextStringToDashString(text) {
+  return text
     .toLowerCase()
     .split(" ")
     .join("-");
@@ -55,12 +57,34 @@ export function capitalizeEachFirstCharOfWord(str) {
     .join(" ");
 }
 
+export function getAdminProductIssues(product) {
+  const issues = [];
+
+  if (!product.name) issues.push("Missing name");
+
+  if (!product.category) issues.push("Missing category");
+
+  if (product.variants.length === 0) {
+    issues.push("No variants");
+    return issues;
+  }
+
+  const missingPrice = product.variants.some(v => !v.price);
+  if (missingPrice) issues.push("Missing price");
+
+  const missingImages = product.variants.some(v => v.images.length === 0);
+  if (missingImages) issues.push("Missing images");
+
+  return issues;
+}
+
 export default {
-  getCollections,
+  getAllCollections,
   getCategories,
   convertDashStringToTextString,
   convertTextStringToDashString,
   objectThatOnlyContainsProperties_to_arrayOfObjectsWithEachObjContainingItsIdAndProperty,
   arrayOfObjectsWithEachObjContainingItsIdAndProperty_to_objectThatOnlyContainsProperties,
-  capitalizeEachFirstCharOfWord
+  capitalizeEachFirstCharOfWord,
+  getAdminProductIssues
 };

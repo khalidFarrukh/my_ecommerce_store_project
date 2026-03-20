@@ -2,7 +2,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
 import EditProductForm from "@/components/admin/products/EditProductForm";
-import { getCategories, getCollections } from "@/utils/utilities";
+import { getAllCollections, getCategories } from "@/utils/utilities";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
@@ -14,7 +14,7 @@ export default async function EditProductPage({ params }) {
   }
   const { product_id } = await params;
   const categories = await getCategories();
-  let collections = await getCollections();
+  let collections = await getAllCollections();
 
   collections = collections.sort((a, b) => {
     return a._id.localeCompare(b._id);

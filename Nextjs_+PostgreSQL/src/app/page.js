@@ -1,14 +1,44 @@
 import HomeMainSection from "@/components/HomeMainSection";
+import clientPromise from "@/lib/mongodb";
 import { convertTextStringToDashString, getCollections } from "@/utils/utilities";
 
 
 export default async function Home() {
 
-  let collections = await getCollections();
+  const client = await clientPromise;
+  const db = client.db("my_ecommerce_db");
 
-  collections = collections.sort((a, b) => {
-    return a._id.localeCompare(b._id);
-  });
+  const collections = await db
+    .collection("collections")
+    .aggregate([
+      {
+        $lookup: {
+          from: "products",
+          let: { collectionSlug: "$slug" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$$collectionSlug", "$collectionIds"] },
+              },
+            },
+            { $limit: 1 }, // only need to know if at least 1 product exists
+          ],
+          as: "products",
+        },
+      },
+      {
+        $addFields: {
+          hasProducts: { $gt: [{ $size: "$products" }, 0] },
+        },
+      },
+      {
+        $project: { products: 0 }, // remove unnecessary data
+      },
+      {
+        $sort: { orderNo: 1 },
+      },
+    ])
+    .toArray();
 
   return (
     <>
@@ -33,10 +63,10 @@ export default async function Home() {
         {
           collections.map((collection, index) => {
 
-            if (Boolean(!collection?.turnedoff)) {
-              const collectionRoute = convertTextStringToDashString(collection.name);
+            if (Boolean(!collection?.turnedoff && (collection?.hasProducts || collection?.slug === "all-products"))) {
+              // console.log()
               return (
-                <HomeMainSection key={index} collection_name={collection.name} collection_route={collectionRoute} />
+                <HomeMainSection key={index} collection_name={collection.name} collection_route={collection.slug} />
               )
             }
           })

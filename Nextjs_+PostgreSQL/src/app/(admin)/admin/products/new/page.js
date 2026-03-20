@@ -30,5 +30,5 @@ export default async function NewProductPage() {
     updatedAt: new Date(),
   },);
 
-  redirect(`/admin/products/edit/${result.insertedId}`);
+  redirect(`/admin/products/${result.insertedId}/edit`);
 }

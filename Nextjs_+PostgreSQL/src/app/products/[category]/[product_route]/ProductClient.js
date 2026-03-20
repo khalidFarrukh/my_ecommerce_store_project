@@ -44,17 +44,6 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
 
   const defaultVariant = getDefaultVariant(selected_product);
 
-
-  // const matchedVariant = React.useMemo(() => {
-  //   if (!selected_product?.variants) return null;
-
-  //   return selected_product.variants.find(variant =>
-  //     Object.entries(selectedOptions).every(
-  //       ([key, value]) => variant.options[key] === value
-  //     )
-  //   ) || null;
-  // }, [selectedOptions, selected_product]);
-
   const matchedVariant = React.useMemo(() => {
     if (!selected_product?.variants) return null;
 
@@ -68,8 +57,6 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
       ) || null
     );
   }, [selectedOptions, selected_product]);
-
-  console.log("matched -> ", matchedVariant);
 
   useEffect(() => {
     if (!defaultVariant?.options) return;
@@ -149,7 +136,6 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   const finalPrice = matchedVariant
     ? price - Math.round((price * discount) / 100)
     : null
-  console.log(otherRelatedProducts);
 
   if (!selected_product) {
     return (
@@ -162,127 +148,60 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   return (
     <>
       <div
-        className=
-        {`
-            relative
-            w-full
-            bg-background_1
-            my-3
-            lg:my-5
-            flex
-            flex-col
-            gap-5
-            items-center
-          `}
+        className={`relative w-full bg-background_1 my-3 lg:my-5 flex flex-col gap-5 items-center`}
       >
-        <section
-          className=
-          {`
-              w-full
-            `}
-        >
+        <section className={`w-full`}>
           <div
-            className=
-            {`
-                flex flex-col
-                lg:grid lg:grid-cols-[370px_1fr_370px] gap-6              
-                mx-auto
-              `}
+            className={`flex flex-col lg:grid lg:grid-cols-[370px_1fr_370px] gap-6 mx-auto`}
           >
             <div>
-              <div
-                className=
-                {`
-                    lg:sticky lg:top-[35%]
-                  `}
-              >
-                {
-                  selected_product.collectionIds.map((collectionId, index) => (
-                    <Link
-                      key={index}
-                      href={"/collections/" + collectionId}
-                      className=
-                      {`
+              <div className={`lg:sticky lg:top-[35%]`}>
+                {selected_product.collectionIds.map((collectionId, index) => (
+                  <Link
+                    key={index}
+                    href={"/collections/" + collectionId}
+                    className={`
                       block
                     `}
+                  >
+                    <h3
+                      className={`text-myTextColorLightGray text-[105%] font-bold hover:text-foreground`}
                     >
-                      <h3
-                        className=
-                        {`
-                      text-myTextColorLightGray
-                      text-[105%]
-                      font-bold
-                      hover:text-foreground
-                    `}
-                      >
-                        {convertDashStringToTextString(collectionId)}
-                      </h3>
-                    </Link>
-                  ))
-                }
-                <h1
-                  className=
-                  {`
-                      mt-3
-                      w-full
-                      text-[205%]
-                      font-semibold
-                    `}
-                >
-                  {
-                    selected_product.name
-                  }
+                      {convertDashStringToTextString(collectionId)}
+                    </h3>
+                  </Link>
+                ))}
+                <h1 className={`mt-3 w-full text-[205%] font-semibold`}>
+                  {selected_product.name}
                 </h1>
-                <p
-                  className=
-                  {`
-                      mt-3
-                      w-full
-                      text-[90%]
-                      `}
-                >
-                  {
-                    selected_product.description
-                  }
+                <p className={`mt-3 w-full text-[90%]`}>
+                  {selected_product.description}
                 </p>
-                <hr
-                  className=
-                  {`
-                      w-full
-                      mt-5
-                      border-t
-                      border-myBorderColor
-                    `}
+                <hr className={`w-full mt-5 border-t border-myBorderColor`} />
+                <TextAndPlus
+                  id={1}
+                  title="Product Information"
+                  state={isProductPageArrowDown1}
+                  setState={setIsProductPageArrowDown1}
                 />
-                <TextAndPlus id={1} title="Product Information" state={isProductPageArrowDown1} setState={setIsProductPageArrowDown1} />
                 <div
-                  className=
-                  {`
-                      overflow-hidden 
-                      transition-all
-                      duration-550
-                      ease-in-out
-                      
-                      w-full
-                      ${isProductPageArrowDown1 ? "h-0 pointer-events-none pb-0" : "pb-3 h-[160px]"}
+                  className={`overflow-hidden transition-all duration-550 ease-in-out w-full 
+                    ${isProductPageArrowDown1 ? "h-0 pointer-events-none pb-0" : "pb-3 h-[160px]"}
                     `}
                 >
                   <div
-                    className=
-                    {`
+                    className={`
                         grid 
                         grid-cols-2 
                         gap-x-4
                         gap-y-4
-                       
                         font-poppins
                         text-[80%]
                         font-extrabold
                       `}
                   >
                     <div
-                      className=
-                      {`
+                      className={`
                           flex
                           flex-col
                           
@@ -290,8 +209,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     >
                       Material
                       <div
-                        className=
-                        {`
+                        className={`
                             text-[90%]
            
                             font-bold
@@ -301,16 +219,14 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       </div>
                     </div>
                     <div
-                      className=
-                      {`
+                      className={`
                           flex
                           flex-col
                         `}
                     >
                       Weight
                       <div
-                        className=
-                        {`
+                        className={`
                             text-[90%]
       
                             font-bold
@@ -320,8 +236,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       </div>
                     </div>
                     <div
-                      className=
-                      {`
+                      className={`
                           flex
                           flex-col
   
@@ -329,8 +244,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     >
                       Country of origin
                       <div
-                        className=
-                        {`
+                        className={`
                             text-[90%]
                         
                             font-bold
@@ -340,8 +254,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       </div>
                     </div>
                     <div
-                      className=
-                      {`
+                      className={`
                           flex
                           flex-col
   
@@ -349,8 +262,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     >
                       Dimensions
                       <div
-                        className=
-                        {`
+                        className={`
                             text-[90%]
           
                             font-bold
@@ -360,8 +272,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       </div>
                     </div>
                     <div
-                      className=
-                      {`
+                      className={`
                           flex
                           flex-col
   
@@ -369,8 +280,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     >
                       Type
                       <div
-                        className=
-                        {`
+                        className={`
                             text-[90%]
                             font-bold
                           `}
@@ -381,17 +291,20 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                   </div>
                 </div>
                 <hr
-                  className=
-                  {`
+                  className={`
                       w-full
                       border-t
                       border-myBorderColor
                     `}
                 />
-                <TextAndPlus id={2} title="Shipping & Returns" state={isProductPageArrowDown2} setState={setIsProductPageArrowDown2} />
+                <TextAndPlus
+                  id={2}
+                  title="Shipping & Returns"
+                  state={isProductPageArrowDown2}
+                  setState={setIsProductPageArrowDown2}
+                />
                 <hr
-                  className=
-                  {`
+                  className={`
                       w-full
                       border-t
                       border-myBorderColor
@@ -400,11 +313,10 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
               </div>
             </div>
             <div className="flex flex-col gap-5">
-              {
-                matchedVariant?.images?.map((image, index) => (
-                  <div
-                    key={image?.id}
-                    className="
+              {matchedVariant?.images?.map((image, index) => (
+                <div
+                  key={image?.id}
+                  className="
                     flex-1
                     w-full
                     h-full
@@ -416,28 +328,24 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     items-center
                     justify-center
                   "
-                  >
-                    <Image
-
-                      src={image?.src}
-                      alt={selected_product.name}
-                      width={1200}
-                      height={1200}
-                      priority
-                    />
-                  </div>
-                ))
-              }
+                >
+                  <Image
+                    src={image?.src}
+                    alt={selected_product.name}
+                    width={1200}
+                    height={1200}
+                    priority
+                  />
+                </div>
+              ))}
             </div>
 
             <div>
               <div
-                className=
-                {`
+                className={`
                      lg:sticky lg:top-[35%] flex justify-center
                   `}
               >
-
                 <div className="w-full lg:w-[81%] flex flex-wrap lg:flex-nowrap lg:flex-col gap-y-5 gap-x-10 lg:gap-1">
                   {Object.entries(availableOptions).map(([label, values]) => (
                     <OptionGroup
@@ -446,132 +354,116 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       values={values}
                       selectedValue={selectedOptions[label]}
                       onSelect={(key, value) =>
-                        setSelectedOptions(prev => ({
+                        setSelectedOptions((prev) => ({
                           ...prev,
-                          [key]: value
+                          [key]: value,
                         }))
                       }
                     />
                   ))}
 
-                  {
-                    matchedVariant && matchedVariant?.stock < 10 &&
+                  {matchedVariant && matchedVariant?.stock < 10 && (
                     <div className="mb-4">
                       <p className="mb-2 font-semibold capitalize">
                         Available Stock
                       </p>
                       {matchedVariant?.stock}
                     </div>
-                  }
+                  )}
 
-                  {
-                    matchedVariant ?
-                      <div className=
-                        {`
+                  {matchedVariant ? (
+                    <div
+                      className={`
                             w-full flex flex-col 
                           `}
-                      >
-
-                        <div
-                          className=
-                          {`
+                    >
+                      <div
+                        className={`
                               w-full
                               flex
                               items-center
                             `}
-                        >
-                          {
-                            discount > 0 &&
-                            <div
-                              className=
-                              {`
+                      >
+                        {discount > 0 && (
+                          <div
+                            className={`
                             
                             line-through
                           `}
-                            >
-                              {price}
-                            </div>
-                          }
-                          <div
-                            className=
-                            {`
+                          >
+                            {price}
+                          </div>
+                        )}
+                        <div
+                          className={`
                                 ml-3
                                 font-bold 
                                 text-2xl
                              
                               `}
-                          >
-                            {finalPrice}.00
-                          </div>
-                        </div>
-                        {/* Quantity Selector */}
-                        <div className="flex items-center justify-between mb-3">
-
-                          <p className="font-semibold">Quantity</p>
-
-                          <div className="flex items-center overflow-hidden">
-
-                            <button
-                              onClick={decreaseQty}
-                              disabled={selected_quantity === 1}
-                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              -
-                            </button>
-
-                            <div className="px-4 bg-background_1">
-                              {selected_quantity}
-                            </div>
-
-                            <button
-                              onClick={increaseQty}
-                              disabled={selected_quantity === 3}
-                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              +
-                            </button>
-
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={handleAddToCart}
-                          className="w-full h-[36px] border button1 cursor-pointer rounded-md"
                         >
-                          Add to Cart
-                        </button>
-
+                          {finalPrice}.00
+                        </div>
                       </div>
-                      :
-                      <div className=
-                        {`
+                      {/* Quantity Selector */}
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="font-semibold">Quantity</p>
+
+                        <div className="flex items-center overflow-hidden">
+                          <button
+                            onClick={decreaseQty}
+                            disabled={selected_quantity === 1}
+                            className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            -
+                          </button>
+
+                          <div className="px-4 bg-background_1">
+                            {selected_quantity}
+                          </div>
+
+                          <button
+                            onClick={increaseQty}
+                            disabled={selected_quantity === 3}
+                            className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleAddToCart}
+                        className="w-full h-[36px] border button1 cursor-pointer rounded-md"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className={`
                             w-full flex flex-col
                           `}
-                      >
-                        <div className="w-full h-[36px] bg-background_2 text-[var(--myTextColorLightGray)] flex items-center justify-center cursor-not-allowed rounded-md">
-                          Out of stock
-                        </div>
+                    >
+                      <div className="w-full h-[36px] bg-background_2 text-[var(--myTextColorLightGray)] flex items-center justify-center cursor-not-allowed rounded-md">
+                        Out of stock
                       </div>
-                  }
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
           </div>
         </section>
-        {
-          otherRelatedProducts.length > 0 &&
+        {otherRelatedProducts.length > 0 && (
           <section
-            className=
-            {`
+            className={`
               max-w-[1440px]
               w-full
             `}
           >
             <header>
-              <h3 className="mt-20 text-center">
-                Related Products
-              </h3>
+              <h3 className="mt-20 text-center">Related Products</h3>
               <p className="mx-auto text-center text-3xl min-w-0 w-full max-w-[440px] mt-5">
                 You might also want to check out these products.
               </p>
@@ -592,7 +484,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
               card1_className={"!min-h-[300px] !h-[15vw] !lg:h-[15vw]"}
             />
           </section>
-        }
+        )}
       </div>
     </>
   );

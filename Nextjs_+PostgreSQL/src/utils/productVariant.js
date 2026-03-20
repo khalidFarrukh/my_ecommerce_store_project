@@ -9,13 +9,13 @@ export function getDefaultVariant(product) {
   );
 }
 
-export function getVariantPricing(product) {
-  const variant = getDefaultVariant(product);
+
+export function getVariantPricing(variant) {
 
   const price = variant?.price ?? 0;
   const discount = variant?.discount ?? 0;
 
-  const finalPrice = Math.floor((price / 100) * (100 - discount));
+  const finalPrice = Math.ceil((price / 100) * (100 - discount));
 
   return {
     variant,
@@ -23,4 +23,10 @@ export function getVariantPricing(product) {
     discount,
     finalPrice,
   };
+}
+
+
+export function getDefaultVariantPricing(product) {
+  const variant = getDefaultVariant(product);
+  return getVariantPricing(variant);
 }

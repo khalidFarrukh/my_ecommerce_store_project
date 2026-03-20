@@ -10,6 +10,8 @@ export default function FloatingInput({
 }) {
   const [focused, setFocused] = useState(false);
 
+  const { placeholder, ...restInputProps } = inputprops;
+
   const hasValue = inputprops.value && inputprops.value !== "";
 
   return (
@@ -32,7 +34,8 @@ export default function FloatingInput({
           focus:ring-foreground/20
           ${inputClassName}
         `}
-        {...inputprops}
+        {...restInputProps}
+        placeholder={focused ? placeholder : ""}
         onFocus={(e) => {
           setFocused(true);
           inputprops.onFocus?.(e); // call parent onFocus

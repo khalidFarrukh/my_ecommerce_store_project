@@ -89,10 +89,7 @@ export default function Cart() {
           const enrichedVariant = enrichedProduct.variants.find(
             v => v.id === variant.variant_id
           );
-
-          const price = enrichedVariant.price;
-          const discount = enrichedVariant.discount ?? 0;
-          const finalPrice = price - Math.round((price * discount) / 100);
+          const { wasting, price, discount, finalPrice } = getVariantPricing(enrichedVariant);
 
           subTotalCount += finalPrice * variant.quantity;
           count++;
@@ -251,11 +248,7 @@ export default function Cart() {
 
                             const fullVariant = product.variants[fullVariantIndex];
 
-                            const price = fullVariant?.price
-                            const discount = fullVariant?.discount ?? 0
-                            const finalPrice = fullVariant
-                              ? price - Math.round((price * discount) / 100)
-                              : null
+                            const { wasting, price, discount, finalPrice } = getVariantPricing(fullVariant);
 
                             return (
                               <React.Fragment key={cartVariant.variant_id}>
@@ -263,12 +256,12 @@ export default function Cart() {
                                   className="flex md:items-center gap-2 lg:gap-4 justify-between"
                                 >
                                   <input className="min-w-[20px] min-h-[20px] size-[20px] cursor-pointer accent-foreground" type="checkbox" checked={cartState.items[cartProductIndex].variants[cartVariantIndex].active} onChange={() => handleVariantCheckBox(cartProductIndex, cartVariantIndex)} />
-                                  <div className="flex flex-row items-center justify-center gap-4 flex-wrap ">
+                                  <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
 
                                     <Image
                                       src={fullVariant.images[0]["src"]}
                                       alt={product.name}
-                                      className="mx-auto w-[100px]"
+                                      className="mx-auto min-w-0 min-h-0 size-[120px] w375:size-[200px] md:size-[300px] lg:size-[150px]"
                                       width={1200}
                                       height={1200}
                                       priority
@@ -287,12 +280,14 @@ export default function Cart() {
 
                                     <div className="flex justify-center items-center flex-row flex-wrap gap-4">
 
-                                      <div className="w-[200px] flex flex-col">
-                                        <h2 className="font-bold text-lg truncate">
+                                      <div className="w-[180px] w375:w-[200px] flex flex-col">
+                                        <h2 className="font-bold text-base w375:text-lg truncate">
                                           {product.name}
                                         </h2>
-                                        {Object.entries(fullVariant.options).map(([k, v]) => (
-                                          <div key={k} className=" truncate">{k}: {v}</div>
+                                        {fullVariant.options.map((option) => (
+                                          <div key={option.id} className="truncate">
+                                            {option.name}: {option.value}
+                                          </div>
                                         ))}
                                       </div>
 

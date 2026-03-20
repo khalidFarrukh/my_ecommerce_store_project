@@ -7,6 +7,7 @@ export async function GET() {
   const collections = await db
     .collection("collections") // your homepage collections
     .find({})
+    .sort({ orderNo: 1 })
     .toArray();
 
   return Response.json(collections);

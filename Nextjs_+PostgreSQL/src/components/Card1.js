@@ -3,13 +3,13 @@ import Image from "next/image";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
-import { getVariantPricing } from "@/utils/productVariant";
+import { getDefaultVariantPricing } from "@/utils/productVariant";
 import { convertTextStringToDashString } from "@/utils/utilities";
 import { useSearchModal } from "@/context/SearchModalContext";
 
 export default function Card1({ className, productObj, id }) {
 
-  const { variant, price, discount, finalPrice } = getVariantPricing(productObj);
+  const { variant, price, discount, finalPrice } = getDefaultVariantPricing(productObj);
   const product_route = convertTextStringToDashString(productObj.name);
   const { closeSearchModal } = useSearchModal();
   const classes = "w-"

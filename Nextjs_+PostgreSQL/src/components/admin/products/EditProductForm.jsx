@@ -8,6 +8,7 @@ import FloatingTextArea from "@/components/FloatingTextArea";
 import {
   capitalizeEachFirstCharOfWord,
   convertDashStringToTextString,
+  getAdminProductIssues,
 } from "@/utils/utilities";
 
 export default function EditProductForm({
@@ -72,18 +73,33 @@ export default function EditProductForm({
     }));
   };
 
-  const fieldName = (key) => {
+  const fieldData = (key) => {
     switch (key) {
       case "material":
-        return "Material";
+        return {
+          name: "Material",
+          placeHolder: "e.g. plastic / Iron / Aluminium",
+        };
       case "weight":
-        return "Weight";
+        return {
+          name: "Weight",
+          placeHolder: "e.g. 100g / 2kg / 2000g",
+        };
       case "country_of_origin":
-        return "Country of origin";
+        return {
+          name: "Country of origin",
+          placeHolder: "",
+        };
       case "dimensions":
-        return "Dimensions";
+        return {
+          name: "Dimensions",
+          placeHolder: "e.g. 2Lx5Wx6H / 10Lx5Wx7H",
+        };
       case "type":
-        return "Type";
+        return {
+          name: "Type",
+          placeHolder: "",
+        };
     }
   };
 
@@ -358,9 +374,10 @@ export default function EditProductForm({
           <FloatingInput
             key={key}
             id={key}
-            label={fieldName(key)}
+            label={fieldData(key).name}
             inputClassName="input1!"
             type="text"
+            placeholder={fieldData(key).placeHolder}
             value={product.info[key]}
             onChange={(e) => updateInfo(key, e.target.value)}
           />
@@ -415,6 +432,7 @@ export default function EditProductForm({
                       inputClassName="input1!"
                       type="text"
                       value={variant.price}
+                      placeholder={""}
                       onChange={(e) =>
                         updateVariant(i, "price", e.target.value)
                       }
@@ -607,7 +625,7 @@ export default function EditProductForm({
           </div>
         )}
       </div>
-      {/* Status Section */}
+      {/* Status Section
       <div className="bg-background_2 border border-myBorderColor rounded-lg p-6 flex justify-between items-center">
         <h2 className="text-lg font-medium">Status</h2>
         <div className="relative w-48 bg-background_3">
@@ -624,19 +642,52 @@ export default function EditProductForm({
             "
           >
             <option value="draft">Draft</option>
-            <option value="active">Active</option>
+            {product.status === "draft" && (
+              <option value="active">Active</option>
+            )}
+            {product.status === "active" && (
+              <option value="archive">Archive</option>
+            )}
           </select>
         </div>
+      </div> */}
+
+      <div className="flex gap-3">
+        {/* Update or Save button */}
+        <button
+          onClick={handleSubmit}
+          className="button1 px-6 py-2 cursor-pointer"
+        >
+          Update Product
+        </button>
+
+        {/* Activate button */}
+        {product.status === "draft" &&
+          getAdminProductIssues(product).length === 0 && ( // if issues exist then don't show the activate button
+            <button
+              onClick={() => {
+                updateField("status", "active");
+                handleSubmit();
+              }}
+              className="button1 px-6 py-2 cursor-pointer"
+            >
+              Activate
+            </button>
+          )}
+
+        {/* Archive button */}
+        {product.status === "active" && (
+          <button
+            onClick={() => {
+              updateField("status", "archive");
+              handleSubmit();
+            }}
+            className="button1 px-6 py-2 cursor-pointer"
+          >
+            Archive
+          </button>
+        )}
       </div>
-
-      {/* Submit */}
-
-      <button
-        onClick={handleSubmit}
-        className="button1 px-6 py-2 cursor-pointer"
-      >
-        Update Product
-      </button>
     </div>
   );
 }

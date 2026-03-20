@@ -32,8 +32,6 @@ export async function GET(req, context) {
     _id: p._id.toString()
   }));
 
-  console.log(formattedProducts)
-
   return new Response(
     JSON.stringify({
       total,
