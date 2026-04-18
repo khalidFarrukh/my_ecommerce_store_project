@@ -11,7 +11,7 @@ export default async function Page({ params }) {
   );
 
   if (!productRes.ok) {
-    return <div>Product not found</div>;
+    return <div className="flex-1 flex items-center justify-center">Product not found</div>;
   }
 
   const selectedProduct = await productRes.json();

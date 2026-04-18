@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
 import FloatingInput from "@/components/FloatingInput";
-import { capitalizeEachFirstCharOfWord } from "@/utils/utilities";
+import { capitalizeEachFirstCharOfWord, convertTextStringToDashString } from "@/utils/utilities";
 import { useAlertModal } from "@/context/AlertModalContext";
 import ToggleSlideButton from "@/components/ToggleSlideButton";
 

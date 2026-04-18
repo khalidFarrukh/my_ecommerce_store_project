@@ -66,7 +66,7 @@ export default async function Home() {
             if (Boolean(!collection?.turnedoff && (collection?.hasProducts || collection?.slug === "all-products"))) {
               // console.log()
               return (
-                <HomeMainSection key={index} collection_name={collection.name} collection_route={collection.slug} />
+                <HomeMainSection key={index} collection_name={collection.name} collection_slug={collection.slug} />
               )
             }
           })

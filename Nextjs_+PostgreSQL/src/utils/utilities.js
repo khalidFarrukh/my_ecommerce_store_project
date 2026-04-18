@@ -78,6 +78,45 @@ export function getAdminProductIssues(product) {
   return issues;
 }
 
+export function parseWeight(weightStr) {
+  if (!weightStr) return 0;
+
+  const value = parseFloat(weightStr); // extracts number
+  if (isNaN(value)) return 0;
+
+  if (weightStr.toLowerCase().includes("kg")) {
+    return value;
+  }
+
+  if (weightStr.toLowerCase().includes("g")) {
+    return value / 1000;
+  }
+
+
+  return value; // fallback
+}
+
+export function parseDimensions(dimStr) {
+  if (!dimStr) return [0, 0, 0];
+
+  const parts = dimStr.split("x").map(n => Number(n));
+
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    return [0, 0, 0];
+  }
+
+  return parts;
+}
+
+export const handleTextareInput = (ref) => {
+  const textarea = ref.current;
+  if (!textarea) return;
+
+  textarea.style.height = "auto"; // reset
+  textarea.style.height = textarea.scrollHeight + "px"; // grow to content
+};
+
+
 export default {
   getAllCollections,
   getCategories,
@@ -86,5 +125,8 @@ export default {
   objectThatOnlyContainsProperties_to_arrayOfObjectsWithEachObjContainingItsIdAndProperty,
   arrayOfObjectsWithEachObjContainingItsIdAndProperty_to_objectThatOnlyContainsProperties,
   capitalizeEachFirstCharOfWord,
-  getAdminProductIssues
+  getAdminProductIssues,
+  parseWeight,
+  parseDimensions,
+  handleTextareInput
 };

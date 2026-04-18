@@ -14,7 +14,7 @@ export async function GET(req, context) {
 
 export async function PUT(req, context) {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || session.user.role === "USER") {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 

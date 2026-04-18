@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 export default async function EditProductPage({ params }) {
   const session = await auth();
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || session.user.role === "USER") {
     redirect("/");
   }
   const { product_id } = await params;
@@ -41,6 +41,7 @@ export default async function EditProductPage({ params }) {
       />
 
       <EditProductForm
+        session={session}
         product={formattedProduct}
         categories={categories}
         allCollections={collections}

@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req, context) {
-  const { collection_route } = await context.params;
+  const { slug } = await context.params;
   const url = new URL(req.url);
 
   const offset = parseInt(url.searchParams.get("offset") || "0");
@@ -14,14 +14,14 @@ export async function GET(req, context) {
   let query = { status: "active" };
 
   if (type === "collection") {
-    if (collection_route !== "all-products") {
-      // match items where collectionIds array contains collection_route
-      query = { ...query, collectionIds: collection_route };
+    if (slug !== "all-products") {
+      // match items where collectionIds array contains slug
+      query = { ...query, collectionIds: slug };
     }
   }
 
   else if (type === "category") {
-    query = { ...query, category: collection_route };
+    query = { ...query, category: slug };
   }
 
   const total = await db.collection("products").countDocuments(query);

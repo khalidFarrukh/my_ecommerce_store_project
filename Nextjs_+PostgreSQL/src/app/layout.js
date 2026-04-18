@@ -38,7 +38,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className="dark"
+      className="dark overflow-y-scroll"
       suppressHydrationWarning
     >
       <head>

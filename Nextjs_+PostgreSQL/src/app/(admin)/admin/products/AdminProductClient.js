@@ -41,12 +41,11 @@ export default function AdminProductsClient({ session }) {
   const [draftProducts, setDraftProducts] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
 
-  const [draftSearch, setDraftSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
 
   const fetchDraftProducts = async () => {
     const res = await fetch(
-      `/api/admin/products?status=draft&search=${draftSearch}&offset=0&limit=20`
+      `/api/admin/products?status=draft&offset=0&limit=20`
     );
     const data = await res.json();
     setDraftProducts(data.data);

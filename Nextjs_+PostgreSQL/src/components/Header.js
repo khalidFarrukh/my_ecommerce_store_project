@@ -13,10 +13,13 @@ import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
+import { useWindowSizeContext } from "@/context/WindowSizeContext";
+import { themeIcons, nextTheme } from "@/utils/staticVariables";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
+  const { windowWidth } = useWindowSizeContext();
 
   const cartState = useSelector(state => state.cart.cartState);
 
@@ -45,17 +48,17 @@ export default function Header() {
   const dispatch = useDispatch();
   const { openSearchModal } = useSearchModal();
 
-  const nextTheme = {
-    light: "dark",
-    dark: "system",
-    system: "light",
-  };
+  // const nextTheme = {
+  //   light: "dark",
+  //   dark: "system",
+  //   system: "light",
+  // };
 
-  const icons = {
-    light: <Moon className="min-w-[20px] min-h-[20px] size-[20px]" />,
-    dark: <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />,
-    system: <Sun className="min-w-[20px] min-h-[20px] size-[20px]" />,
-  };
+  // const themeIcons = {
+  //   light: <Moon className="min-w-[20px] min-h-[20px] size-[20px]" />,
+  //   dark: <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />,
+  //   system: <Sun className="min-w-[20px] min-h-[20px] size-[20px]" />,
+  // };
   return (
     <>
       <header
@@ -106,42 +109,72 @@ export default function Header() {
               w375:gap-5
               "
             >
-              <button
-                onClick={() => dispatch(openSidebar())}
-                className=
-                {`
+              {
+                windowWidth < 768 &&
+                <button
+                  onClick={() => dispatch(openSidebar())}
+                  className=
+                  {`
                 cursor-pointer
                 text-[12px]
                 font-semibold
                 h-full
                 hover:text-foreground
               `}
-              >
-                Menu
-              </button>
-              <button
-                onClick={() => setTheme(nextTheme[theme] || "system")}
-                className="cursor-pointer h-full text-foreground"
-              >
-                {icons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
-              </button>
+                >
+                  <MenuIcon className="min-w-[20px] min-h-[20px] size-[20px]" />
+                </button>
+              }
+
+              {/* {
+                windowWidth < 575 &&
+                <Link
+                  href="/"
+                  className=
+                  {`
+                    mx-auto
+                    text-base 
+                    h-full
+                    text-center
+                    font-semibold
+                    hover:text-foreground
+                    flex
+                    items-center
+                  `}
+                >
+                  MEDUSA STORE
+                </Link>
+              } */}
+              {
+                windowWidth >= 768 &&
+                <button
+                  onClick={() => setTheme(nextTheme[theme] || "system")}
+                  className="cursor-pointer h-full text-foreground"
+                >
+                  {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
+                </button>
+              }
             </div>
-            <Link
-              href="/"
-              className=
-              {`
-              mx-auto
-              text-lg 
-              h-full
-              text-center
-              font-semibold
-              hover:text-foreground
-              flex
-              items-center
-            `}
-            >
-              MEDUSA STORE
-            </Link>
+            {
+              // windowWidth >= 575 &&
+              (
+                <Link
+                  href="/"
+                  className=
+                  {`
+                    mx-auto
+                    ${windowWidth >= 575 ? "text-lg" : "text-base"}
+                    h-full
+                    text-center
+                    font-semibold
+                    hover:text-foreground
+                    flex
+                    items-center
+                  `}
+                >
+                  FK STORE
+                </Link>
+              )}
             <div
               className=
               {`
@@ -192,12 +225,13 @@ export default function Header() {
                   </Link>
                 )
               }
-              {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) && (
-                <Link
-                  className=
-                  {`
-                    hidden
-                    lg:flex
+              {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
+                windowWidth >= 768 &&
+                (
+                  <Link
+                    className=
+                    {`
+                    flex
                     cursor-pointer
                     text-[12px]
                     font-semibold
@@ -206,11 +240,11 @@ export default function Header() {
                     items-center
                     ${isLoading ? "pointer-events-none opacity-50" : ""}
                   `}
-                  href={selectedUrl}
-                >
-                  {status === "authenticated" ? "Profile" : "Sign in"}
-                </Link>
-              )}
+                    href={selectedUrl}
+                  >
+                    {status === "authenticated" ? "Profile" : "Sign in"}
+                  </Link>
+                )}
 
               {
                 pathname !== "/cart" &&

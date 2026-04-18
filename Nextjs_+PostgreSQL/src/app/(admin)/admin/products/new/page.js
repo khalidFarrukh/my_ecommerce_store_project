@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 export default async function NewProductPage() {
   const session = await auth();
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || session.user.role === "USER") {
     redirect("/");
   }
 
@@ -26,6 +26,7 @@ export default async function NewProductPage() {
     collectionIds: [],
     category: "",
     status: "draft",
+    sellerId: "default_seller",
     createdAt: new Date(),
     updatedAt: new Date(),
   },);

@@ -8,7 +8,8 @@ import { SearchModalProvider } from "@/context/SearchModalContext";
 import { AlertModalProvider } from "@/context/AlertModalContext";
 import { CartButtonProvider } from "@/context/CartButtonContext";
 import { ProductPageProvider } from "@/context/ProductPageContext";
-import { FooterProvider } from "@/context/FooterContext";
+import { WindowSizeProvider } from "@/context/WindowSizeContext";
+import { CategoriesContextProvider } from "@/context/CategoriesContext";
 
 export function Providers({ children, session }) {
   return (
@@ -16,18 +17,19 @@ export function Providers({ children, session }) {
       <ThemeProvider>
         <ReduxProvider>
           <AppContextProvider>
-            <SearchModalProvider>
-              <AlertModalProvider>
-                <CartButtonProvider>
-                  <ProductPageProvider>
-                    <FooterProvider>
-
-                      {children}
-                    </FooterProvider>
-                  </ProductPageProvider>
-                </CartButtonProvider>
-              </AlertModalProvider>
-            </SearchModalProvider>
+            <CategoriesContextProvider>
+              <SearchModalProvider>
+                <AlertModalProvider>
+                  <CartButtonProvider>
+                    <ProductPageProvider>
+                      <WindowSizeProvider>
+                        {children}
+                      </WindowSizeProvider>
+                    </ProductPageProvider>
+                  </CartButtonProvider>
+                </AlertModalProvider>
+              </SearchModalProvider>
+            </CategoriesContextProvider>
           </AppContextProvider>
         </ReduxProvider>
       </ThemeProvider>

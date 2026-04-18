@@ -1,19 +1,11 @@
 "use client";
-import { useFooter } from "@/context/FooterContext";
-
 export default function AdminTabContentHeader({
   heading,
   description,
   right_content = "",
 }) {
-  const { footerDistance } = useFooter();
-  const safeFooterDistance = Math.max(0, footerDistance);
-
   return (
-    <div
-      // className={`sticky z-49 transition-all ${safeFooterDistance > 0 ? "-top-30 delay-100" : "top-15 delay-20"} mb-1 h-fit`}
-      className={`sticky z-49 top-15 mb-1 h-fit`}
-    >
+    <div className={`sticky z-49 top-15 mb-1 h-fit`}>
       <div className="bg-background_1 pt-3 pb-5 flex gap-5 items-center justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">{heading}</h1>

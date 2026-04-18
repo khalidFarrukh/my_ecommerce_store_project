@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req, context) {
-  const { category, product_route } = await context.params;
+  const { category, product_slug } = await context.params;
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
@@ -9,12 +9,12 @@ export async function GET(req, context) {
   // Fetch product by category and slugified name
   const product = await db.collection("products").findOne({
     category,
-    name: { $regex: `^${product_route.replace(/-/g, " ")}$`, $options: "i" },
+    name: { $regex: `^${product_slug.replace(/-/g, " ")}$`, $options: "i" },
     status: "active",
   });
 
   if (!product) {
-    return new Response(JSON.stringify({ error: "Product not found" }), {
+    return new Response(JSON.stringify({ error: "Product not found12" }), {
       status: 404,
     });
   }
@@ -38,8 +38,8 @@ export async function GET(req, context) {
 // import { convertTextStringToDashString } from "@/utils/utilities";
 
 // export async function GET(req, context) {
-//   const { category, product_route } = await context.params;
-//   const product_data = products.find(item => item.category === category && convertTextStringToDashString(item.name) === product_route) ?? null;
+//   const { category, product_slug } = await context.params;
+//   const product_data = products.find(item => item.category === category && convertTextStringToDashString(item.name) === product_slug) ?? null;
 //   if (!product_data) {
 //     return new Response(JSON.stringify({ error: "Product not found" }), {
 //       status: 404,

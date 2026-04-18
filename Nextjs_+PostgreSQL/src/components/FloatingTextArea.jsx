@@ -16,12 +16,12 @@ export default function FloatingTextArea({
       <textarea
         id={id}
         className={`
-            w-full
-            h-14
+            w-full  
             px-4
             pt-6
+            pb-2
             text-base
-            bg-inputBgNormal
+            bg-background_2
             border
             border-myBorderColor
             rounded-md
@@ -29,6 +29,7 @@ export default function FloatingTextArea({
             focus:border-foreground
             focus:ring-2
             focus:ring-foreground/20
+            resize-none overflow-hidden
             ${inputClassName}
           `}
         {...inputprops}
@@ -45,17 +46,19 @@ export default function FloatingTextArea({
       <label
         htmlFor={id}
         className={`
-            absolute
-            left-4
-            transition-all
-            duration-200
-            pointer-events-none
-            ${
-              focused || hasValue
-                ? "top-2 text-xs translate-y-0 text-myTextColorMain"
-                : "top-1/2 -translate-y-1/2 text-md text-myBorderColor"
-            }
-          `}
+          z-1
+          absolute
+          w-full
+          left-4
+          transition-all
+          duration-200
+          pointer-events-none
+          ${
+            focused || hasValue
+              ? "top-2 text-xs translate-y-0 text-myTextColorMain"
+              : "top-11 -translate-y-7 text-md text-myTextColorMain/50"
+          }
+        `}
       >
         {label}
         {inputprops.required && <span className="text-red-500"> *</span>}

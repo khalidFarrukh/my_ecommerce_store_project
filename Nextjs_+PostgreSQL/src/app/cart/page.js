@@ -14,6 +14,7 @@ import { updateCartVariantQuantity, updateVariantCheckBox, updateProductCheckBox
 import { getShippingPrice } from "@/utils/shipping";
 import Image from "next/image";
 import YesNoModal from "@/components/modals/YesNoModal";
+import { convertTextStringToDashString, parseDimensions, parseWeight } from "@/utils/utilities";
 
 
 export default function Cart() {
@@ -24,6 +25,7 @@ export default function Cart() {
 
   const dispatch = useDispatch();
   const cartState = useSelector(state => state.cart.cartState);
+  const router = useRouter();
 
   const cartItemsSize = React.useMemo(() => {
     let variantCount = 0;
@@ -33,7 +35,7 @@ export default function Cart() {
     return variantCount;
   }, [cartState]);
 
-  const [productsData, setProductsData] = useState([]);
+  const [cartProductsData, setCartProductsData] = useState([]);
 
   useEffect(() => {
     if (!cartState.items.length) return;
@@ -48,58 +50,46 @@ export default function Cart() {
       });
 
       const data = await res.json();
-      setProductsData(data);
+      setCartProductsData(data);
     };
 
     fetchProducts();
   }, []);
 
+  const [activeVariantsSize, setActiveVariantsSize] = useState(0);
+  const [subTotal, setSubTotal] = useState(0);
+  const [shippingFee, setShippingFee] = useState(0);
+  useEffect(() => {
+    if (!cartProductsData.length) {
+      setActiveVariantsSize(0);
+      setSubTotal(0);
+      setShippingFee(0);
+      return;
+    };
 
-  const enrichedCart = React.useMemo(() => {
-    if (!productsData.length) return [];
-
-    const result = cartState.items.map(cartProduct => {
-      const fullProduct = productsData.find(
-        p => p._id === cartProduct.product_id
-      );
-
-      if (!fullProduct) return null;
-
-      return {
-        ...fullProduct
-      };
-    }).filter(Boolean);
-    return result;
-  }, [cartState, productsData]);
-
-  const [activeVariantsSize, subTotal, shippingFee] = React.useMemo(() => {
     let count = 0;
     let subTotalCount = 0;
     let totalChargeableWeight = 0;
 
-    if (!enrichedCart.length) return [0, 0, 0];
-
     cartState.items.forEach((product, pIndex) => {
       product.variants.forEach((variant, vIndex) => {
         if (variant.active) {
-          const enrichedProduct = enrichedCart.find(
-            ep => ep._id === product.product_id
+          const cartProductByFetch = cartProductsData.find(
+            p => p._id === product.product_id
           );
 
-          const enrichedVariant = enrichedProduct.variants.find(
+          const cartVariantByFetch = cartProductByFetch.variants.find(
             v => v.id === variant.variant_id
           );
-          const { wasting, price, discount, finalPrice } = getVariantPricing(enrichedVariant);
+          const { wasting, price, discount, finalPrice } = getVariantPricing(cartVariantByFetch);
 
           subTotalCount += finalPrice * variant.quantity;
           count++;
 
-          const weight = Number(enrichedProduct.info.weight) || 0;
+          const weight = parseWeight(cartProductByFetch.info.weight);
+          const [l, w, h] = parseDimensions(cartProductByFetch.info.dimensions);
           let volumetricWeight = 0;
-          if (enrichedProduct.info.dimensions?.includes("x")) {
-            const [l, w, h] = enrichedProduct.info.dimensions
-              .split("x")
-              .map(n => Number(n) || 0);
+          if (l && w && h) {
             volumetricWeight = (l * w * h) / 5000;
           }
           const chargeableWeight = Math.max(weight, volumetricWeight);
@@ -109,9 +99,10 @@ export default function Cart() {
     });
 
     const shippingFee = getShippingPrice(totalChargeableWeight);
-    return [count, subTotalCount, shippingFee];
-  }, [cartState.items, enrichedCart]);
-
+    setActiveVariantsSize(count);
+    setSubTotal(subTotalCount);
+    setShippingFee(shippingFee);
+  }, [cartProductsData, cartState]);
 
   const increaseQty = (cpi, cvi) => {
     const product_id = cartState.items[cpi].product_id;
@@ -172,7 +163,20 @@ export default function Cart() {
     dispatch(deleteProduct(send));
   }
 
+  const hasStockIssue = React.useMemo(() => {
+    if (!cartProductsData.length) return;
+    return cartState.items.some((cartProduct) => {
+      const cartProductByFetch = cartProductsData.find((p) => p._id === cartProduct.product_id);
+      return cartProduct.variants.some((cartVariant) => {
+        const cartVariantByFetch = cartProductByFetch.variants.find((v) => v.id === cartVariant.variant_id);
+        return cartVariant.quantity > cartVariantByFetch.stock;
+      })
+    });
+  }, [cartState.items, cartProductsData]);
 
+  if (!cartProductsData.length) {
+    return <div className="absolute w-screen h-screen left-0 top-0 flex items-center justify-center">Loading</div>
+  }
   return (
 
     <div
@@ -201,7 +205,15 @@ export default function Cart() {
         {
           cartState.items.length > 0 ?
             <>
-              <h1 className="text-[30px] mt-3 font-bold ">Cart</h1>
+              <h1 className="text-[30px] mt-3 font-bold">Cart</h1>
+
+              {hasStockIssue && (
+                <div className="bg-yellow-100 border-l-4 border-yellow-400 p-4">
+                  <p className="text-sm text-yellow-700">
+                    Please note that some items in your cart have less stock than your selected quantity. you wouldn't be able to proceed to checkout these items until you reduce the quantity to match the available stock. We apologize for any inconvenience caused and appreciate your understanding.
+                  </p>
+                </div>
+              )}
               <div className="w-full flex flex-col md:flex-row gap-3">
                 <div className="flex-1 flex flex-col gap-3">
 
@@ -217,79 +229,52 @@ export default function Cart() {
                   </div>
                   <div className="w-full flex flex-col gap-3">
 
-                    {enrichedCart.map((product, product_index) => {
+                    {cartState.items.map((cartProduct, cartProductIndex) => {
+                      const cartProductByFetch = cartProductsData.find((p) => p._id === cartProduct.product_id);
 
-                      const cartProductIndex = cartState.items.findIndex(p => p.product_id === product._id)
-                      const cartProduct = cartState.items[cartProductIndex];
                       return (
 
-                        <div key={product._id} className="rounded-[12px] bg-background_2 border border-myBorderColor py-4 px-5 flex flex-col gap-6 lg:gap-3">
-                          {/* <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-3">
-                          <input className="size-[20px] cursor-pointer accent-black" type="checkbox" checked={cartProduct.active} onChange={() => handleProductCheckBox(cartProductIndex)} />
-                          <h2 className="font-bold text-lg">
-                            {product.name}
-                          </h2>
-                        </div>
-                        <button onClick={() => {
-                          if (cartState.items[cartProductIndex].active)
-                            handleProductDelete(cartProductIndex)
-                        }}
-                          className=" cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        ><Trash className="size-[20px] text-[darkred] hover:text-[red]" /></button>
-                      </div> */}
-
+                        <div key={cartProductByFetch._id} className="rounded-[12px] bg-background_2 border border-myBorderColor py-4 px-5 flex flex-col gap-6 lg:gap-3">
 
                           {cartProduct.variants.map((cartVariant, cartVariantIndex) => {
-
-                            const fullVariantIndex = product.variants.findIndex(
-                              v => v.id === cartVariant.variant_id
-                            );
-
-                            const fullVariant = product.variants[fullVariantIndex];
-
-                            const { wasting, price, discount, finalPrice } = getVariantPricing(fullVariant);
-
+                            const cartVariantByFetch = cartProductByFetch.variants.find((v) => v.id === cartVariant.variant_id);
+                            const { wasting, price, discount, finalPrice } = getVariantPricing(cartVariantByFetch);
                             return (
-                              <React.Fragment key={cartVariant.variant_id}>
+                              <React.Fragment key={cartVariantByFetch.id}>
                                 <div
                                   className="flex md:items-center gap-2 lg:gap-4 justify-between"
                                 >
-                                  <input className="min-w-[20px] min-h-[20px] size-[20px] cursor-pointer accent-foreground" type="checkbox" checked={cartState.items[cartProductIndex].variants[cartVariantIndex].active} onChange={() => handleVariantCheckBox(cartProductIndex, cartVariantIndex)} />
+                                  <input className="min-w-[20px] min-h-[20px] size-[20px] cursor-pointer accent-foreground" type="checkbox" checked={cartVariant.active} onChange={() => handleVariantCheckBox(cartProductIndex, cartVariantIndex)} />
                                   <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
 
-                                    <Image
-                                      src={fullVariant.images[0]["src"]}
-                                      alt={product.name}
-                                      className="mx-auto min-w-0 min-h-0 size-[120px] w375:size-[200px] md:size-[300px] lg:size-[150px]"
-                                      width={1200}
-                                      height={1200}
-                                      priority
-                                    />
-
-                                    {/* <div className="flex w-max h-fit lg:hidden">
-                                      <button
-                                        onClick={() => {
-                                          setCurrentCartProductIndex(cartProductIndex);
-                                          setCurrentCartVariantIndex(cartVariantIndex);
-                                          setShowDeleteItemModal(true);
-                                        }}
-                                        className="bg-[darkred] not-disabled:hover:bg-[red] h-fit p-2 rounded-[12px] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex gap-1"
-                                      ><Trash className="size-[20px]" /> </button>
-                                    </div> */}
+                                    <Link
+                                      href={`/products/${cartProductByFetch.category}/${convertTextStringToDashString(cartProductByFetch.name)}`}
+                                    >
+                                      <Image
+                                        src={cartVariantByFetch.images[0]["src"]}
+                                        alt={cartProductByFetch.name}
+                                        className="mx-auto min-w-0 min-h-0 size-[120px] w375:size-[200px] md:size-[300px] lg:size-[150px]"
+                                        width={1200}
+                                        height={1200}
+                                        priority
+                                      />
+                                    </Link>
 
                                     <div className="flex justify-center items-center flex-row flex-wrap gap-4">
 
-                                      <div className="w-[180px] w375:w-[200px] flex flex-col">
+                                      <Link
+                                        href={`/products/${cartProductByFetch.category}/${convertTextStringToDashString(cartProductByFetch.name)}`}
+                                        className="w-[180px] w375:w-[200px] flex flex-col"
+                                      >
                                         <h2 className="font-bold text-base w375:text-lg truncate">
-                                          {product.name}
+                                          {cartProductByFetch.name}
                                         </h2>
-                                        {fullVariant.options.map((option) => (
+                                        {cartVariantByFetch.options.map((option) => (
                                           <div key={option.id} className="truncate">
                                             {option.name}: {option.value}
                                           </div>
                                         ))}
-                                      </div>
+                                      </Link>
 
                                       <div className="flex flex-wrap items-center gap-4 justify-center">
 
@@ -304,7 +289,7 @@ export default function Cart() {
 
                                         </div>
 
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-col gap-2 items-center justify-between">
                                           <div className="flex items-center overflow-hidden">
                                             <button
                                               onClick={() => decreaseQty(cartProductIndex, cartVariantIndex)}
@@ -326,7 +311,15 @@ export default function Cart() {
                                               +
                                             </button>
                                           </div>
+
+                                          {cartVariant.quantity > cartVariantByFetch.stock && (
+                                            <div className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                                              <span className="mt-[-5px]">⚠️</span>
+                                              Only {cartVariantByFetch.stock} available
+                                            </div>
+                                          )}
                                         </div>
+
                                       </div>
                                     </div>
                                   </div>
@@ -358,7 +351,7 @@ export default function Cart() {
                   </div>
                 </div>
                 <div>
-                  <div className="w-full md:w-[250px] xl:w-[300px] h-fit rounded-[12px] bg-background_2 border border-myBorderColor py-4 px-5 flex flex-col gap-3 sticky top-[165px]">
+                  <div className="w-full md:w-[250px] xl:w-[300px] h-fit rounded-[12px] bg-background_2 border border-myBorderColor py-4 px-5 flex flex-col gap-3 sticky top-[180px]">
                     <h2 className="
                       text-[105%]
                       font-semibold"
@@ -392,7 +385,7 @@ export default function Cart() {
                     </div>
                     {activeVariantsSize > 0 ? (
                       <div className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
-                        <Link href={"/checkout"}>
+                        <Link href="/checkout">
                           proceed to checkout
                         </Link>
                       </div>

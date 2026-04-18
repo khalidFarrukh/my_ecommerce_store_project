@@ -14,17 +14,16 @@ import FloatingInput from "@/components/FloatingInput";
 
 export default function AdminCollectionsClient({ session }) {
   const [collections, setCollections] = useState([]);
-  const [search, setSearch] = useState("");
 
   const fetchCollections = async () => {
-    const res = await fetch(`/api/admin/collections?search=${encodeURIComponent(search)}&offset=0&limit=20`);
+    const res = await fetch(`/api/admin/collections`);
     const json = await res.json();
     setCollections(json.data || []);
   };
 
   useEffect(() => {
     fetchCollections();
-  }, [search]);
+  }, []);
 
   const toggleTurnedOff = async (collection) => {
     const res = await fetch(`/api/admin/collections/${collection._id}`, {

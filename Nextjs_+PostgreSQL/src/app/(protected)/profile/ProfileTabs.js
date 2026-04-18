@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import YesNoModal from "@/components/modals/YesNoModal";
+import { useRouter } from "next/navigation";
 
 export default function ProfileTabs({ session }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -15,6 +17,30 @@ export default function ProfileTabs({ session }) {
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== "orders") return;
+
+    const fetchOrders = async () => {
+      try {
+        setLoadingOrders(true);
+
+        const res = await fetch("/api/orders/my-orders");
+        const data = await res.json();
+
+        setOrders(data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    fetchOrders();
+  }, [activeTab]);
 
   return (
     <>
@@ -114,10 +140,46 @@ export default function ProfileTabs({ session }) {
 
           {/* Orders */}
           {activeTab === "orders" && (
-            <div>
-              <p className="text-myTextColorMain text-sm sm:text-base">
-                Your orders will appear here.
-              </p>
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Your Orders</h2>
+
+              {loadingOrders ? (
+                <p className="text-myTextColorMain">Loading orders...</p>
+              ) : orders.length === 0 ? (
+                <p className="text-myTextColorMain">No orders yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <div
+                      key={order._id}
+                      className="group border border-myBorderColor p-4 rounded-md bg-background_1 space-y-2"
+                      onClick={() => router.push(`/orders/${order._id}`)}
+                    >
+                      <div className="flex justify-between">
+                        <p className="font-semibold group-hover:underline">
+                          Order #{order._id}
+                        </p>
+
+                        <span className="text-xs px-2 py-1 rounded bg-background_2 border border-myBorderColor">
+                          {order.status}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-myTextColorMain">
+                        Items: {order.items.length}
+                      </p>
+
+                      <p className="text-sm">
+                        Total: Rs. {order.pricing.total}
+                      </p>
+
+                      <p className="text-xs text-myTextColorMain">
+                        {new Date(order.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

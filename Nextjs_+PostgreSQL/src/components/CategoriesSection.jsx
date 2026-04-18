@@ -1,10 +1,18 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useRef, useState, useEffect, use } from "react";
+import {
+  Anchor,
+  ArrowUp,
+  ArrowUpIcon,
+  ChevronLeft,
+  ChevronRight,
+  MoveUp,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { convertTextStringToDashString } from "@/utils/utilities";
+import { useCategoriesContext } from "@/context/CategoriesContext";
 
 export default function CategoriesSection({ categories }) {
   const pathname = usePathname();
@@ -12,6 +20,7 @@ export default function CategoriesSection({ categories }) {
 
   const not_allowed_on = [
     "/cart",
+    "/checkout",
     "/signIn",
     "/signUp",
     "/forgotPassword",
@@ -23,6 +32,7 @@ export default function CategoriesSection({ categories }) {
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const { areCategoriesOpen, setAreCategoriesOpen } = useCategoriesContext();
 
   const getScrollAmount = () => {
     const el = scrollRef.current;
@@ -81,32 +91,39 @@ export default function CategoriesSection({ categories }) {
     categories.length > 0 && (
       <section
         aria-label="Product categories"
-        className="fixed font-poppins z-[49] top-[60px] w-full h-fit bg-background_1 border-b border-[var(--myBorderColor)]"
+        className={`fixed font-poppins z-49 top-15 w-full h-fit bg-background_1 border-b border-myBorderColor`}
       >
         <div
-          className="
+          className={`w-full ${areCategoriesOpen ? "h-24.5" : "h-12.25"} transition-normal overflow-hidden duration-200`}
+        >
+          <div
+            className="
           max-w-360
-          py-3
           px-2.5
           w375:px-5
           mx-auto
+          
           "
-        >
-          <h1
-            className={`
-          w-full
-          text-[16px]
-          text-[var(--myTextColorHeading)]
-          font-medium
-          mb-4
-        `}
           >
-            Categories
-          </h1>
-          <div className="relative">
-            <div className="flex w-full items-center">
-              {/* ALL button */}
-              {/* 
+            <div className="pt-3 relative h-[48px] w-full bg-background_1 z-2">
+              <button
+                className={`text-[16px] text-(--myTextColorHeading) font-medium mb-4 flex items-center gap-2 cursor-pointer`}
+                onClick={() => {
+                  setAreCategoriesOpen(!areCategoriesOpen);
+                }}
+              >
+                Categories
+                <span
+                  className={`text-xl ${areCategoriesOpen ? "rotate-90" : "rotate-270"} transition-transform`}
+                >
+                  {"<"}
+                </span>
+              </button>
+            </div>
+            <div className={`absolute z-1 bottom-3`}>
+              <div className="flex w-full items-center">
+                {/* ALL button */}
+                {/* 
               <Link href="/collections/all-products">
                 <div className="pr-4 flex-shrink-0">
                   <div className="cursor-pointer px-3 py-1 rounded-2xl bg-black text-white">
@@ -114,29 +131,29 @@ export default function CategoriesSection({ categories }) {
                   </div>
                 </div>
               </Link> */}
-              {/* SCROLLER */}
-              <div
-                ref={scrollRef}
-                className="w-full overflow-x-auto scrollbar-hide "
-              >
-                <div className="w-max flex items-center gap-4 whitespace-nowrap mr-1">
-                  {categories.map((category, index) => {
-                    return (
-                      <Link key={index} href={`/products/${category?._id}`}>
-                        <div
-                          className={`cursor-pointer  px-3 py-1 ${pathname === `/products/${category?._id}` ? "button1_active" : "button1"} transition-all delay-25`}
-                        >
-                          {category?.name}
-                        </div>
-                      </Link>
-                    );
-                  })}
+                {/* SCROLLER */}
+                <div
+                  ref={scrollRef}
+                  className="w-full overflow-x-auto scrollbar-hide "
+                >
+                  <div className="w-max flex items-center gap-4 whitespace-nowrap mr-1">
+                    {categories.map((category, index) => {
+                      return (
+                        <Link key={index} href={`/products/${category?._id}`}>
+                          <div
+                            className={`cursor-pointer  px-3 py-1 ${pathname === `/products/${category?._id}` ? "button1_active" : "button1"} transition-transform delay-25`}
+                          >
+                            {category?.name}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div
-              className={`
+              <div
+                className={`
                         pointer-events-none
                         absolute
                         top-0
@@ -146,19 +163,19 @@ export default function CategoriesSection({ categories }) {
                         w-full
                         z-0                        
                       `}
-            >
-              <div
-                className={`
+              >
+                <div
+                  className={`
                           
                           w-full
                           h-full
                           relative
                         `}
-              >
-                {canScrollLeft && (
-                  <>
-                    <div
-                      className={`
+                >
+                  {canScrollLeft && (
+                    <>
+                      <div
+                        className={`
                             absolute
                             pointer-events-none
                             w-1/3
@@ -167,19 +184,19 @@ export default function CategoriesSection({ categories }) {
                             from-background_1
                             to-transparent
                           `}
-                    ></div>
-                    <button
-                      onClick={scrollLeft}
-                      className="pointer-events-auto cursor-pointer absolute z-10 size-[34px] rounded-full bg-foreground text-background_1 flex justify-center items-center"
-                    >
-                      <ChevronLeft />
-                    </button>
-                  </>
-                )}
-                {canScrollRight && (
-                  <>
-                    <div
-                      className={`
+                      ></div>
+                      <button
+                        onClick={scrollLeft}
+                        className="pointer-events-auto cursor-pointer absolute z-10 size-[34px] rounded-full bg-foreground text-background_1 flex justify-center items-center"
+                      >
+                        <ChevronLeft />
+                      </button>
+                    </>
+                  )}
+                  {canScrollRight && (
+                    <>
+                      <div
+                        className={`
                             absolute
                             pointer-events-none
                             right-0
@@ -189,15 +206,16 @@ export default function CategoriesSection({ categories }) {
                             from-background_1
                             to-transparent
                           `}
-                    ></div>
-                    <button
-                      onClick={scrollRight}
-                      className="pointer-events-auto cursor-pointer absolute z-10 right-0 size-[34px] rounded-full bg-foreground text-background_1 flex justify-center items-center"
-                    >
-                      <ChevronRight />
-                    </button>
-                  </>
-                )}
+                      ></div>
+                      <button
+                        onClick={scrollRight}
+                        className="pointer-events-auto cursor-pointer absolute z-10 right-0 size-[34px] rounded-full bg-foreground text-background_1 flex justify-center items-center"
+                      >
+                        <ChevronRight />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 import { X } from "lucide-react";
@@ -9,15 +9,17 @@ import {
   capitalizeEachFirstCharOfWord,
   convertDashStringToTextString,
   getAdminProductIssues,
+  handleTextareInput,
 } from "@/utils/utilities";
 
 export default function EditProductForm({
+  session,
   product: initialProduct,
   categories = [],
   allCollections = [],
 }) {
   const router = useRouter();
-
+  const [errors, setErrors] = useState({});
   const [product, setProduct] = useState(initialProduct);
 
   // --- State for category autocomplete ---
@@ -31,6 +33,13 @@ export default function EditProductForm({
 
   // --- State for collection dropdown ---
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false);
+
+  const descriptionTextareaRef = useRef(null);
+
+  // optional: initialize height if textarea has default value
+  useEffect(() => {
+    handleTextareInput(descriptionTextareaRef);
+  }, []);
 
   // --- Click outside to close dropdowns ---
   useEffect(() => {
@@ -80,21 +89,29 @@ export default function EditProductForm({
           name: "Material",
           placeHolder: "e.g. plastic / Iron / Aluminium",
         };
+
       case "weight":
         return {
           name: "Weight",
-          placeHolder: "e.g. 100g / 2kg / 2000g",
+          placeHolder: "e.g. 1500g, 1.5kg, 2000 g, or 2 kg",
+          regex: /^(?:\d+(\.\d+)?\s?kg|\d+\s?g)$/i,
+          error: "Enter valid weight (e.g. 1500g, 1.5kg, 2000 g, or 2 kg)",
         };
+
       case "country_of_origin":
         return {
           name: "Country of origin",
           placeHolder: "",
         };
+
       case "dimensions":
         return {
-          name: "Dimensions",
-          placeHolder: "e.g. 2Lx5Wx6H / 10Lx5Wx7H",
+          name: "Dimensions (LxWxH)",
+          placeHolder: "e.g. 10x5x7",
+          regex: /^\d+x\d+x\d+$/i,
+          error: "Format (LxWxH): 10x5x7",
         };
+
       case "type":
         return {
           name: "Type",
@@ -113,7 +130,7 @@ export default function EditProductForm({
           options: [],
           price: "",
           discount: "",
-          stock: "",
+          stock: 0,
           default: false,
           images: [],
         },
@@ -204,7 +221,10 @@ export default function EditProductForm({
 
     const data = await res.json();
 
-    if (data.success) router.push("/admin/products");
+    if (data.success)
+      router.push(
+        `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
+      );
   };
 
   useEffect(() => {
@@ -225,11 +245,16 @@ export default function EditProductForm({
           onChange={(e) => updateField("name", e.target.value)}
         />
         <FloatingTextArea
+          ref={descriptionTextareaRef}
           id="description"
           label="Description"
           inputClassName="input!"
           value={product.description}
-          onChange={(e) => updateField("description", e.target.value)}
+          rows={1}
+          onChange={(e) => {
+            updateField("description", e.target.value);
+            handleTextareInput(descriptionTextareaRef);
+          }}
         />
 
         <div className="flex gap-5">
@@ -370,18 +395,47 @@ export default function EditProductForm({
       <div className="bg-background_2 border border-myBorderColor rounded-lg p-6 space-y-4">
         <h2 className="text-lg font-medium">Product Info</h2>
 
-        {Object.keys(product.info).map((key) => (
-          <FloatingInput
-            key={key}
-            id={key}
-            label={fieldData(key).name}
-            inputClassName="input1!"
-            type="text"
-            placeholder={fieldData(key).placeHolder}
-            value={product.info[key]}
-            onChange={(e) => updateInfo(key, e.target.value)}
-          />
-        ))}
+        {Object.keys(product.info).map((key) => {
+          const field = fieldData(key);
+
+          return (
+            <FloatingInput
+              key={key}
+              id={key}
+              label={field.name}
+              inputClassName="input1!"
+              type="text"
+              placeholder={field.placeHolder}
+              value={product.info[key]}
+              error={errors[key]} // ✅ dynamic error
+              onChange={(e) => {
+                const value = e.target.value;
+
+                updateInfo(key, value);
+
+                setErrors((prev) => ({
+                  ...prev,
+                  [key]: "",
+                }));
+              }}
+              onBlur={(e) => {
+                const value = e.target.value;
+
+                if (field.regex && value && !field.regex.test(value)) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    [key]: field.error,
+                  }));
+                } else {
+                  setErrors((prev) => ({
+                    ...prev,
+                    [key]: "",
+                  }));
+                }
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Variants */}
@@ -453,7 +507,7 @@ export default function EditProductForm({
                       id="stock"
                       label="Stock"
                       inputClassName="input1!"
-                      type="text"
+                      type="number"
                       value={variant.stock}
                       onChange={(e) =>
                         updateVariant(i, "stock", e.target.value)

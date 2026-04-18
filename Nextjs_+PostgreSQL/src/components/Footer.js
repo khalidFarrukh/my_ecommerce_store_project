@@ -1,17 +1,10 @@
 "use client"
 import Link from "next/link"
-import Image from "next/image"
-import { LogoNext } from '@geist-ui/icons';
-import { useEffect, useRef } from "react";
-import { useFooter } from "@/context/FooterContext";
-
 
 export default function Footer() {
-  const { footerRef } = useFooter();
   return (
     <footer
-      ref={footerRef}
-      className="mt-3 border-t border-myBorderColor h-fit"
+      className="mt-3 border-t border-myBorderColor h-fit font-poppins"
     >
       <div
         className={`
@@ -39,7 +32,7 @@ export default function Footer() {
             hover:text-foreground
           `}
         >
-          MEDUSA STORE
+          FK STORE
         </Link>
         <div
           className={`
@@ -64,7 +57,7 @@ export default function Footer() {
               text-wrap
             `}
           >
-            © 2025 Medusa Store. All rights reserved.
+            © 2026 FK Store. All rights reserved.
           </div>
           <div className="order-0 md:order-1 flex flex-row gap-3">
             Developed by
