@@ -75,13 +75,27 @@ const authConfig = {
   },
 
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
+    // async jwt({ token, user }) {
+    //   if (user) {
+    //     token.id = user.id;
+    //     token.role = user.role;
+    //   }
+    //   return token;
+    // }
+    async jwt({ token }) {
+      if (token?.id) {
+        const user = await prisma.user.findUnique({
+          where: { id: token.id },
+        });
+
+        if (user) {
+          token.role = user.role;
+        }
       }
+
       return token;
-    },
+    }
+    ,
 
     async session({ session, token }) {
       if (session.user) {
