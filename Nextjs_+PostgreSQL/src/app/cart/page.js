@@ -54,7 +54,7 @@ export default function Cart() {
     };
 
     fetchProducts();
-  }, []);
+  }, [cartState.items]);
 
   const [activeVariantsSize, setActiveVariantsSize] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
