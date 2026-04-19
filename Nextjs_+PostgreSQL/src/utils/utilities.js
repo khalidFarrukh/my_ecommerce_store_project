@@ -1,7 +1,7 @@
 
 
 export async function getAllCollections() {
-  const res = await fetch("http://localhost:3000/api/collections", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/collections`, {
     cache: "no-store"
   });
 
@@ -11,7 +11,7 @@ export async function getAllCollections() {
 }
 
 export async function getCategories() {
-  const res = await fetch("http://localhost:3000/api/categories", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`, {
     cache: "no-store"
   });
 
