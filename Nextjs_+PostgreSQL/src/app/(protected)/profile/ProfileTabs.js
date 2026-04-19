@@ -28,12 +28,21 @@ export default function ProfileTabs({ session }) {
       try {
         setLoadingOrders(true);
 
-        const res = await fetch("/api/orders/my-orders");
-        const data = await res.json();
+        const res = await fetch("/api/orders/my-orders", {
+          credentials: "include",
+        });
 
-        setOrders(data || []);
+        const resultJson = await res.json();
+
+        if (!res.ok) {
+          setOrders([]);
+          return;
+        }
+
+        setOrders(resultJson.data || []);
       } catch (err) {
         console.error(err);
+        setOrders([]);
       } finally {
         setLoadingOrders(false);
       }

@@ -91,7 +91,7 @@ export default function CategoriesSection({ categories }) {
     categories.length > 0 && (
       <section
         aria-label="Product categories"
-        className={`fixed font-poppins z-49 top-15 w-full h-fit bg-background_1 border-b border-myBorderColor`}
+        className={`fixed font-poppins text-[var(--myTextColorMain)] z-49 top-15 w-full h-fit bg-background_1 border-b border-myBorderColor`}
       >
         <div
           className={`w-full ${areCategoriesOpen ? "h-24.5" : "h-12.25"} transition-normal overflow-hidden duration-200`}
@@ -102,12 +102,11 @@ export default function CategoriesSection({ categories }) {
           px-2.5
           w375:px-5
           mx-auto
-          
           "
           >
-            <div className="pt-3 relative h-[48px] w-full bg-background_1 z-2">
+            <div className="hover:text-foreground pt-3 relative h-[48px] w-full bg-background_1 z-2">
               <button
-                className={`text-[16px] text-(--myTextColorHeading) font-medium mb-4 flex items-center gap-2 cursor-pointer`}
+                className={`text-[16px]\ font-medium mb-4 flex items-center gap-2 cursor-pointer`}
                 onClick={() => {
                   setAreCategoriesOpen(!areCategoriesOpen);
                 }}
@@ -154,37 +153,36 @@ export default function CategoriesSection({ categories }) {
 
               <div
                 className={`
-                        pointer-events-none
-                        absolute
-                        top-0
-                        right-0
-                        flex
-                        h-full
-                        w-full
-                        z-0                        
-                      `}
+                  pointer-events-none
+                  absolute
+                  top-0
+                  right-0
+                  flex
+                  h-full
+                  w-full
+                  z-0                        
+                `}
               >
                 <div
-                  className={`
-                          
-                          w-full
-                          h-full
-                          relative
-                        `}
+                  className={`      
+                    w-full
+                    h-full
+                    relative
+                  `}
                 >
                   {canScrollLeft && (
                     <>
                       <div
                         className={`
-                            absolute
-                            pointer-events-none
-                            w-1/3
-                            h-full
-                            bg-gradient-to-r
-                            from-background_1
-                            to-transparent
-                          `}
-                      ></div>
+                          absolute
+                          pointer-events-none
+                          w-1/3
+                          h-full
+                          bg-gradient-to-r
+                          from-background_1
+                          to-transparent
+                        `}
+                      />
                       <button
                         onClick={scrollLeft}
                         className="pointer-events-auto cursor-pointer absolute z-10 size-[34px] rounded-full bg-foreground text-background_1 flex justify-center items-center"

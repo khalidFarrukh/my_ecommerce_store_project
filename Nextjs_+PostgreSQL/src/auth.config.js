@@ -82,14 +82,21 @@ const authConfig = {
     //   }
     //   return token;
     // }
-    async jwt({ token }) {
-      if (token?.id) {
-        const user = await prisma.user.findUnique({
+    async jwt({ token, user }) {
+      // when user logs in
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+
+      // always refresh role from DB (optional but good)
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
           where: { id: token.id },
         });
 
-        if (user) {
-          token.role = user.role;
+        if (dbUser) {
+          token.role = dbUser.role;
         }
       }
 

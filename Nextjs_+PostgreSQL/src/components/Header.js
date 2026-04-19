@@ -149,7 +149,7 @@ export default function Header() {
                 windowWidth >= 768 &&
                 <button
                   onClick={() => setTheme(nextTheme[theme] || "system")}
-                  className="cursor-pointer h-full text-foreground"
+                  className="cursor-pointer h-full hover:text-foreground"
                 >
                   {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
                 </button>

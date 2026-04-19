@@ -9,7 +9,7 @@ export async function GET() {
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        { message: "Unauthorized" },
+        { message: "Unauthorized", data: [] },
         { status: 401 }
       );
     }
@@ -23,11 +23,14 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return NextResponse.json(orders);
+    return NextResponse.json(
+      { message: "Success", data: orders },
+      { status: 200 }
+    );
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { message: "Server error" },
+      { message: "Server error", data: [] },
       { status: 500 }
     );
   }
