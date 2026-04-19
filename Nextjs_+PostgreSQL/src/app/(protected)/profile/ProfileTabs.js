@@ -21,6 +21,7 @@ export default function ProfileTabs({ session }) {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
+  
   useEffect(() => {
     if (activeTab !== "orders") return;
 
