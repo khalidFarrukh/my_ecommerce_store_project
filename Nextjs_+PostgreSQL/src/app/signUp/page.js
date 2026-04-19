@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
-import SignUpForm from "./SignUpForm";
+import SignUpForm from "../../components/SignUpForm";
 
 export default async function SignUpPage({ searchParams }) {
   const session = await auth();

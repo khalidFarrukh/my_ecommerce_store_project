@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
-import ResetPasswordForm from "./ResetPasswordForm";
+import ResetPasswordForm from "../../../components/ResetPasswordForm";
 
 export default async function resetPasswordPage({ searchParams }) {
   const session = await auth();

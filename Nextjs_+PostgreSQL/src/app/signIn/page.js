@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AccountUI from "@/components/auth/AccountUI";
-import SignInForm from "./SignInForm";
+import SignInForm from "../../components/SignInForm";
 
 export default async function SignInPage({ searchParams }) {
   const session = await auth();
