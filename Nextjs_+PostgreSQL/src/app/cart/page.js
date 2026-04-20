@@ -186,7 +186,7 @@ export default function Cart() {
 
   if (loadingProducts && cartState.items.length > 0) {
     return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
-      <LoadingSpinner text="Loading cart" />
+      <LoadingSpinner text="Loading" />
     </div>
   }
   return (
