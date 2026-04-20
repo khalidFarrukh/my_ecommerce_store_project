@@ -185,12 +185,14 @@ export default function Cart() {
   }, [cartState.items, cartProductsData]);
 
   if (loadingProducts && cartState.items.length > 0) {
-    return <LoadingSpinner text="Loading cart" />
+    return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading cart" />
+    </div>
   }
   return (
     <>
       {
-        cartState.items.length > 0 ?
+        cartState.items.length > 0 && !loadingProducts ?
 
           <div
             className=

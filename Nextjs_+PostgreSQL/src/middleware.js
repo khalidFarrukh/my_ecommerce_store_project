@@ -24,7 +24,9 @@ export async function middleware(req) {
       return NextResponse.redirect(new URL(`/signIn?callbackUrl=${pathname}`, req.url));
     }
   }
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set('x-pathname', pathname);
+  return response;
 }
 
 export const config = {
