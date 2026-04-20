@@ -15,6 +15,8 @@ import { getShippingPrice } from "@/utils/shipping";
 import Image from "next/image";
 import YesNoModal from "@/components/modals/YesNoModal";
 import { convertTextStringToDashString, parseDimensions, parseWeight } from "@/utils/utilities";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import CenteringUI from "@/components/auth/CenteringUI";
 
 
 export default function Cart() {
@@ -36,21 +38,29 @@ export default function Cart() {
   }, [cartState]);
 
   const [cartProductsData, setCartProductsData] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
-    if (!cartState.items.length) return;
+    if (!cartState.items.length) {
+      setCartProductsData([]);
+      setLoadingProducts(false);
+      return;
+    }
 
     const fetchProducts = async () => {
+      setLoadingProducts(true);
+
       const res = await fetch("/api/products/by-ids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ids: cartState.items.map(i => i.product_id)
-        })
+        }),
       });
 
       const data = await res.json();
       setCartProductsData(data);
+      setLoadingProducts(false);
     };
 
     fetchProducts();
@@ -174,37 +184,37 @@ export default function Cart() {
     });
   }, [cartState.items, cartProductsData]);
 
-  if (!cartProductsData.length) {
-    return <div className="absolute w-screen h-screen left-0 top-0 flex items-center justify-center">Loading</div>
+  if (loadingProducts && cartState.items.length > 0) {
+    return <LoadingSpinner text="Loading cart" />
   }
   return (
+    <>
+      {
+        cartState.items.length > 0 ?
 
-    <div
-      className=
-      {`
+          <div
+            className=
+            {`
           relative
           w-full
-          min-h-screen
+          min-h-[calc(100vh-100px)]
           bg-background_1
           mb-3
           flex
           flex-col
           items-center
         `}
-    >
-      <div
-        className=
-        {`
+          >
+            <div
+              className=
+              {`
             w-full
             h-full
             flex
             flex-col
             gap-3
           `}
-      >
-        {
-          cartState.items.length > 0 ?
-            <>
+            >
               <h1 className="text-[30px] mt-3 font-bold">Cart</h1>
 
               {hasStockIssue && (
@@ -231,13 +241,14 @@ export default function Cart() {
 
                     {cartState.items.map((cartProduct, cartProductIndex) => {
                       const cartProductByFetch = cartProductsData.find((p) => p._id === cartProduct.product_id);
-
+                      if (!cartProductByFetch) return null; // in case data fetching issue, should not happen often
                       return (
 
                         <div key={cartProductByFetch._id} className="rounded-[12px] bg-background_2 border border-myBorderColor py-4 px-5 flex flex-col gap-6 lg:gap-3">
 
                           {cartProduct.variants.map((cartVariant, cartVariantIndex) => {
                             const cartVariantByFetch = cartProductByFetch.variants.find((v) => v.id === cartVariant.variant_id);
+                            if (!cartVariantByFetch) return null; // in case data fetching issue, should not happen often
                             const { wasting, price, discount, finalPrice } = getVariantPricing(cartVariantByFetch);
                             return (
                               <React.Fragment key={cartVariantByFetch.id}>
@@ -400,6 +411,7 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
+
               {showDeleteAllModal &&
                 <YesNoModal
                   text1={"Are you sure, you want to delete your whole cart?"}
@@ -427,41 +439,26 @@ export default function Cart() {
                   }}
                 />
               }
-            </>
-            :
-            <div className="w-full h-full">
-              <div className="w-full h-[500px] flex-1 flex flex-col gap-3 items-center justify-between">
-                <div className="flex-1 flex flex-col gap-3 items-center justify-center">
-                  <div className="w-[30px] h-[30px] flex items-center justify-center bg-black rounded-full text-white text-sm">{cartItemsSize}</div>
-                  <div className="text-sm ">
-                    {
-                      cartItemsSize ?
-                        "Your have products in cart" :
-                        "Your cart is empty"
-
-                    }
-                  </div>
-                  {
-                    !cartItemsSize ?
-
-                      <Link href={"/collections/all-products"}
-                        className="h-max p-3 bg-black text-sm text-white rounded-[10px] cursor-pointer"
-                      >
-                        All products
-                      </Link>
-                      :
-                      <Link href={"/cart"}
-                        className="h-max p-3 bg-black text-sm text-white rounded-[10px] cursor-pointer"
-                      >
-                        Show cart
-                      </Link>
-                  }
-                </div>
-              </div>
             </div>
-
-        }
-      </div>
-    </div >
+          </div >
+          :
+          <div className="min-h-[calc(100vh-60px-176px)] md:min-h-[calc(100vh-60px-140px)] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-[40px] h-[40px] flex items-center justify-center bg-black text-white rounded-full">
+                {cartItemsSize}
+              </div>
+              <p className="text-sm text-center">
+                Your cart is empty
+              </p>
+              <Link
+                href="/collections/all-products"
+                className="px-4 py-2 bg-black text-white rounded-md text-sm"
+              >
+                Browse products
+              </Link>
+            </div>
+          </div>
+      }
+    </>
   );
 }

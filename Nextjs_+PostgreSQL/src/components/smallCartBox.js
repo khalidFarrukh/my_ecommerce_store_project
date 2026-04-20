@@ -57,7 +57,7 @@ export default function CustomCartBox() {
             !cartItemsSize ?
 
               <Link href={"/collections/all-products"}
-                className="h-max p-3 text-sm button cursor-pointer"
+                className="h-max p-3 text-sm button1 cursor-pointer"
               >
                 All products
               </Link>

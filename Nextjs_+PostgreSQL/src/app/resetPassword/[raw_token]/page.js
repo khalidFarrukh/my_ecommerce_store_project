@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import AccountUI from "@/components/auth/AccountUI";
+import AccountUI from "@/components/auth/CenteringUI";
 import ResetPasswordForm from "../../../components/ResetPasswordForm";
 
 export default async function resetPasswordPage({ searchParams }) {

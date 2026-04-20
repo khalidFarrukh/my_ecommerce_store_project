@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import AccountUI from "@/components/auth/AccountUI";
+import CenteringUI from "@/components/auth/CenteringUI";
 import SignUpForm from "../../components/SignUpForm";
 
 export default async function SignUpPage({ searchParams }) {
@@ -18,7 +18,7 @@ export default async function SignUpPage({ searchParams }) {
   }
 
   return (
-    <AccountUI >
+    <CenteringUI >
       <SignUpForm />
-    </AccountUI>);
+    </CenteringUI>);
 }
