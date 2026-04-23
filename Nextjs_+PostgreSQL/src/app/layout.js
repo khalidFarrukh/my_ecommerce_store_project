@@ -16,6 +16,7 @@ import { getCategories } from "@/utils/utilities";
 import SearchModal from "@/components/modals/SearchModal";
 import AlertModal from "@/components/modals/AlertModal";
 import Script from "next/script";
+import GlobalToast from "@/components/ui/GlobalToast";
 
 const inter = Inter({
   variable: "--font-inter", // optional
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }) {
           <PageContentWrapper categories={categories}>
             {children}
           </PageContentWrapper>
+          <GlobalToast />
 
           <Footer />
 

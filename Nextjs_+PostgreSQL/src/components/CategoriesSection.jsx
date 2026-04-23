@@ -27,7 +27,11 @@ export default function CategoriesSection({ categories }) {
     "/resetPassword",
   ];
   const canRenderCategories = React.useMemo(() => {
-    return !not_allowed_on.includes(pathname) && !pathname.startsWith("/admin");
+    return (
+      !not_allowed_on.some((path) => pathname.includes(path)) &&
+      !pathname.startsWith("/admin")
+    );
+    // convert this !not_allowed_on.includes(pathname) such that we check if pathname includes any of the not_allowed_on paths, because currently if we are on /cart/anything it will show categories, which we don't want, we want to hide categories on all cart related pages, so we need to check if pathname includes any of the not_allowed_on paths
   }, [pathname]);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);

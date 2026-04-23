@@ -161,7 +161,7 @@ export async function POST(req) {
     }
 
     return NextResponse.json({
-      message: "Order placed successfully",
+      message: "Order placed successfully!",
       orderId: result.insertedId,
     });
 

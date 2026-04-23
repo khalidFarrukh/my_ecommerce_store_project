@@ -29,7 +29,7 @@ export default function PageContentWrapper({ children, categories }) {
     "/resetPassword",
   ];
   const isValidFlexCenter = React.useMemo(() => {
-    return flex_center_allowed_on.includes(pathname);
+    return flex_center_allowed_on.some((path) => pathname.includes(path));
   }, [pathname]);
 
   return (

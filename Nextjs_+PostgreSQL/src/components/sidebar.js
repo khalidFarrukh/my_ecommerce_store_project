@@ -30,7 +30,7 @@ export default function SideBar() {
     <aside className="font-poppins">
       {
         isOpen &&
-        <div onClick={() => dispatch(closeSidebar())} className="fixed w-full h-full bg-background_1/50 pointer-events-auto z-[51]">
+        <div onClick={() => dispatch(closeSidebar())} className="fixed w-full h-full bg-background_1/50 pointer-events-auto z-[99]">
 
         </div>
       }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { authEvents } from "@/lib/authEvents";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function SignUpForm() {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match");
+      authEvents.emit("auth:error", { message: "Passwords do not match" });
       return;
     }
 
@@ -48,14 +49,26 @@ export default function SignUpForm() {
     const data = await res.json();
 
     if (data.success) {
-      // // 2️⃣ Immediately log in via NextAuth
-      await signIn("credentials", {
+      // 1️⃣ login
+      const result = await signIn("credentials", {
         redirect: false,
         email: form.email,
         password: form.password,
       });
+
+      // 2️⃣ only proceed if login succeeded
+      if (!result || result.error) {
+        authEvents.emit("auth:error", { message: "Signup succeeded but login failed" });
+        return;
+      }
+
+      // 3️⃣ ✅ emit success toast
+      authEvents.emit("auth:login");
+
+      const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
+      router.push(safeCallBack);
     } else {
-      alert(data.error);
+      authEvents.emit("auth:error", { message: data.error });
     }
 
     setLoading(false);

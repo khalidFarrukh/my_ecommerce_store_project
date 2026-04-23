@@ -4,52 +4,138 @@ export async function GET(req, context) {
   const { slug } = await context.params;
   const url = new URL(req.url);
 
-  const offset = parseInt(url.searchParams.get("offset") || "0");
-  const limit = parseInt(url.searchParams.get("limit") || "10");
   const type = url.searchParams.get("type") || "collection";
+
+  const minPrice = parseFloat(url.searchParams.get("minPrice") || "0");
+  const maxPrice = parseFloat(url.searchParams.get("maxPrice") || "Infinity");
+
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = parseInt(url.searchParams.get("limit") || "10");
+
+  const skip = (page - 1) * limit;
+
+  let matchStage = { status: "active" };
+
+  if (type === "collection") {
+    if (slug !== "all-products") {
+      matchStage.collectionIds = slug;
+    }
+  } else if (type === "category") {
+    matchStage.category = slug;
+  }
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
 
-  let query = { status: "active" };
+  const result = await db.collection("products").aggregate([
+    { $match: matchStage },
+    { $unwind: "$variants" },
 
-  if (type === "collection") {
-    if (slug !== "all-products") {
-      // match items where collectionIds array contains slug
-      query = { ...query, collectionIds: slug };
+    {
+      $addFields: {
+        priceNum: { $toDouble: "$variants.price" },
+        discountNum: { $toDouble: "$variants.discount" },
+      }
+    },
+
+    {
+      $addFields: {
+        finalPrice: {
+          $subtract: [
+            "$priceNum",
+            {
+              $multiply: [
+                "$priceNum",
+                { $divide: ["$discountNum", 100] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      $facet: {
+        products: [
+          {
+            $match: {
+              finalPrice: { $gte: minPrice, $lte: maxPrice }
+            }
+          },
+
+          {
+            $group: {
+              _id: "$_id",
+              name: { $first: "$name" },
+              description: { $first: "$description" },
+              category: { $first: "$category" },
+              collectionIds: { $first: "$collectionIds" },
+              status: { $first: "$status" },
+              createdAt: { $first: "$createdAt" },
+              updatedAt: { $first: "$updatedAt" },
+              info: { $first: "$info" },
+
+              variants: {
+                $push: {
+                  id: "$variants.id",
+                  options: "$variants.options",
+                  price: "$variants.price",
+                  discount: "$variants.discount",
+                  stock: "$variants.stock",
+                  default: "$variants.default",
+                  images: "$variants.images"
+                }
+              }
+            }
+          },
+
+          { $skip: skip },
+          { $limit: limit },
+          { $sort: { createdAt: -1 } }
+        ],
+
+        count: [
+          {
+            $match: {
+              finalPrice: { $gte: minPrice, $lte: maxPrice }
+            }
+          },
+          { $group: { _id: "$_id" } },
+          { $count: "total" }
+        ],
+
+        priceRange: [
+          {
+            $group: {
+              _id: null,
+              minPrice: { $min: "$finalPrice" },
+              maxPrice: { $max: "$finalPrice" }
+            }
+          }
+        ]
+      }
     }
-  }
+  ]).toArray();
 
-  else if (type === "category") {
-    query = { ...query, category: slug };
-  }
-
-  const total = await db.collection("products").countDocuments(query);
-
-  const products_data = await db
-    .collection("products")
-    .find(query)
-    .skip(offset)
-    .limit(limit)
-    .toArray();
+  const products_data = result[0].products;
+  const total = result[0].count[0]?.total || 0;
+  const totalPages = Math.ceil(total / limit);
+  const priceRange = result[0].priceRange[0] || { minPrice: 0, maxPrice: 0 };
 
   const formattedProducts = products_data.map(p => ({
     ...p,
     _id: p._id.toString()
   }));
 
-  return new Response(
-    JSON.stringify({
-      total,
-      offset,
-      limit,
-      data: formattedProducts,
-      hasMore: offset + limit < total
-    }),
-    {
-      headers: { "Content-Type": "application/json" }
-    }
-  );
+  return new Response(JSON.stringify({
+    total,
+    page,
+    totalPages,
+    priceRange,
+    data: formattedProducts
+  }), {
+    headers: { "Content-Type": "application/json" }
+  });
 }
 
 

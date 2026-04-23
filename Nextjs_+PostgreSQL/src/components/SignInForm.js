@@ -5,10 +5,13 @@ import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 import Link from "next/link";
+import { useGlobalToast } from "@/context/GlobalToastContext";
+import { authEvents } from "@/lib/authEvents";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setToast } = useGlobalToast();
 
   // if middleware added callbackUrl (?callbackUrl=/profile)
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -42,7 +45,8 @@ export default function SignInForm() {
     setLoading(false);
 
     if (!result || result.error) {
-      setError("Invalid email or password");
+
+      authEvents.emit("auth:error", { message: "Invalid email or password" });
       return;
     }
 
@@ -52,15 +56,21 @@ export default function SignInForm() {
 
     // 🚨 user trying to access admin route
     if (safeCallBack.startsWith("/admin") && session?.user?.role !== "ADMIN") {
-      setError("Only admin have access on this page.");
+      authEvents.emit("auth:forbidden", { message: "Only admin have access on this page." });
       return;
     }
 
     // ADMIN redirect
     if (session?.user?.role === "ADMIN") {
+      // here will show the admin logged in successfully toast, as they are also users and can login via credentials, so will show the logged in successfully toast here
+      authEvents.emit("auth:login");
+
       router.push("/admin");
       return;
     }
+
+    // here only user will reach, so redirect to their intended page or homepage, so will show the logged in successfully toast here
+    authEvents.emit("auth:login");
 
     // normal user redirect
     router.push(safeCallBack);

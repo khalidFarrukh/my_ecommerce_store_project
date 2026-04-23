@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import AccountUI from "@/components/auth/CenteringUI";
-import ResetPasswordForm from "../../../components/ResetPasswordForm";
+import CenteringUI from "@/components/auth/CenteringUI";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 export default async function resetPasswordPage({ searchParams }) {
   const session = await auth();
@@ -18,8 +18,8 @@ export default async function resetPasswordPage({ searchParams }) {
   }
 
   return (
-    <AccountUI >
+    <CenteringUI >
       <ResetPasswordForm />
-    </AccountUI>
+    </CenteringUI>
   );
 }

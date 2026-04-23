@@ -105,6 +105,31 @@ const cartSlice = createSlice({
         })
       })
     },
+    removeActiveVariants: (state) => {
+      state.cartState.items = state.cartState.items
+        .map(product => {
+          // remove active variants
+          const remainingVariants = product.variants.filter(v => !v.active);
+
+          return {
+            ...product,
+            variants: remainingVariants,
+            active: remainingVariants.length > 0
+              ? remainingVariants.every(v => v.active)
+              : false
+          };
+        })
+        // remove products with no variants
+        .filter(product => product.variants.length > 0);
+
+      // recalc cart active
+      const allProductsActive =
+        state.cartState.items.length > 0 &&
+        state.cartState.items.every(p => p.active === true);
+
+      state.cartState.active = allProductsActive;
+    }
+    ,
     deleteVariant: (state, action) => {
       const { cartProductIndex, cartVariantIndex } = action.payload;
 
@@ -150,5 +175,5 @@ const cartSlice = createSlice({
   }
 });
 
-export const { addToCart, updateCartVariantQuantity, updateVariantCheckBox, updateProductCheckBox, updateAllItemCheckBox, deleteVariant, deleteProduct, deleteAllItems } = cartSlice.actions;
+export const { addToCart, updateCartVariantQuantity, updateVariantCheckBox, updateProductCheckBox, updateAllItemCheckBox, deleteVariant, removeActiveVariants, deleteProduct, deleteAllItems } = cartSlice.actions;
 export default cartSlice.reducer;

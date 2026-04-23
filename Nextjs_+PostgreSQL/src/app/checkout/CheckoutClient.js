@@ -1,21 +1,33 @@
 "use client";
 import FloatingInput from "@/components/FloatingInput";
 import FloatingTextArea from "@/components/FloatingTextArea";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { getVariantPricing } from "@/utils/productVariant";
 import { getShippingPrice } from "@/utils/shipping";
 import { handleTextareInput, parseDimensions, parseWeight } from "@/utils/utilities";
 import { Delete, Edit, Trash, Trash2 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { removeActiveVariants } from "@/store/cartSlice";
+import { useAlertModal } from "@/context/AlertModalContext";
+import { authEvents } from "@/lib/authEvents";
 
 export default function CheckoutClient({ user, addresses: initialAddresses }) {
   const cartItems = useSelector(state => state.cart.cartState.items);
+  const dispatch = useDispatch();
+  const { openAlertModal } = useAlertModal();
   const [checkoutProducts, setCheckoutProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   useEffect(() => {
-    if (!cartItems.length) return;
+    if (!cartItems.length) {
+      setCheckoutProducts([]);
+      setLoadingProducts(false);
+      return;
+    }
 
     const fetchProducts = async () => {
+      setLoadingProducts(true);
       const activeProductIds = cartItems
         .filter(i => i.variants.some(v => v.active))
         .map(i => i.product_id);
@@ -32,6 +44,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
       const data = await res.json();
       setCheckoutProducts(data);
+      setLoadingProducts(false);
     };
 
     fetchProducts();
@@ -120,7 +133,6 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      alert("Session expired");
       return;
     }
 
@@ -169,7 +181,6 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      alert("Session expired");
       return;
     }
 
@@ -195,7 +206,6 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      alert("Session expired");
       return;
     }
 
@@ -263,7 +273,8 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
       });
 
       if (!orderItems.length) {
-        alert("No valid items in cart");
+
+        openAlertModal("No valid items in cart");
         return;
       }
 
@@ -293,8 +304,8 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
       }
 
       // ✅ success
-      alert("Order placed successfully!");
-
+      openAlertModal(data?.message || "Order placed successfully!");
+      dispatch(removeActiveVariants());
       // OPTIONAL:
       // clear cart
       // router.push("/orders");
@@ -302,15 +313,17 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
     } catch (err) {
       console.error(err);
-      alert(err.message || "Something went wrong");
+      authEvents.emit("auth:error", { message: err.message || "Failed to place order" });
     } finally {
       setPlacingOrder(false);
     }
   };
 
 
-  if (checkoutProducts.length === 0) {
-    return <div className="absolute w-screen h-screen left-0 top-0 flex items-center justify-center">Loading</div>
+  if (loadingProducts) {
+    return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading" />
+    </div>
   }
 
   return (
@@ -526,7 +539,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
           <label
             className={`
         flex items-center justify-between p-3 rounded-md border cursor-pointer
-        ${paymentMethod === "cod" ? "border-green-600" : "border-myBorderColor"}
+        ${paymentMethod === "cod" ? "border-green-700" : "border-myBorderColor"}
         bg-background_2
       `}
           >
@@ -535,6 +548,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
                 type="radio"
                 name="payment"
                 checked={paymentMethod === "cod"}
+                className="accent-green-700"
                 onChange={() => setPaymentMethod("cod")}
               />
               <span>Cash on Delivery (COD)</span>
@@ -545,7 +559,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
           <label
             className={`
         flex items-center justify-between p-3 rounded-md border cursor-pointer
-        ${paymentMethod === "jazzcash" ? "border-green-600" : "border-myBorderColor"}
+        ${paymentMethod === "jazzcash" ? "border-green-700" : "border-myBorderColor"}
         bg-background_2
       `}
           >
@@ -554,6 +568,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
                 type="radio"
                 name="payment"
                 checked={paymentMethod === "jazzcash"}
+                className="accent-green-700"
                 onChange={() => setPaymentMethod("jazzcash")}
               />
               <span>JazzCash</span>

@@ -5,11 +5,15 @@ import { signOut } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import YesNoModal from "@/components/modals/YesNoModal";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useGlobalToast } from "@/context/GlobalToastContext";
+import { authEvents } from "@/lib/authEvents";
 
 export default function ProfileTabs({ session }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { setToast } = useGlobalToast();
 
   const { theme, setTheme } = useTheme();
 
@@ -21,7 +25,7 @@ export default function ProfileTabs({ session }) {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
-  
+
   useEffect(() => {
     if (activeTab !== "orders") return;
 
@@ -154,7 +158,9 @@ export default function ProfileTabs({ session }) {
               <h2 className="text-lg font-semibold">Your Orders</h2>
 
               {loadingOrders ? (
-                <p className="text-myTextColorMain">Loading orders...</p>
+                <div className=" min-h-[140px] flex items-center justify-center">
+                  <LoadingSpinner text="Loading" />
+                </div>
               ) : orders.length === 0 ? (
                 <p className="text-myTextColorMain">No orders yet.</p>
               ) : (
@@ -162,7 +168,7 @@ export default function ProfileTabs({ session }) {
                   {orders.map((order) => (
                     <div
                       key={order._id}
-                      className="group border border-myBorderColor p-4 rounded-md bg-background_1 space-y-2"
+                      className="group border cursor-pointer border-myBorderColor p-4 rounded-md bg-background_1 space-y-2"
                       onClick={() => router.push(`/orders/${order._id}`)}
                     >
                       <div className="flex justify-between">
@@ -237,8 +243,10 @@ export default function ProfileTabs({ session }) {
         <YesNoModal
           text1={"Are you sure, you want to logout?"}
           cancelFunction={() => setShowLogoutModal(false)}
-          yesFunction={() => {
-            signOut({ callbackUrl: "/" });
+          yesFunction={async () => {
+            await signOut({ redirect: false });
+            authEvents.emit("auth:logout");
+            router.push("/");
           }}
         />
       )}

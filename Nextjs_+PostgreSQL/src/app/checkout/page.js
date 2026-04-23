@@ -1,11 +1,12 @@
 import CheckoutClient from "./CheckoutClient";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
+import { redirect } from "next/navigation";
 
 export default async function CheckoutPage() {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect("/signIn");
+    redirect(`/signIn?callbackUrl=/checkout`);
   }
 
   const client = await clientPromise;

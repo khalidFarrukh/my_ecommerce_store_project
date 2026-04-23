@@ -64,7 +64,7 @@ export default function Cart() {
     };
 
     fetchProducts();
-  }, [cartState.items]);
+  }, []);
 
   const [activeVariantsSize, setActiveVariantsSize] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
@@ -184,7 +184,7 @@ export default function Cart() {
     });
   }, [cartState.items, cartProductsData]);
 
-  if (loadingProducts && cartState.items.length > 0) {
+  if (loadingProducts && cartState.items.length > 0 && !cartProductsData.length) {
     return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
       <LoadingSpinner text="Loading" />
     </div>
@@ -192,7 +192,7 @@ export default function Cart() {
   return (
     <>
       {
-        cartState.items.length > 0 && !loadingProducts ?
+        cartState.items.length > 0 && !loadingProducts && cartProductsData.length ?
 
           <div
             className=

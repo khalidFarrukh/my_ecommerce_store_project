@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 export async function GET(req) {
   const session = await auth();
   if (!session) {
-    return new Response(JSON.stringify({ error: "Session expired" }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   const client = await clientPromise;
@@ -24,7 +24,7 @@ export async function GET(req) {
 export async function POST(req) {
   const session = await auth();
   if (!session) {
-    return new Response(JSON.stringify({ error: "Session expired" }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   const body = await req.json();
@@ -62,7 +62,7 @@ export async function POST(req) {
 export async function PUT(req) {
   const session = await auth();
   if (!session) {
-    return new Response(JSON.stringify({ error: "Session expired" }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   const body = await req.json();
@@ -92,7 +92,7 @@ export async function PUT(req) {
 export async function DELETE(req) {
   const session = await auth();
   if (!session) {
-    return new Response(JSON.stringify({ error: "Session expired" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
     });
   }

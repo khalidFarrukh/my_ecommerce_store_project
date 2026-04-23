@@ -1,6 +1,6 @@
 "use client"
 import { ArrowUpRight, ArrowRight } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, act } from "react";
 import Link from "next/link";
 import Card1 from "@/components/Card1";
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
@@ -10,6 +10,82 @@ import { useRef } from "react";
 import SmallCardsList from "@/components/SmallCardsList"
 import { convertDashStringToTextString, convertTextStringToDashString } from "@/utils/utilities";
 import { useSearchModal } from "@/context/SearchModalContext";
+import LoadingSpinner from "./ui/LoadingSpinner";
+
+function Pagination({ page, totalPages, onPageChange }) {
+  if (totalPages <= 1) return null;
+
+  const getPages = () => {
+    const pages = [];
+
+    if (totalPages <= 10) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    pages.push(1);
+
+    if (page > 3) {
+      pages.push("...");
+    }
+
+    for (let i = page - 1; i <= page + 1; i++) {
+      if (i > 1 && i < totalPages) {
+        pages.push(i);
+      }
+    }
+
+    if (page < totalPages - 2) {
+      pages.push("...");
+    }
+
+    pages.push(totalPages);
+
+    return pages;
+  };
+
+  const pages = getPages();
+
+  return (
+    <div className="flex justify-center mt-10 gap-2 flex-wrap items-center">
+
+      {/* Prev */}
+      <button
+        onClick={() => onPageChange(page - 1)}
+        disabled={page === 1}
+        className="px-3 py-1 button1 border border-myBorderColor rounded-md! cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Prev
+      </button>
+
+      {/* Pages */}
+      {pages.map((p, i) =>
+        p === "..." ? (
+          <span key={i} className="px-2">
+            ...
+          </span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onPageChange(p)}
+            className={`px-3 py-1 button1 border border-myBorderColor rounded-md! cursor-pointer ${p === page ? "bg-foreground! text-background_1!" : ""
+              }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+
+      {/* Next */}
+      <button
+        onClick={() => onPageChange(page + 1)}
+        disabled={page === totalPages}
+        className="px-3 py-1 button1 border border-myBorderColor rounded-md! cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  );
+}
 
 export default function ProductListingClient({ visible_path_name, path_name, route, type }) {
   const { searchedProducts } = useSearchModal();
@@ -20,34 +96,50 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
   const [products, setProducts] = useState([]);
   const LIMIT = 12;
 
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [loading, setLoading] = useState(false);
   const fetchingRef = useRef(false);
 
+  const minParam = Number(searchParams.get("minPrice")) || 0;
+  const maxParam = Number(searchParams.get("maxPrice")) || 0;
 
-  const fetchProducts = async () => {
-    if (
-      !route ||
-      loading ||
-      !hasMore ||
-      fetchingRef.current
-    ) return;
+  const [actualMaxPrice, setActualMaxPrice] = useState(0);
+  const [minPrice, setMinPrice] = useState(minParam || 0);
+  const [maxPrice, setMaxPrice] = useState(maxParam || 0);
+
+
+
+
+  const fetchProducts = async (pageToFetch = 1) => {
+    if (!route || loading || fetchingRef.current) return;
 
     fetchingRef.current = true;
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `/api/${path_name}/${route}?offset=${offset}&limit=${LIMIT}&type=${type}`
-      );
-      const json = await res.json();
+      const params = new URLSearchParams({
+        page: pageToFetch,
+        limit: LIMIT,
+        type,
+      });
 
-      setProducts(prev => [...prev, ...json.data]);
-      setHasMore(json.hasMore);
-      setOffset(prev => prev + LIMIT);
+      if (minPrice) params.append("minPrice", minPrice);
+      if (maxPrice) params.append("maxPrice", maxPrice);
+
+      const res = await fetch(
+        `/api/${path_name}/${route}?${params.toString()}`
+      );
+
+      const json = await res.json();
+      console.log(json)
+      setProducts(json.data);
+      setTotalPages(json.totalPages);
+      setActualMaxPrice(Math.ceil(json.priceRange.maxPrice));
+      setPage(pageToFetch);
     } catch (err) {
-      console.error("Error fetching products:", err);
+      console.error(err);
     } finally {
       fetchingRef.current = false;
       setLoading(false);
@@ -85,17 +177,43 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   useEffect(() => {
     setProducts([]);
-    setOffset(0);
-    setHasMore(true);
+    setPage(1);
   }, [route]);
+
+  useEffect(() => {
+    setMinPrice(minParam);
+  }, [minParam]);
+
+  useEffect(() => {
+    if (maxParam > 0) {
+      // if URL has maxPrice → use it
+      setMaxPrice(maxParam);
+    } else if (actualMaxPrice > 0) {
+      // fallback to API max
+      setMaxPrice(actualMaxPrice);
+    }
+  }, [maxParam, actualMaxPrice]);
 
   useEffect(() => {
     if (type === "search") {
       fetchSearchProducts();
     } else {
-      fetchProducts();
+      fetchProducts(page);
     }
-  }, [route, query, type]);
+  }, [route, query, type, page, minParam, maxParam]);
+
+  const setPageAndURL = (p) => {
+    setPage(p);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", p);
+
+    router.push(`?${params.toString()}`);
+  };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
   const sortedProducts = React.useMemo(() => {
     if (!products.length) return [];
@@ -106,13 +224,13 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
       case "price_asc":
         return items.sort(
           (a, b) =>
-            getDefaultVariantPricing(a).price - getDefaultVariantPricing(b).price
+            getDefaultVariantPricing(a).finalPrice - getDefaultVariantPricing(b).finalPrice
         );
 
       case "price_desc":
         return items.sort(
           (a, b) =>
-            getDefaultVariantPricing(b).price - getDefaultVariantPricing(a).price
+            getDefaultVariantPricing(b).finalPrice - getDefaultVariantPricing(a).finalPrice
         );
 
       case "created_at":
@@ -157,6 +275,37 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
     }
   };
 
+  const applyPriceFilter = () => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (minPrice) params.set("minPrice", minPrice);
+    else params.delete("minPrice");
+
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    else params.delete("maxPrice");
+
+    params.set("page", 1); // reset page
+
+    if (type === "search") {
+      router.push(`/${visible_path_name}?${params.toString()}`);
+    } else {
+      router.push(`/${visible_path_name}/${route}?${params.toString()}`);
+    }
+  };
+
+  const clearPriceFilter = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("minPrice");
+    params.delete("maxPrice");
+    params.set("page", 1);
+
+    if (type === "search") {
+      router.push(`/${visible_path_name}?${params.toString()}`);
+    } else {
+      router.push(`/${visible_path_name}/${route}?${params.toString()}`);
+    }
+  };
+
   const Title = () => {
     switch (type) {
       case "collection":
@@ -171,6 +320,11 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   }
 
+  if (loading && products.length === 0) {
+    return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading" />
+    </div>
+  }
 
   return (
     <>
@@ -205,37 +359,128 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
               mx-auto
             `}
           >
-            <div
-              className=
-              {`
-                w-full
-                lg:w-[250px]
-                h-fit
-                text-[14px]
-              `}
-            >
-              Sort by
-              <div className="flex flex-col gap-y-2 mt-3">
-                <button
-                  onClick={() => setSort("created_at")}
-                  className={`cursor-pointer w-max ${sortBy === "created_at" || !sortBy ? "font-bold" : ""}`}
-                >
-                  Latest arrival
-                </button>
+            <div className="w-full lg:w-[250px] flex flex-col gap-6">
+              <div
+                className=
+                {`
+                  w-full
+                  h-fit
+                  text-[14px]
+                `}
+              >
+                Sort by
+                <div className="flex flex-col gap-y-2 mt-3">
+                  <button
+                    onClick={() => setSort("created_at")}
+                    className={`cursor-pointer w-max ${sortBy === "created_at" || !sortBy ? "font-bold" : ""}`}
+                  >
+                    Latest arrival
+                  </button>
 
-                <button
-                  onClick={() => setSort("price_asc")}
-                  className={`cursor-pointer w-max ${sortBy === "price_asc" ? "font-bold" : ""}`}
-                >
-                  Price: low to high
-                </button>
+                  <button
+                    onClick={() => setSort("price_asc")}
+                    className={`cursor-pointer w-max ${sortBy === "price_asc" ? "font-bold" : ""}`}
+                  >
+                    Price: low to high
+                  </button>
 
-                <button
-                  onClick={() => setSort("price_desc")}
-                  className={`cursor-pointer w-max ${sortBy === "price_desc" ? "font-bold" : ""}`}
-                >
-                  Price: high to low
-                </button>
+                  <button
+                    onClick={() => setSort("price_desc")}
+                    className={`cursor-pointer w-max ${sortBy === "price_desc" ? "font-bold" : ""}`}
+                  >
+                    Price: high to low
+                  </button>
+                </div>
+              </div>
+              <div className="w-full h-fit text-[14px]">
+                <h3 className="mb-2">Price Range</h3>
+
+                <div className="px-2">
+                  {/* Range track */}
+                  <div className="relative h-6 flex items-center">
+
+                    {/* Min slider */}
+                    <input
+                      type="range"
+                      min={0}
+                      max={actualMaxPrice}
+                      value={minPrice}
+                      onChange={(e) => {
+                        const val = Math.min(Number(e.target.value), maxPrice - 1);
+                        setMinPrice(val);
+                      }}
+                      className="
+                        z-1 absolute w-full pointer-events-none appearance-none bg-transparent
+                        [&::-webkit-slider-thumb]:pointer-events-auto
+                        [&::-webkit-slider-thumb]:appearance-none
+                        [&::-webkit-slider-thumb]:w-4
+                        [&::-webkit-slider-thumb]:h-4
+                        [&::-webkit-slider-thumb]:rounded-full
+                        [&::-webkit-slider-thumb]:bg-foreground
+                        [&::-webkit-slider-thumb]:cursor-pointer
+                        [&::-webkit-slider-thumb]:-translate-x-1/2
+                      "
+                    />
+
+                    {/* Max slider */}
+                    <input
+                      type="range"
+                      min={0}
+                      max={actualMaxPrice}
+                      value={maxPrice}
+                      onChange={(e) => {
+                        const val = Math.max(Number(e.target.value), minPrice + 1);
+                        setMaxPrice(val);
+                      }}
+                      // className="absolute w-full pointer-events-none appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto"
+                      className="
+                        z-1 absolute w-full pointer-events-none appearance-none bg-transparent
+                        [&::-webkit-slider-thumb]:pointer-events-auto
+                        [&::-webkit-slider-thumb]:appearance-none
+                        [&::-webkit-slider-thumb]:w-4
+                        [&::-webkit-slider-thumb]:h-4
+                        [&::-webkit-slider-thumb]:rounded-full
+                        [&::-webkit-slider-thumb]:bg-foreground
+                        [&::-webkit-slider-thumb]:cursor-pointer
+                        [&::-webkit-slider-thumb]:translate-x-1/2
+                      "
+                    />
+
+                    {/* Track background */}
+                    <div className="w-full h-1 bg-background_3 rounded" />
+
+                    {/* Active range */}
+                    <div
+                      className="z-0 absolute h-1 bg-foreground rounded"
+                      style={{
+                        left: `calc(${(minPrice / actualMaxPrice) * 100}% - 8px)`,
+                        right: `calc(${100 - (maxPrice / actualMaxPrice) * 100}% - 8px)`,
+                      }}
+                    />
+                  </div>
+
+                  {/* Values */}
+                  <div className="flex justify-between mt-2 text-sm">
+                    <span>{minPrice}</span>
+                    <span>{maxPrice}</span>
+                  </div>
+                </div>
+                <div className="w-full flex space-x-3">
+                  {/* Actions */}
+                  <button
+                    onClick={applyPriceFilter}
+                    className="mt-3 px-3 py-1 w-1/2 button1 border-foreground! cursor-pointer"
+                  >
+                    Apply
+                  </button>
+
+                  <button
+                    onClick={clearPriceFilter}
+                    className="mt-2 px-3 py-1 text-sm w-1/2 button1 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </div>
             <div
@@ -261,19 +506,15 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
                 `}
                 card1_className={"!min-h-[300px] !h-[15vw] !lg:h-[15vw]"}
               />
-              {
-
-                hasMore && (
-                  <div className="mt-8 flex justify-center">
-                    <button
-                      onClick={fetchProducts}
-                      disabled={loading}
-                      className={`px-6 py-2 rounded-md text-sm font-medium ${loading ? "" : "border"}`}
-                    >
-                      {loading ? "Loading..." : "Load more"}
-                    </button>
-                  </div>
-                )}
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={setPageAndURL}
+                  />
+                </div>
+              )}
 
             </div>
           </div>

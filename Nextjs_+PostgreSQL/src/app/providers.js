@@ -10,6 +10,7 @@ import { CartButtonProvider } from "@/context/CartButtonContext";
 import { ProductPageProvider } from "@/context/ProductPageContext";
 import { WindowSizeProvider } from "@/context/WindowSizeContext";
 import { CategoriesContextProvider } from "@/context/CategoriesContext";
+import { GlobalToastProvider } from "@/context/GlobalToastContext";
 
 export function Providers({ children, session }) {
   return (
@@ -22,9 +23,12 @@ export function Providers({ children, session }) {
                 <AlertModalProvider>
                   <CartButtonProvider>
                     <ProductPageProvider>
-                      <WindowSizeProvider>
-                        {children}
-                      </WindowSizeProvider>
+                      <GlobalToastProvider>
+                        <WindowSizeProvider>
+
+                          {children}
+                        </WindowSizeProvider>
+                      </GlobalToastProvider>
                     </ProductPageProvider>
                   </CartButtonProvider>
                 </AlertModalProvider>
