@@ -6,9 +6,13 @@ import EditCollectionClient from "./EditCollectionClient";
 
 export default async function EditCollectionPage({ params }) {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+  // if (!session) {
+  //   redirect("/signIn?callbackUrl=/admin");
+  // }
+
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
 
   const { collection_id } = await params;
   const client = await clientPromise;

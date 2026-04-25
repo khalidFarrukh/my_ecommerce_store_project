@@ -103,7 +103,10 @@ export default function SideBar() {
             <div className="w-full flex justify-between border border-myBorderColor bg-background_2 p-3 rounded-md">
               <span>Theme</span>
               <button
-                onClick={() => setTheme(nextTheme[theme] || "system")}
+                onClick={() => {
+                  setTheme(nextTheme[theme] || "system")
+                  localStorage.set("theme", nextTheme[theme])
+                }}
                 className="cursor-pointer h-full text-foreground"
               >
                 {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}

@@ -5,11 +5,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function CenteringUI({ children }) {
-  const searchParams = useSearchParams();
-
-  // if middleware added callbackUrl (?callbackUrl=/profile)
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
-
   return (
     <div className="z-1 font-poppins relative w-full bg-background_1 my-6 flex flex-col items-center justify-center">
       <section className="w-full flex flex-col items-center">

@@ -9,9 +9,14 @@ import { redirect } from "next/navigation";
 export default async function EditProductPage({ params }) {
   const session = await auth();
 
-  if (!session || session.user.role === "USER") {
-    redirect("/");
-  }
+  
+  // if (!session) {
+  //   redirect("/signIn?callbackUrl=/admin");
+  // }
+
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
   const { product_id } = await params;
   const categories = await getCategories();
   let collections = await getAllCollections();

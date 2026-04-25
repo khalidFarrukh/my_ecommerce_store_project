@@ -4,9 +4,13 @@ import clientPromise from "@/lib/mongodb";
 
 export default async function NewCollectionPage() {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+  // if (!session) {
+  //   redirect("/signIn?callbackUrl=/admin");
+  // }
+
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");

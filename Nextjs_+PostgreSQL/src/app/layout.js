@@ -42,7 +42,7 @@ export default async function RootLayout({ children }) {
       className="dark overflow-y-scroll"
       suppressHydrationWarning
     >
-      <head>
+      {/* <head>
         <Script
           id="theme-script"
           strategy="beforeInteractive"
@@ -63,7 +63,7 @@ export default async function RootLayout({ children }) {
           `,
           }}
         />
-      </head>
+      </head> */}
       <body
         className={`${inter.variable} ${poppins.variable} antialiased w-full  min-h-screen flex flex-col`}
       >

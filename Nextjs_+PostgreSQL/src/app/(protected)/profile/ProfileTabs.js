@@ -215,7 +215,10 @@ export default function ProfileTabs({ session }) {
                 {["light", "dark", "system"].map((mode) => (
                   <button
                     key={mode}
-                    onClick={() => setTheme(mode)}
+                    onClick={() => {
+                      setTheme(mode)
+                      localStorage.set("theme", mode)
+                    }}
                     className={`
                       cursor-pointer
                       capitalize

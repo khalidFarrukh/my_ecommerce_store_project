@@ -25,6 +25,10 @@ export default function GlobalToast() {
       setToast({ message: "Logged in", type: "success" });
     });
 
+    const unsubSuccess = authEvents.on("auth:success", (data) => {
+      setToast({ message: data.message, type: "success" });
+    });
+
     const unsubError = authEvents.on("auth:error", (data) => {
       setToast({ message: data.message, type: "error" });
     });
@@ -37,6 +41,7 @@ export default function GlobalToast() {
       unsubExpired();
       unsubLogout();
       unsubLogin();
+      unsubSuccess();
       unsubError();
       unsubForbidden();
     };
@@ -87,7 +92,7 @@ export default function GlobalToast() {
   return (
     <div
       className={`
-        fixed top-[calc(20px+60px)] right-5 z-50
+        fixed top-[calc(20px+60px)] right-5 z-200
         px-4 py-2 rounded shadow text-white
         transition-transform duration-300
         ${visible ? "translate-x-0" : "translate-x-[120%]"}

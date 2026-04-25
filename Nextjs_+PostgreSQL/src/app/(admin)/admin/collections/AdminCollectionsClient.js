@@ -11,14 +11,23 @@ import {
   Draggable,
 } from "@hello-pangea/dnd";
 import FloatingInput from "@/components/FloatingInput";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function AdminCollectionsClient({ session }) {
   const [collections, setCollections] = useState([]);
+  const [loadingCollections, setLoadingCollections] = useState(true);
 
   const fetchCollections = async () => {
-    const res = await fetch(`/api/admin/collections`);
-    const json = await res.json();
-    setCollections(json.data || []);
+    try {
+      setLoadingCollections(true);
+      const res = await fetch("/api/admin/collections");
+      const json = await res.json();
+      setCollections(json.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCollections(false);
+    }
   };
 
   useEffect(() => {
@@ -96,31 +105,36 @@ export default function AdminCollectionsClient({ session }) {
             "
           /> */}
         </div>
-
-        <div className="w-full text-sm">
-          <div className="grid grid-cols-[250px_1fr_120px_120px_50px] border-b border-myBorderColor py-2 font-medium">
-            <div>ID</div>
-            <div>Name</div>
-            <div>Shown</div>
-            <div className="text-center">Actions</div>
-            <div></div> {/* drag */}
-          </div>
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="collections">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="scrollbar-hide overflow-y-scroll max-h-[calc(100vh-60px-24px-250px)]">
-                  {collections.map((collection, index) => (
-                    <Draggable
-                      key={collection._id}
-                      draggableId={collection._id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          style={provided.draggableProps.style}
-                          className={`
+        {
+          loadingCollections ?
+            <div className=" flex items-center justify-center">
+              <LoadingSpinner text="Loading" />
+            </div> :
+            <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
+              <div className="w-full text-sm">
+                <div className="grid grid-cols-[250px_1fr_120px_120px_50px] border-b border-myBorderColor py-2 font-medium">
+                  <div>ID</div>
+                  <div>Name</div>
+                  <div>Shown</div>
+                  <div className="text-center">Actions</div>
+                  <div></div> {/* drag */}
+                </div>
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="collections">
+                    {(provided) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className="scrollbar-hide overflow-y-scroll max-h-[calc(100vh-60px-24px-250px)]">
+                        {collections.map((collection, index) => (
+                          <Draggable
+                            key={collection._id}
+                            draggableId={collection._id}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                style={provided.draggableProps.style}
+                                className={`
                             grid
                             grid-cols-[250px_1fr_120px_120px_50px]
                             items-center
@@ -128,54 +142,56 @@ export default function AdminCollectionsClient({ session }) {
                             border-b border-myBorderColor
                             ${snapshot.isDragging ? "bg-background_3 shadow-lg" : ""}
                           `}
-                        >
+                              >
 
 
-                          {/* ID */}
-                          <div className="truncate">{collection._id}</div>
+                                {/* ID */}
+                                <div className="truncate">{collection._id}</div>
 
-                          {/* Name */}
-                          <div className="truncate">
-                            {collection.name || "Untitled"}
-                          </div>
+                                {/* Name */}
+                                <div className="truncate">
+                                  {collection.name || "Untitled"}
+                                </div>
 
-                          {/* Toggle */}
-                          <div>
-                            <ToggleSlideButton
-                              width={44}
-                              height={24}
-                              checked={!collection.turnedoff}
-                              onChange={() => toggleTurnedOff(collection)}
-                            />
-                          </div>
+                                {/* Toggle */}
+                                <div>
+                                  <ToggleSlideButton
+                                    width={44}
+                                    height={24}
+                                    checked={!collection.turnedoff}
+                                    onChange={() => toggleTurnedOff(collection)}
+                                  />
+                                </div>
 
-                          {/* Actions */}
-                          <div className="flex justify-center">
-                            <Link
-                              href={`/admin/collections/${collection._id}/edit`}
-                              className="button2 p-2 rounded-full! flex"
-                            >
-                              <Edit2 className="size-4" />
-                            </Link>
-                          </div>
-                          {/* Drag handle */}
-                          <div
-                            {...provided.dragHandleProps}
-                            className="cursor-grab flex justify-center text-2xl"
-                          >
-                            ☰
-                          </div>
+                                {/* Actions */}
+                                <div className="flex justify-center">
+                                  <Link
+                                    href={`/admin/collections/${collection._id}/edit`}
+                                    className="button2 p-2 rounded-full! flex"
+                                  >
+                                    <Edit2 className="size-4" />
+                                  </Link>
+                                </div>
+                                {/* Drag handle */}
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="cursor-grab flex justify-center text-2xl"
+                                >
+                                  ☰
+                                </div>
 
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              </div>
+            </div>
+        }
       </section>
     </div>
   );

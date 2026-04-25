@@ -3,6 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
 export async function GET(req, context) {
+  const session = await auth();
   const { collection_id } = await context.params;
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
@@ -14,7 +15,7 @@ export async function GET(req, context) {
 
 export async function PUT(req, context) {
   const session = await auth();
-  if (!session || session.user.role === "USER") {
+  if (!session || session.user.role !== "ADMIN") {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 

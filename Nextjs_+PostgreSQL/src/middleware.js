@@ -20,8 +20,16 @@ export async function middleware(req) {
 
   const { pathname } = req.nextUrl;
   if (pathname.startsWith("/admin")) {
-    if (!token || token.role !== "ADMIN") {
-      return NextResponse.redirect(new URL(`/signIn?callbackUrl=${pathname}`, req.url));
+    // ❌ not logged in
+    if (!token) {
+      return NextResponse.redirect(
+        new URL(`/signIn?callbackUrl=${pathname}`, req.url)
+      );
+    }
+
+    // ❌ logged in but not admin
+    if (token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL(`/`, req.url));
     }
   }
   const response = NextResponse.next();

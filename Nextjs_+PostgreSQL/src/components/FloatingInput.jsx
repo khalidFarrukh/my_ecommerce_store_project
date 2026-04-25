@@ -32,7 +32,7 @@ export default function FloatingInput({
           border-myBorderColor
           rounded-md
           outline-none
-          ${error ? "border-red-500 focus:ring-red-500" : "border-myBorderColor focus:ring-foreground/20"}
+          ${error ? "border-red-500 focus:ring-red-500" : "focus:border-foreground/20 focus:ring-foreground/20"}
           ${inputClassName}
         `}
           {...restInputProps}

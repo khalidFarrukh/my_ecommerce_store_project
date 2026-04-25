@@ -2,18 +2,21 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import CancelOrderButton from "@/components/orders/CancelOrderButton";
 
 export default async function OrderPage({ params }) {
   const session = await auth();
   const { orderId } = await params;
   if (!session?.user?.id) {
-    redirect("/signIn");
+    if (!ObjectId.isValid(orderId)) {
+      redirect("/");
+    }
+    redirect(`/signIn?callbackUrl=/orders/${orderId}&error=auth_required`);
   }
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
   const ordersCollection = db.collection("orders");
-  console.log("orderId -> ", orderId);
 
   const order = await ordersCollection.findOne({
     _id: new ObjectId(orderId),
@@ -38,14 +41,17 @@ export default async function OrderPage({ params }) {
     <section className="w-full max-w-4xl mx-auto py-6 space-y-6">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">
+      <div className="flex gap-3 flex-col md:flex-row md:justify-between md:items-center">
+        <h1 className="order-2 md:order-1 text-sm md:text-2xl font-medium md:font-bold">
           Order #{safeOrder._id}
         </h1>
 
-        <span className="px-3 py-1 text-sm rounded border border-myBorderColor bg-background_2">
-          {safeOrder.status}
-        </span>
+        {["pending"].includes(safeOrder.status) &&
+          <div className="order-1 md:order-2 w-full md:w-fit flex justify-end gap-3">
+            <CancelOrderButton orderId={safeOrder._id} />
+          </div>
+        }
+
       </div>
 
       {/* ORDER INFO */}
@@ -53,6 +59,11 @@ export default async function OrderPage({ params }) {
         <p className="text-sm">
           <span className="text-myTextColorMain">Placed on:</span>{" "}
           {new Date(safeOrder.createdAt).toLocaleString()}
+        </p>
+
+        <p className="text-sm">
+          <span className="text-myTextColorMain">Order status:</span>{" "}
+          {safeOrder.status}
         </p>
 
         <p className="text-sm">
@@ -68,7 +79,7 @@ export default async function OrderPage({ params }) {
         {safeOrder.items.map((item, idx) => (
           <div
             key={idx}
-            className="flex gap-4 border border-myBorderColor rounded-md p-3 bg-background_2"
+            className="flex items-center gap-4 border border-myBorderColor rounded-md p-3 bg-background_2"
           >
             {/* IMAGE */}
             <img
@@ -102,27 +113,27 @@ export default async function OrderPage({ params }) {
       <div className="border border-myBorderColor rounded-md p-4 bg-background_2 space-y-1">
         <h2 className="font-semibold mb-2">Shipping Address</h2>
 
-        <p>{order.shippingAddress.name}</p>
-        <p>{order.shippingAddress.phone}</p>
-        <p>{order.shippingAddress.city}</p>
-        <p>{order.shippingAddress.addressLine}</p>
+        <p>{safeOrder.shippingAddress.name}</p>
+        <p>{safeOrder.shippingAddress.phone}</p>
+        <p>{safeOrder.shippingAddress.city}</p>
+        <p>{safeOrder.shippingAddress.addressLine}</p>
       </div>
 
       {/* PRICING */}
       <div className="border border-myBorderColor rounded-md p-4 bg-background_2 space-y-2">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>Rs. {order.pricing.subtotal}</span>
+          <span>Rs. {safeOrder.pricing.subtotal}</span>
         </div>
 
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>Rs. {order.pricing.shippingFee}</span>
+          <span>Rs. {safeOrder.pricing.shippingFee}</span>
         </div>
 
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>Rs. {order.pricing.total}</span>
+          <span>Rs. {safeOrder.pricing.total}</span>
         </div>
       </div>
     </section>

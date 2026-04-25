@@ -5,9 +5,13 @@ import AdminOrdersClient from "./AdminOrdersClient";
 export default async function AdminOrdersPage() {
   const session = await auth();
 
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+  // if (!session) {
+  //   redirect("/signIn?callbackUrl=/admin");
+  // }
+
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
 
   return <AdminOrdersClient session={session} />;
 }

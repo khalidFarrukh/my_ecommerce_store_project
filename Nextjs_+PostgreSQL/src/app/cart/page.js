@@ -446,7 +446,7 @@ export default function Cart() {
           :
           <div className="min-h-[calc(100vh-60px-176px)] md:min-h-[calc(100vh-60px-140px)] flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-[40px] h-[40px] flex items-center justify-center bg-black text-white rounded-full">
+              <div className="w-[40px] h-[40px] flex items-center justify-center bg-foreground text-background_1 rounded-full">
                 {cartItemsSize}
               </div>
               <p className="text-sm text-center">
@@ -454,7 +454,7 @@ export default function Cart() {
               </p>
               <Link
                 href="/collections/all-products"
-                className="px-4 py-2 bg-black text-white rounded-md text-sm"
+                className="px-4 py-2 button1 rounded-md text-sm"
               >
                 Browse products
               </Link>

@@ -26,7 +26,7 @@ export default function FloatingTextArea({
             border-myBorderColor
             rounded-md
             outline-none
-            focus:border-foreground
+            focus:border-foreground/20
             focus:ring-2
             focus:ring-foreground/20
             resize-none overflow-hidden

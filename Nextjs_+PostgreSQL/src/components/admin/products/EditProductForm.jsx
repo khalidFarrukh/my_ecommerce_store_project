@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 import { X } from "lucide-react";
 import FloatingTextArea from "@/components/FloatingTextArea";
@@ -19,8 +19,12 @@ export default function EditProductForm({
   allCollections = [],
 }) {
   const router = useRouter();
+  const variantRefs = useRef({});
   const [errors, setErrors] = useState({});
   const [product, setProduct] = useState(initialProduct);
+
+  const searchParams = useSearchParams();
+  const variantId = searchParams.get("variant");
 
   // --- State for category autocomplete ---
   const [categoryQuery, setCategoryQuery] = useState(
@@ -228,8 +232,21 @@ export default function EditProductForm({
   };
 
   useEffect(() => {
-    console.log("product - >", product);
-  }, [product]);
+    if (!variantId) return;
+
+    const el = variantRefs.current[variantId];
+
+    if (el) {
+      const yOffset = -200; // 👈 distance from top
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth",
+      });
+    }
+  }, [variantId, product]);
+
   return (
     <div className="space-y-6 mb-20">
       {/* Basic Info */}
@@ -239,7 +256,7 @@ export default function EditProductForm({
         <FloatingInput
           id="product_name"
           label="Product Name"
-          inputClassName="input!"
+          inputClassName="bg-background_1!"
           type="text"
           value={product.name}
           onChange={(e) => updateField("name", e.target.value)}
@@ -248,7 +265,7 @@ export default function EditProductForm({
           ref={descriptionTextareaRef}
           id="description"
           label="Description"
-          inputClassName="input!"
+          inputClassName="bg-background_1!"
           value={product.description}
           rows={1}
           onChange={(e) => {
@@ -262,7 +279,7 @@ export default function EditProductForm({
             <FloatingInput
               id="category"
               label="Category"
-              inputClassName="input1!"
+              inputClassName="bg-background_1!"
               type="text"
               value={categoryQuery}
               onFocus={() => setShowCategoryDropdown(true)}
@@ -353,7 +370,7 @@ export default function EditProductForm({
               {product.collectionIds.map((col) => (
                 <div
                   key={col}
-                  className="flex items-center gap-1 bg-background_3 pl-2 pr-1.5 py-1 rounded-full border border-myBorderColor"
+                  className="flex items-center gap-1 bg-background_3 pl-3 pr-1.5 py-1 rounded-full border border-myBorderColor"
                 >
                   <span>{convertDashStringToTextString(col)}</span>
                   <button
@@ -403,7 +420,7 @@ export default function EditProductForm({
               key={key}
               id={key}
               label={field.name}
-              inputClassName="input1!"
+              inputClassName="bg-background_1!"
               type="text"
               placeholder={field.placeHolder}
               value={product.info[key]}
@@ -458,9 +475,17 @@ export default function EditProductForm({
                 (v) => v.default,
               );
               return (
+                // in flow below div represents the variant, so i want to give it an ref to scroll into view when user clicks on edit from low stock products table
                 <div
                   key={variant.id}
-                  className="relative bg-background_3 border border-myBorderColor rounded-lg p-4 flex flex-col gap-4"
+                  ref={(el) => {
+                    if (el) variantRefs.current[variant.id] = el;
+                  }}
+                  className={`relative border rounded-lg p-4 flex flex-col gap-4 ${
+                    variant.stock < 10
+                      ? "border-red-500 bg-red-500/5"
+                      : "bg-background_3 border-myBorderColor"
+                  }`}
                 >
                   <div className="z-48 absolute -top-3 -right-3">
                     <button

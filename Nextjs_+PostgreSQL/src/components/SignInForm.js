@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getSession, signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
@@ -11,7 +11,31 @@ import { authEvents } from "@/lib/authEvents";
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setToast } = useGlobalToast();
+
+  // useEffect(() => {
+  //   if (searchParams.get("error") === "auth_required") {
+  //     authEvents.emit("auth:error", {
+  //       message: "You must be signed in to view this page.",
+  //     });
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (error === "auth_required") {
+      authEvents.emit("auth:error", {
+        message: "You must be signed in to view this page.",
+      });
+
+      // ✅ create clean params
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("error");
+
+      // ✅ replace URL (no reload)
+      router.replace(`/signIn?${params}`);
+    }
+  }, [searchParams, router]);
 
   // if middleware added callbackUrl (?callbackUrl=/profile)
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -57,6 +81,7 @@ export default function SignInForm() {
     // 🚨 user trying to access admin route
     if (safeCallBack.startsWith("/admin") && session?.user?.role !== "ADMIN") {
       authEvents.emit("auth:forbidden", { message: "Only admin have access on this page." });
+      router.push("/");
       return;
     }
 

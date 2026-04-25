@@ -8,9 +8,13 @@ export default async function AdminCertainOrderPage({ params }) {
   const session = await auth();
 
   // 🔒 Only admin allowed
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+  // if (!session) {
+  //   redirect("/signIn?callbackUrl=/admin");
+  // }
+
+  // if (session.user.role !== "ADMIN") {
+  //   redirect("/");
+  // }
 
   const { order_id } = await params;
 
