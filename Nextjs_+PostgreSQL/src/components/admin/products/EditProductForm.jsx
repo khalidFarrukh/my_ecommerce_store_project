@@ -22,6 +22,7 @@ export default function EditProductForm({
   const variantRefs = useRef({});
   const [errors, setErrors] = useState({});
   const [product, setProduct] = useState(initialProduct);
+  const [refsReady, setRefsReady] = useState(false);
 
   const searchParams = useSearchParams();
   const variantId = searchParams.get("variant");
@@ -231,45 +232,52 @@ export default function EditProductForm({
       );
   };
 
+  useEffect(() => {
+    if (product?.variants?.length) {
+      setRefsReady(true);
+    }
+  }, [product]);
+
+  useEffect(() => {
+    // if (!variantId) return;
+    if (!variantId || !refsReady) return;
+
+    const el = variantRefs.current[variantId];
+
+    if (el) {
+      const yOffset = -200; // 👈 distance from top
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth",
+      });
+    }
+  }, [variantId, product]);
   // useEffect(() => {
   //   if (!variantId) return;
 
-  //   const el = variantRefs.current[variantId];
+  //   let attempts = 0;
 
-  //   if (el) {
-  //     const yOffset = -200; // 👈 distance from top
-  //     const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+  //   const scrollToVariant = () => {
+  //     const el = variantRefs.current[variantId];
 
-  //     window.scrollTo({
-  //       top: y,
-  //       behavior: "smooth",
-  //     });
-  //   }
+  //     if (el) {
+  //       const yOffset = -200;
+  //       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+  //       window.scrollTo({
+  //         top: y,
+  //         behavior: "smooth",
+  //       });
+  //     } else if (attempts < 10) {
+  //       attempts++;
+  //       setTimeout(scrollToVariant, 100); // retry
+  //     }
+  //   };
+
+  //   scrollToVariant();
   // }, [variantId, product]);
-  useEffect(() => {
-    if (!variantId) return;
-
-    let attempts = 0;
-
-    const scrollToVariant = () => {
-      const el = variantRefs.current[variantId];
-
-      if (el) {
-        const yOffset = -200;
-        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-        window.scrollTo({
-          top: y,
-          behavior: "smooth",
-        });
-      } else if (attempts < 10) {
-        attempts++;
-        setTimeout(scrollToVariant, 100); // retry
-      }
-    };
-
-    scrollToVariant();
-  }, [variantId, product]);
 
   return (
     <div className="space-y-6 mb-20">
