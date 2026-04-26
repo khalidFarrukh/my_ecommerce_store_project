@@ -231,20 +231,44 @@ export default function EditProductForm({
       );
   };
 
+  // useEffect(() => {
+  //   if (!variantId) return;
+
+  //   const el = variantRefs.current[variantId];
+
+  //   if (el) {
+  //     const yOffset = -200; // 👈 distance from top
+  //     const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+  //     window.scrollTo({
+  //       top: y,
+  //       behavior: "smooth",
+  //     });
+  //   }
+  // }, [variantId, product]);
   useEffect(() => {
     if (!variantId) return;
 
-    const el = variantRefs.current[variantId];
+    let attempts = 0;
 
-    if (el) {
-      const yOffset = -200; // 👈 distance from top
-      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    const scrollToVariant = () => {
+      const el = variantRefs.current[variantId];
 
-      window.scrollTo({
-        top: y,
-        behavior: "smooth",
-      });
-    }
+      if (el) {
+        const yOffset = -200;
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+        window.scrollTo({
+          top: y,
+          behavior: "smooth",
+        });
+      } else if (attempts < 10) {
+        attempts++;
+        setTimeout(scrollToVariant, 100); // retry
+      }
+    };
+
+    scrollToVariant();
   }, [variantId, product]);
 
   return (
@@ -475,7 +499,6 @@ export default function EditProductForm({
                 (v) => v.default,
               );
               return (
-                // in flow below div represents the variant, so i want to give it an ref to scroll into view when user clicks on edit from low stock products table
                 <div
                   key={variant.id}
                   ref={(el) => {
