@@ -253,7 +253,7 @@ export default function EditProductForm({
         behavior: "smooth",
       });
     }
-  }, [variantId, product]);
+  }, [variantId, refsReady, product]);
   // useEffect(() => {
   //   if (!variantId) return;
 
