@@ -13,8 +13,10 @@ import {
 import FloatingInput from "@/components/FloatingInput";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useRouter } from "next/navigation";
 
 export default function AdminCollectionsClient() {
+  const router = useRouter();
   const { sessionData: session } = useSessionExpiry();
   const [collections, setCollections] = useState([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
@@ -82,9 +84,20 @@ export default function AdminCollectionsClient() {
         heading="Collections"
         description={`Welcome back, ${session?.user?.email}`}
         right_content={
-          <Link href="/admin/collections/new" className="button1 px-4 py-2">
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/admin/collections/new", {
+                method: "POST",
+              });
+
+              const data = await res.json();
+              router.push(`/admin/collections/${data.id}/edit`);
+            }}
+            className="button1 px-4 py-2"
+          >
+
             + Add Collection
-          </Link>
+          </button>
         }
       />
 

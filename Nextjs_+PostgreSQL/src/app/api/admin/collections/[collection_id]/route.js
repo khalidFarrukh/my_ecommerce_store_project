@@ -54,3 +54,36 @@ export async function PUT(req, context) {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export async function DELETE(req, { params }) {
+  try {
+    const session = await auth();
+
+    if (!session || session.user.role !== "ADMIN") {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { collection_id } = await params;
+    const client = await clientPromise;
+    const db = client.db("my_ecommerce_db");
+
+    const result = await db.collection("collections").deleteOne({
+      _id: new ObjectId(collection_id),
+    });
+
+    if (result.deletedCount === 0) {
+      return Response.json(
+        { error: "Collection not found" },
+        { status: 404 }
+      );
+    }
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return Response.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
+}
