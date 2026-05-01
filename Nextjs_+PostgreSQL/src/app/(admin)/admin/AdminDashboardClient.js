@@ -65,7 +65,7 @@ export default function AdminDashboardClient({ recentOrders, lowStockProducts, t
                     <td className="py-3 px-2 text-center">
                       <Link
                         href={`/admin/orders/${order._id}`}
-                        className="button2 p-2 rounded-full flex w-max mx-auto"
+                        className="button2 p-2 rounded-full! flex w-max mx-auto"
                       >
                         <Eye className="size-4" />
                       </Link>

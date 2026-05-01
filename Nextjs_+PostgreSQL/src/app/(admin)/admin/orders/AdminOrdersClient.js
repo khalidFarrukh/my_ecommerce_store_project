@@ -39,7 +39,7 @@ export default function AdminOrdersClient() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[1000px]">
       <AdminTabContentHeader
         heading="Orders"
         description={`Welcome back, ${session?.user?.email}`}
