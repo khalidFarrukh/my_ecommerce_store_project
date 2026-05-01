@@ -142,21 +142,73 @@ export async function POST(req) {
       updatedAt: new Date(),
     };
 
-    // 📦 INSERT ORDER
-    const result = await ordersCollection.insertOne(order);
+    // // 📦 INSERT ORDER
+    // const result = await ordersCollection.insertOne(order);
 
-    // 🔥 REDUCE STOCK (IMPORTANT)
-    for (const item of verifiedItems) {
-      await productsCollection.updateOne(
-        {
-          _id: new ObjectId(item.productId),
-          "variants.id": item.variantId,
-        },
-        {
-          $inc: {
-            "variants.$.stock": -item.quantity,
-          },
+    // // 🔥 REDUCE STOCK (IMPORTANT)
+    // for (const item of verifiedItems) {
+    //   await productsCollection.updateOne(
+    //     {
+    //       _id: new ObjectId(item.productId),
+    //       "variants.id": item.variantId,
+    //     },
+    //     {
+    //       $inc: {
+    //         "variants.$.stock": -item.quantity,
+    //       },
+    //     }
+    //   );
+    // }
+
+    let result;
+    const sessionDb = client.startSession();
+
+    try {
+      await sessionDb.withTransaction(async () => {
+        result = await ordersCollection.insertOne(order, { session: sessionDb });
+
+        // 🔴 Critical check inside transaction
+        if (!result?.insertedId) {
+          throw new Error("Order insertion failed");
         }
+
+        for (const item of verifiedItems) {
+          const updateRes = await productsCollection.updateOne(
+            {
+              _id: new ObjectId(item.productId),
+              "variants.id": item.variantId,
+            },
+            {
+              $inc: {
+                "variants.$.stock": -item.quantity,
+              },
+            },
+            { session: sessionDb }
+          );
+
+          // 🔴 Ensure stock was actually updated
+          if (updateRes.modifiedCount === 0) {
+            throw new Error(`Stock update failed for product ${item.productId}`);
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error("Transaction failed:", error);
+
+      return NextResponse.json(
+        { message: error.message || "Order processing failed" },
+        { status: 500 }
+      );
+    } finally {
+      await sessionDb.endSession();
+    }
+
+    // 🔴 Final safety check (outside transaction)
+    if (!result?.insertedId) {
+      return NextResponse.json(
+        { message: "Order creation failed" },
+        { status: 500 }
       );
     }
 

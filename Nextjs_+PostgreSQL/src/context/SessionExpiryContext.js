@@ -26,6 +26,8 @@ export function SessionExpiryProvider({ children }) {
       return;
     }
 
+    console.log(newSession);
+    console.log("timeLEft", timeLeft);
     setSessionData(newSession);
     setSessionStatus(newStatus);
 

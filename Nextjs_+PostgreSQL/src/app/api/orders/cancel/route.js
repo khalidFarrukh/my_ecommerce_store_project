@@ -22,32 +22,74 @@ export async function PATCH(req) {
     return new Response("Order not found", { status: 404 });
   }
 
-  if (!["pending"].includes(order.status)) {
+  if (order.status !== "pending") {
     return new Response("Cannot cancel this order", { status: 400 });
   }
 
-  const update = {
-    status: "cancelled",
-    updatedAt: new Date(),
-  };
+  const sessionDb = client.startSession();
 
-  if (order.payment.method === "cod") {
-    // never paid
-    update["payment.status"] = "cancelled";
-  } else {
-    if (order.payment.status === "paid") {
-      // money actually taken → refund needed
-      update["payment.status"] = "refund_requested";
-    } else { //here order.payment.status can be "pending" or "failed" → payment never completed, so just mark as cancelled, no refund needed
-      // payment never completed → nothing to refund
-      update["payment.status"] = "cancelled";
-    }
+  try {
+    await sessionDb.withTransaction(async () => {
+
+      // 🔹 Prepare update
+      const update = {
+        status: "cancelled",
+        updatedAt: new Date(),
+      };
+
+      if (order.payment.method === "cod") {
+        update["payment.status"] = "cancelled";
+      } else {
+        if (order.payment.status === "paid") {
+          update["payment.status"] = "refund_requested";
+        } else {
+          update["payment.status"] = "cancelled";
+        }
+      }
+
+      // 🔹 Update order
+      const updateRes = await db.collection("orders").updateOne(
+        { _id: new ObjectId(orderId) },
+        { $set: update },
+        { session: sessionDb }
+      );
+
+      if (updateRes.modifiedCount === 0) {
+        throw new Error("Failed to update order");
+      }
+
+      // 🔥 Restore stock
+      for (const item of order.items) {
+        const stockRes = await db.collection("products").updateOne(
+          {
+            _id: new ObjectId(item.productId),
+            "variants.id": item.variantId,
+          },
+          {
+            $inc: {
+              "variants.$.stock": item.quantity,
+            },
+          },
+          { session: sessionDb }
+        );
+
+        if (stockRes.modifiedCount === 0) {
+          throw new Error(`Failed to restore stock for ${item.productId}`);
+        }
+      }
+
+    });
+
+  } catch (err) {
+    console.error("Cancel transaction failed:", err);
+
+    return new Response(
+      err.message || "Cancellation failed",
+      { status: 500 }
+    );
+  } finally {
+    await sessionDb.endSession();
   }
-
-  await db.collection("orders").updateOne(
-    { _id: new ObjectId(orderId) },
-    { $set: update }
-  );
 
   return Response.json({ success: true });
 }

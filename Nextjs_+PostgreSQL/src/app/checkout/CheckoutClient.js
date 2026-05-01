@@ -12,9 +12,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { removeActiveVariants } from "@/store/cartSlice";
 import { useAlertModal } from "@/context/AlertModalContext";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutClient({ user, addresses: initialAddresses }) {
   const cartItems = useSelector(state => state.cart.cartState.items);
+  const router = useRouter();
   const { setToast } = useGlobalToast();
   const dispatch = useDispatch();
   const { openAlertModal } = useAlertModal();
@@ -310,12 +312,20 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || "Failed to place order");
+        throw new Error(data);
       }
 
       // ✅ success
-      openAlertModal(data?.message || "Order placed successfully!");
-      dispatch(removeActiveVariants());
+      // openAlertModal(data?.message || "Order placed successfully!");
+      setToast({
+        id: Date.now,
+        message: data?.message || "Order placed successfully!",
+        type: "success"
+      })
+      if (data?.orderId) {
+        dispatch(removeActiveVariants());
+        router.push(`/orders/${data?.orderId}`)
+      }
       // OPTIONAL:
       // clear cart
       // router.push("/orders");

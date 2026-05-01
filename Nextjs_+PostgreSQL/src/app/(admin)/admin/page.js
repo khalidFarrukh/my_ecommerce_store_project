@@ -16,6 +16,7 @@ export default async function AdminPage() {
   const recentOrdersRaw = await db
     .collection("orders")
     .find({
+      status: "pending",
       createdAt: { $gte: twoDaysAgo },
     })
     .sort({ createdAt: -1 })
@@ -48,10 +49,17 @@ export default async function AdminPage() {
   // =========================
   // 📊 Stats
   // =========================
-  const totalProducts = await db.collection("products").countDocuments();
+  const totalProducts = await db.collection("products").countDocuments({
+    status: "active",
+  });
   const totalOrders = await db.collection("orders").countDocuments();
 
   const revenueAgg = await db.collection("orders").aggregate([
+    {
+      $match: {
+        status: "delivered", // 🔥 only delivered orders
+      },
+    },
     {
       $group: {
         _id: null,

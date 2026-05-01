@@ -46,7 +46,7 @@ export default async function OrderPage({ params }) {
           Order #{safeOrder._id}
         </h1>
 
-        {["pending"].includes(safeOrder.status) &&
+        {safeOrder.status === "pending" &&
           <div className="order-1 md:order-2 w-full md:w-fit flex justify-end gap-3">
             <CancelOrderButton orderId={safeOrder._id} />
           </div>

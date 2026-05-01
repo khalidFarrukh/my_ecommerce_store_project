@@ -60,9 +60,10 @@ export default function AdminOrdersClient() {
                     <th className="py-2">Order ID</th>
                     <th className="text-center bg-background_3">User</th>
                     <th className="text-center">Total</th>
-                    <th className="text-center bg-background_3">Status</th>
-                    <th className="text-center">Payment</th>
-                    <th className="text-center px-2 bg-background_3">Actions</th>
+                    <th className="text-center bg-background_3">Set status</th>
+                    <th className="text-center ">Status</th>
+                    <th className="text-center bg-background_3">Payment</th>
+                    <th className="text-center px-2">Actions</th>
                   </tr>
                 </thead>
 
@@ -86,28 +87,77 @@ export default function AdminOrdersClient() {
                         </td>
 
                         <td className="py-3 px-2 text-center bg-background_3">
-                          <select
-                            value={order.status}
-                            onChange={(e) =>
-                              updateStatus(order._id, e.target.value)
-                            }
-                            className="bg-background_2 border border-myBorderColor text-sm"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="processing">Processing</option>
-                            <option value="packed">Packed</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                          {order.status === "pending" &&
+                            <div className="flex gap-4 flex-nowrap w-full items-center justify-center">
+                              <button
+                                disabled={loading}
+                                onClick={() => updateStatus(order._id, "confirmed")}
+                                className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                disabled={loading}
+                                onClick={() => updateStatus(order._id, "cancelled")}
+                                className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          }
+
+                          {order.status === "confirmed" &&
+                            <button
+                              disabled={loading}
+                              onClick={() => updateStatus(order._id, "processing")}
+                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                            >
+                              Start packing order
+                            </button>
+                          }
+
+                          {order.status === "processing" &&
+                            <button
+                              disabled={loading}
+                              onClick={() => updateStatus(order._id, "packed")}
+                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                            >
+                              Order packed
+                            </button>
+                          }
+
+                          {order.status === "packed" &&
+                            <button
+                              disabled={loading}
+                              onClick={() => updateStatus(order._id, "shipped")}
+                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                            >
+                              Shipped
+                            </button>
+                          }
+
+                          {order.status === "shipped" &&
+
+                            <button
+                              disabled={loading}
+                              onClick={() => updateStatus(order._id, "delivered")}
+                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                            >
+                              Delivered
+                            </button>
+                          }
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <div className="bg-background_3 border border-myBorderColor text-sm">
+                            {order.status}
+                          </div>
                         </td>
 
-                        <td className="py-3 px-2 text-center">
+                        <td className="py-3 px-2 text-center bg-background_3">
                           {order.payment?.method} ({order.payment?.status})
                         </td>
 
-                        <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+                        <td className="py-3 px-2 flex gap-3 items-center justify-center">
                           <Link
                             href={`/admin/orders/${order._id}`}
                             className="button2 p-2 rounded-full! flex w-max!"
