@@ -396,11 +396,11 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                 </div>
 
                 {/* ✅ Mobile + Tablet: gallery */}
-                <div className="lg:hidden flex flex-col gap-3 w-full sm:h-[50vw] overflow-hidden">
+                <div className="lg:hidden flex flex-col gap-3 w-full sm:h-[50vw]  overflow-hidden">
 
                   {/* Main Image */}
                   {images[activeImage] && (
-                    <div className=" h-[calc(100vw-10px)] w375:h-[calc(100vw-20px)] w-auto sm:h-[40vw] rounded-[12px] bg-background_2 border border-myBorderColor overflow-hidden flex items-center justify-center">
+                    <div className=" h-[calc(100vw-10px)] w375:h-[calc(100vw-20px)] w-auto sm:h-[75%] rounded-[12px] bg-background_2 border border-myBorderColor overflow-hidden flex items-center justify-center">
                       <Image
                         src={images[activeImage].src}
                         alt={selected_product.name}
@@ -412,15 +412,15 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                   )}
 
                   {/* Thumbnails */}
-                  <div className="h-15.5 w-full space-x-2 scrollbar-hide overflow-x-auto">
+                  <div className="sm:h-16 w-full space-x-2 scrollbar-hide overflow-x-auto overflow-y-clip">
                     {images.map((img, i) => (
                       <button
                         key={img.id}
                         onClick={() => setActiveImage(i)}
                         onMouseEnter={() => setActiveImage(i)}
                         className={`
-                          w-15
-                          h-15
+                          w-16
+                          h-16
                           rounded
                           cursor-pointer
                           flex items-center justify-center
@@ -430,10 +430,12 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                           `}
                       >
                         <Image
+                          className="overflow-hidden"
                           src={img.src}
                           alt={img.alt}
-                          width={50}
-                          height={50}
+                          width={64}
+                          height={64}
+                          unoptimized
                         />
                       </button>
                     ))}

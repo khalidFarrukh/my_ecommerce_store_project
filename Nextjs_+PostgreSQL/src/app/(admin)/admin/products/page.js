@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import AdminProductsClient from "./AdminProductClient";
 
 export default async function AdminProductsPage() {
-  const session = await auth();
+  // const session = await auth();
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
   // }
@@ -11,5 +11,5 @@ export default async function AdminProductsPage() {
   //   redirect("/");
   // }
 
-  return <AdminProductsClient session={session} />
+  return <AdminProductsClient />
 }

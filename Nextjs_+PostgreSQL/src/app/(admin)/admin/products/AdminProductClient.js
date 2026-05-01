@@ -6,6 +6,7 @@ import { ArchiveIcon, Edit2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAdminProductIssues } from "@/utils/utilities";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -36,9 +37,8 @@ function getTotalStock(variants) {
   return variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
 }
 
-export default function AdminProductsClient({ session }) {
-
-
+export default function AdminProductsClient() {
+  const { sessionData: session } = useSessionExpiry();
   const [draftProducts, setDraftProducts] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
   const [loadingDraft, setLoadingDraft] = useState(true);

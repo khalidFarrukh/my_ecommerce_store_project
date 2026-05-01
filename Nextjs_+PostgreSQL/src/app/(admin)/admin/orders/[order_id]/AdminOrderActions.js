@@ -1,10 +1,11 @@
 "use client";
 
-import { authEvents } from "@/lib/authEvents";
 import { useState } from "react";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function AdminOrderActions({ orderStatus, orderId }) {
   const [loading, setLoading] = useState(false);
+  const { setToast } = useGlobalToast();
 
   const updateOrderStatus = async (status) => {
     try {
@@ -19,7 +20,11 @@ export default function AdminOrderActions({ orderStatus, orderId }) {
       });
 
       if (!res.ok) {
-        authEvents.emit("auth:error", { message: "Failed to update order status" });
+        setToast({
+          id: Date.now(),
+          message: "Failed to update order status",
+          type: "error"
+        });
         return;
       }
 
@@ -28,7 +33,11 @@ export default function AdminOrderActions({ orderStatus, orderId }) {
 
     } catch (err) {
       console.error(err);
-      authEvents.emit("auth:error", { message: "Error updating order" });
+      setToast({
+        id: Date.now(),
+        message: "Error updating order status",
+        type: "error"
+      });
     } finally {
       setLoading(false);
     }

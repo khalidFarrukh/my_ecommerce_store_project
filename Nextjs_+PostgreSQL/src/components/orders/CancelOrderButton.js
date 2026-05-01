@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { authEvents } from "@/lib/authEvents";
 import { useState } from "react";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function CancelOrderButton({ orderId }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { setToast } = useGlobalToast();
 
   const handleCancel = async () => {
     try {
@@ -24,14 +25,18 @@ export default function CancelOrderButton({ orderId }) {
         throw new Error(data?.message || "Failed to cancel order");
       }
 
-      authEvents.emit("auth:success", {
+      setToast({
+        id: Date.now(),
         message: "Order cancelled successfully",
+        type: "info"
       });
 
       router.refresh(); // 🔥 re-fetch server data
     } catch (err) {
-      authEvents.emit("auth:error", {
-        message: err.message,
+      setToast({
+        id: Date.now(),
+        message: err.message || "Failed to cancel order",
+        type: "error"
       });
     } finally {
       setLoading(false);

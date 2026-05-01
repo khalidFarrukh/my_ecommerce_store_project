@@ -1,6 +1,5 @@
-import HomeMainSection from "@/components/HomeMainSection";
+import HomePage from "@/components/HomePage";
 import clientPromise from "@/lib/mongodb";
-import { convertTextStringToDashString, getCollections } from "@/utils/utilities";
 
 
 export default async function Home() {
@@ -40,38 +39,10 @@ export default async function Home() {
     ])
     .toArray();
 
-  return (
-    <>
-      <div
-        classcategory=
-        {`
-          z-[1]
-          relative
-          w-full
-          bg-white
-          my-5
-          flex
-          flex-col
-          items-center
-        `}
-      >
-        <div className=
-          {`
-            mt-6
-            lg:mt-12
-          `} />
-        {
-          collections.map((collection, index) => {
+  const safeCollections = collections.map(col => ({
+    ...col,
+    _id: col._id.toString(),
+  }));
 
-            if (Boolean(!collection?.turnedoff && (collection?.hasProducts || collection?.slug === "all-products"))) {
-              // console.log()
-              return (
-                <HomeMainSection key={index} collection_name={collection.name} collection_slug={collection.slug} />
-              )
-            }
-          })
-        }
-      </div>
-    </>
-  )
+  return <HomePage collections={safeCollections} />;
 }

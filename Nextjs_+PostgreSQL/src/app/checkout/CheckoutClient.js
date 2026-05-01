@@ -11,10 +11,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { removeActiveVariants } from "@/store/cartSlice";
 import { useAlertModal } from "@/context/AlertModalContext";
-import { authEvents } from "@/lib/authEvents";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function CheckoutClient({ user, addresses: initialAddresses }) {
   const cartItems = useSelector(state => state.cart.cartState.items);
+  const { setToast } = useGlobalToast();
   const dispatch = useDispatch();
   const { openAlertModal } = useAlertModal();
   const [checkoutProducts, setCheckoutProducts] = useState([]);
@@ -133,6 +134,15 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
+      editingAddressId ? setToast({
+        id: Date.now(),
+        message: "Failed to update address",
+        type: "error"
+      }) : setToast({
+        id: Date.now(),
+        message: "Failed to add address",
+        type: "error"
+      });
       return;
     }
 
@@ -156,11 +166,6 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     setForm({ name: "", phone: "", city: "", addressLine: "" });
   };
 
-  console.log("editingAddressId: ", editingAddressId);
-  useEffect(() => {
-    console.log("editingAddressId: ", editingAddressId);
-  }, [editingAddressId])
-
   const handleEditClick = (addr) => {
     setForm({
       name: addr.name || "",
@@ -181,6 +186,11 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
+      setToast({
+        id: Date.now(),
+        message: "Failed to delete address",
+        type: "error"
+      });
       return;
     }
 
@@ -206,6 +216,11 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
+      setToast({
+        id: Date.now(),
+        message: "Failed to set default address",
+        type: "error"
+      });
       return;
     }
 
@@ -224,7 +239,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
   const [placingOrder, setPlacingOrder] = useState(false);
 
   const handlePlaceOrder = async () => {
-
+    if (!checkoutProducts.length) return;
     if (!selectedAddress) return;
     if (!paymentMethod) return;
     if (user?.role === "ADMIN") return;
@@ -278,18 +293,13 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
         return;
       }
 
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/orders/placeOrder", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           items: orderItems,
-          pricing: {
-            subtotal: subTotal,
-            shippingFee,
-            total: subTotal + shippingFee,
-          },
           shippingAddress: selectedAddress,
           payment: {
             method: paymentMethod
@@ -313,7 +323,11 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
     } catch (err) {
       console.error(err);
-      authEvents.emit("auth:error", { message: err.message || "Failed to place order" });
+      setToast({
+        id: Date.now(),
+        message: err.message || "Failed to place order",
+        type: "error"
+      });
     } finally {
       setPlacingOrder(false);
     }

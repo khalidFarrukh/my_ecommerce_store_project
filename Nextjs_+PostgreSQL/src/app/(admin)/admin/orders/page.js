@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import AdminOrdersClient from "./AdminOrdersClient";
 
 export default async function AdminOrdersPage() {
-  const session = await auth();
+  // const session = await auth();
 
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
@@ -13,5 +13,5 @@ export default async function AdminOrdersPage() {
   //   redirect("/");
   // }
 
-  return <AdminOrdersClient session={session} />;
+  return <AdminOrdersClient />;
 }

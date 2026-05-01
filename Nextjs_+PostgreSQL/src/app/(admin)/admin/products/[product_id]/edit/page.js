@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
 export default async function EditProductPage({ params }) {
-  const session = await auth();
+  // const session = await auth();
 
   
   // if (!session) {
@@ -46,7 +46,7 @@ export default async function EditProductPage({ params }) {
       />
 
       <EditProductForm
-        session={session}
+        // session={session}
         product={formattedProduct}
         categories={categories}
         allCollections={collections}

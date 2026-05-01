@@ -6,11 +6,11 @@ export default async function AdminLayout({ children }) {
   const session = await auth();
 
   if (!session) {
-    redirect("/signIn?callbackUrl=/admin");
+    redirect("/signIn?callbackUrl=/admin&error=auth_required");
   }
 
   if (session.user.role !== "ADMIN") {
-    redirect("/");
+    redirect("/?error=only_admin_allowed");
   }
 
   return (

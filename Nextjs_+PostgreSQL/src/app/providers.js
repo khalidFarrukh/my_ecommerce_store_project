@@ -11,32 +11,35 @@ import { ProductPageProvider } from "@/context/ProductPageContext";
 import { WindowSizeProvider } from "@/context/WindowSizeContext";
 import { CategoriesContextProvider } from "@/context/CategoriesContext";
 import { GlobalToastProvider } from "@/context/GlobalToastContext";
+import { SessionExpiryProvider } from "@/context/SessionExpiryContext";
 
 export function Providers({ children, session }) {
   return (
     <SessionProvider session={session}>
-      <ThemeProvider>
-        <ReduxProvider>
-          <AppContextProvider>
-            <CategoriesContextProvider>
-              <SearchModalProvider>
-                <AlertModalProvider>
-                  <CartButtonProvider>
-                    <ProductPageProvider>
-                      <GlobalToastProvider>
-                        <WindowSizeProvider>
+      <SessionExpiryProvider>
+        <ThemeProvider>
+          <ReduxProvider>
+            <AppContextProvider>
+              <GlobalToastProvider>
+                <CategoriesContextProvider>
+                  <SearchModalProvider>
+                    <AlertModalProvider>
+                      <CartButtonProvider>
+                        <ProductPageProvider>
+                          <WindowSizeProvider>
 
-                          {children}
-                        </WindowSizeProvider>
-                      </GlobalToastProvider>
-                    </ProductPageProvider>
-                  </CartButtonProvider>
-                </AlertModalProvider>
-              </SearchModalProvider>
-            </CategoriesContextProvider>
-          </AppContextProvider>
-        </ReduxProvider>
-      </ThemeProvider>
+                            {children}
+                          </WindowSizeProvider>
+                        </ProductPageProvider>
+                      </CartButtonProvider>
+                    </AlertModalProvider>
+                  </SearchModalProvider>
+                </CategoriesContextProvider>
+              </GlobalToastProvider>
+            </AppContextProvider>
+          </ReduxProvider>
+        </ThemeProvider>
+      </SessionExpiryProvider>
     </SessionProvider>
   );
 }

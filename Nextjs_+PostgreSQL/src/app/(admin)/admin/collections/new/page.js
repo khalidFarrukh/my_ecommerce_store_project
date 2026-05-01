@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 
 export default async function NewCollectionPage() {
-  const session = await auth();
+  // const session = await auth();
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
   // }

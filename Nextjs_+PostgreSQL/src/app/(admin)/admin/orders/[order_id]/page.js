@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 import AdminOrderActions from "./AdminOrderActions";
 
 export default async function AdminCertainOrderPage({ params }) {
-  const session = await auth();
+  // const session = await auth();
 
   // 🔒 Only admin allowed
   // if (!session) {

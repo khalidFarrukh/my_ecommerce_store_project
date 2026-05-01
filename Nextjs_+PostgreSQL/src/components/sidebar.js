@@ -8,12 +8,14 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useWindowSizeContext } from "@/context/WindowSizeContext";
 import Link from "next/link";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 
 export default function SideBar() {
   const { theme, setTheme } = useTheme();
   const isOpen = useSelector((state) => state.sidebar.isOpen);
   const dispatch = useDispatch();
+  const { timeLeft } = useSessionExpiry();
 
   const { windowWidth } = useWindowSizeContext();
 
@@ -21,7 +23,7 @@ export default function SideBar() {
   const pathname = usePathname();
   const isLoading = status === "loading";
   const selectedUrl =
-    status === "authenticated"
+    status === "authenticated" && timeLeft > 0
       ? "/profile"
       : `/signIn?callbackUrl=${pathname}`;
 
@@ -95,7 +97,7 @@ export default function SideBar() {
                   `}
                   href={selectedUrl}
                 >
-                  {status === "authenticated" ? "Profile" : "Sign in"}
+                  {status === "authenticated" && timeLeft > 0 ? "Profile" : "Sign in"}
                 </Link>
               )}
             {/* </div> */}
@@ -105,7 +107,7 @@ export default function SideBar() {
               <button
                 onClick={() => {
                   setTheme(nextTheme[theme] || "system")
-                  localStorage.set("theme", nextTheme[theme])
+                  localStorage.setItem("theme", nextTheme[theme])
                 }}
                 className="cursor-pointer h-full text-foreground"
               >

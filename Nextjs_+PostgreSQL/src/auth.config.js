@@ -67,11 +67,13 @@ const authConfig = {
 
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60, // 7 days
+    maxAge: 30 * 1, // 7 days
+    updateAge: 30,
   },
 
   jwt: {
-    maxAge: 60 * 1,
+    maxAge: 30 * 1,
+    updateAge: 30,
   },
 
   callbacks: {
@@ -83,22 +85,32 @@ const authConfig = {
     //   return token;
     // }
     async jwt({ token, user }) {
-      // when user logs in
+      // initial login
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
 
-      // always refresh role from DB (optional but good)
-      if (token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id },
-        });
+      // if (!token.id) return token;
+      if (token)
 
-        if (dbUser) {
-          token.role = dbUser.role;
+        // 🚨 ONLY check DB for ADMIN users
+        if (token.role === "ADMIN") {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id },
+            select: { role: true },
+          });
+
+          // user deleted or demoted
+          if (!dbUser) {
+            return null; // force logout (safest)
+          }
+
+          // enforce latest DB role
+          if (dbUser.role !== "ADMIN") {
+            token.role = dbUser.role; // demote immediately
+          }
         }
-      }
 
       return token;
     }

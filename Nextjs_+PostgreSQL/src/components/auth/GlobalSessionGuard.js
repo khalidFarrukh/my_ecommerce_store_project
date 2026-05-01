@@ -1,50 +1,86 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useGlobalToast } from "@/context/GlobalToastContext";
-import { authEvents } from "@/lib/authEvents";
 
 export default function GlobalSessionGuard() {
-  const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const { timeLeft, sessionStatus, isAuthenticatedForExpiry } = useSessionExpiry();
   const { setToast } = useGlobalToast();
 
-  const wasAuthenticated = useRef(false);
+
   const hasRedirectedAfterExpiry = useRef(false);
+  const shouldShowToast = useRef(false); // 👈 NEW
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    // user is authenticated → reset flags
-    if (status === "authenticated") {
-      wasAuthenticated.current = true;
+    if (timeLeft === null) return;
+
+    // session active
+    if (sessionStatus === "authenticated" && timeLeft > 0) {
+      isAuthenticatedForExpiry.current = true;
       hasRedirectedAfterExpiry.current = false;
+      shouldShowToast.current = false;
       return;
     }
 
-    // session expired → redirect ONLY ONCE
+    // 🔥 session expired
     if (
-      status === "unauthenticated" &&
-      wasAuthenticated.current &&
+      timeLeft <= 0 &&
+      isAuthenticatedForExpiry.current &&
       !hasRedirectedAfterExpiry.current &&
       pathname !== "/signIn"
-
     ) {
-
+      // 👉 decide toast behavior
+      if (document.visibilityState === "visible") {
+        // show immediately
+        setToast({
+          id: Date.now(),
+          message: "Session expired. Please sign in again.",
+          type: "error",
+        });
+      } else {
+        // delay until user comes back
+        shouldShowToast.current = true;
+      }
 
       hasRedirectedAfterExpiry.current = true;
-      // ✅ prevent false "session expired"
-      if (authEvents.consumeManualLogout()) {
-        return;
-      }
-      // 🔥 Trigger toast BEFORE redirect
-      authEvents.emit("auth:expired");
+      isAuthenticatedForExpiry.current = false;
 
-      router.push(`/signIn?callbackUrl=${pathname}`);
+      // ✅ redirect immediately
+      router.replace(`/signIn?callbackUrl=${pathname}`);
     }
-  }, [status, pathname, router]);
+  }, [timeLeft, sessionStatus, pathname, searchParams, router, setToast]);
+
+  // 👀 show toast when user returns
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (
+        document.visibilityState === "visible" &&
+        shouldShowToast.current
+      ) {
+        shouldShowToast.current = false;
+
+        setToast({
+          id: Date.now(),
+          message: "Session expired. Please sign in again.",
+          type: "error",
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility); // extra reliability
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [setToast]);
 
   return null;
 }
-

@@ -6,36 +6,52 @@ import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 import Link from "next/link";
 import { useGlobalToast } from "@/context/GlobalToastContext";
-import { authEvents } from "@/lib/authEvents";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { timeLeft, sessionData: session } = useSessionExpiry();
+  const { setToast } = useGlobalToast();
 
-  // useEffect(() => {
-  //   if (searchParams.get("error") === "auth_required") {
-  //     authEvents.emit("auth:error", {
-  //       message: "You must be signed in to view this page.",
-  //     });
-  //   }
-  // }, []);
 
   useEffect(() => {
+    const callbackUrl = searchParams.get("callbackUrl") || "/";
+    const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
+
+    // ✅ If already logged in → redirect immediately
+    if (timeLeft > 0) {
+      if (
+        safeCallBack.startsWith("/admin") &&
+        session?.user?.role !== "ADMIN"
+      ) {
+        router.replace("/?error=only_admin_allowed");
+        return;
+      }
+
+      router.replace(
+        session?.user?.role === "ADMIN" ? "/admin" : safeCallBack
+      );
+      return;
+    }
+
+    // ❗ Only run this if NOT logged in
     const error = searchParams.get("error");
 
     if (error === "auth_required") {
-      authEvents.emit("auth:error", {
+      setToast({
+        id: Date.now(),
         message: "You must be signed in to view this page.",
+        type: "error",
       });
 
-      // ✅ create clean params
       const params = new URLSearchParams(searchParams.toString());
       params.delete("error");
 
-      // ✅ replace URL (no reload)
-      router.replace(`/signIn?${params}`);
+      const query = params.toString();
+      router.replace(query ? `/signIn?${query}` : "/signIn");
     }
-  }, [searchParams, router]);
+  }, [router, searchParams, timeLeft, session]);
 
   // if middleware added callbackUrl (?callbackUrl=/profile)
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -70,7 +86,11 @@ export default function SignInForm() {
 
     if (!result || result.error) {
 
-      authEvents.emit("auth:error", { message: "Invalid email or password" });
+      setToast({
+        id: Date.now(),
+        message: "Invalid email or password",
+        type: "error",
+      });
       return;
     }
 
@@ -78,24 +98,36 @@ export default function SignInForm() {
 
     const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
 
-    // 🚨 user trying to access admin route
+    // 🛡️ fallback protection (client-side)
     if (safeCallBack.startsWith("/admin") && session?.user?.role !== "ADMIN") {
-      authEvents.emit("auth:forbidden", { message: "Only admin have access on this page." });
-      router.push("/");
+      // setToast({
+      //   id: Date.now(),
+      //   message: "Only admin have access on this page.",
+      //   type: "error",
+      // });
+      router.push("/?error=only_admin_allowed");
       return;
     }
 
     // ADMIN redirect
     if (session?.user?.role === "ADMIN") {
       // here will show the admin logged in successfully toast, as they are also users and can login via credentials, so will show the logged in successfully toast here
-      authEvents.emit("auth:login");
+      setToast({
+        id: Date.now(),
+        message: "Logged In",
+        type: "success",
+      });
 
       router.push("/admin");
       return;
     }
 
     // here only user will reach, so redirect to their intended page or homepage, so will show the logged in successfully toast here
-    authEvents.emit("auth:login");
+    setToast({
+      id: Date.now(),
+      message: "Logged In",
+      type: "success",
+    });
 
     // normal user redirect
     router.push(safeCallBack);

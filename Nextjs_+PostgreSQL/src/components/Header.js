@@ -15,11 +15,13 @@ import { useSession } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import { useWindowSizeContext } from "@/context/WindowSizeContext";
 import { themeIcons, nextTheme } from "@/utils/staticVariables";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
   const { windowWidth } = useWindowSizeContext();
+  const { timeLeft } = useSessionExpiry();
 
   const cartState = useSelector(state => state.cart.cartState);
 
@@ -28,7 +30,7 @@ export default function Header() {
 
   const isLoading = status === "loading";
   const selectedUrl =
-    status === "authenticated"
+    status === "authenticated" && timeLeft > 0
       ? "/profile"
       : `/signIn?callbackUrl=${pathname}`;
 
@@ -150,7 +152,7 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setTheme(nextTheme[theme] || "system");
-                    localStorage.set("theme", nextTheme[theme]);
+                    localStorage.setItem("theme", nextTheme[theme]);
                   }}
                   className="cursor-pointer h-full hover:text-foreground"
                 >
@@ -245,7 +247,7 @@ export default function Header() {
                   `}
                     href={selectedUrl}
                   >
-                    {status === "authenticated" ? "Profile" : "Sign in"}
+                    {status === "authenticated" && timeLeft > 0 ? "Profile" : "Sign in"}
                   </Link>
                 )}
 

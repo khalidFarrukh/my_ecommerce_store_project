@@ -12,8 +12,10 @@ import {
 } from "@hello-pangea/dnd";
 import FloatingInput from "@/components/FloatingInput";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
-export default function AdminCollectionsClient({ session }) {
+export default function AdminCollectionsClient() {
+  const { sessionData: session } = useSessionExpiry();
   const [collections, setCollections] = useState([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
 

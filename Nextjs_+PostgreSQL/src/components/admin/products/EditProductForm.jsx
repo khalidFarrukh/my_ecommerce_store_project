@@ -11,13 +11,15 @@ import {
   getAdminProductIssues,
   handleTextareInput,
 } from "@/utils/utilities";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function EditProductForm({
-  session,
+  // session,
   product: initialProduct,
   categories = [],
   allCollections = [],
 }) {
+  const { sessionData: session } = useSessionExpiry();
   const router = useRouter();
   const variantRefs = useRef({});
   const [errors, setErrors] = useState({});

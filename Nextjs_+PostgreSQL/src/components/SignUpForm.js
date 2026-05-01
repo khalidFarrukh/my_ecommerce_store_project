@@ -1,16 +1,30 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { authEvents } from "@/lib/authEvents";
+import { useGlobalToast } from "@/context/GlobalToastContext";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function SignUpForm() {
+  const { timeLeft, sessionData: session, sessionStatus } = useSessionExpiry();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setToast } = useGlobalToast();
 
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+
+  useEffect(() => {
+    if (sessionStatus === "authenticated" && timeLeft > 0) {
+      setToast({
+        id: Date.now(),
+        message: "Account already logged in",
+        type: "error"
+      });
+      router.replace("/");
+    }
+  }, [session, sessionStatus]);
 
   const [form, setForm] = useState({
     email: "",
@@ -31,7 +45,11 @@ export default function SignUpForm() {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      authEvents.emit("auth:error", { message: "Passwords do not match" });
+      setToast({
+        id: Date.now(),
+        message: "Passwords do not match",
+        type: "error"
+      });
       return;
     }
 
@@ -46,6 +64,17 @@ export default function SignUpForm() {
       }),
     });
 
+    // if (!res.ok) {
+    //   const data = await res.json();
+    //   setToast({
+    //     id: Date.now(),
+    //     message: data.error || "Failed to sign up",
+    //     type: "error"
+    //   });
+    //   setLoading(false);
+    //   return;
+    // }
+
     const data = await res.json();
 
     if (data.success) {
@@ -58,23 +87,33 @@ export default function SignUpForm() {
 
       // 2️⃣ only proceed if login succeeded
       if (!result || result.error) {
-        authEvents.emit("auth:error", { message: "Signup succeeded but login failed" });
+        setToast({
+          id: Date.now(),
+          message: "Signup succeeded but login failed",
+          type: "error"
+        });
+        setLoading(false);
         return;
       }
 
       // 3️⃣ ✅ emit success toast
-      authEvents.emit("auth:login");
+      setToast({
+        id: Date.now(),
+        message: "Logged In",
+        type: "success"
+      });
+      setLoading(false);
 
       const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
       router.push(safeCallBack);
     } else {
-      authEvents.emit("auth:error", { message: data.error });
+      setToast({
+        id: Date.now(),
+        message: data.error || "Failed to sign up",
+        type: "error"
+      });
     }
-
     setLoading(false);
-
-    const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
-    router.push(safeCallBack);
   };
 
   return (

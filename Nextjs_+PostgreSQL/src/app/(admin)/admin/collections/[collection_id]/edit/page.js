@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import EditCollectionClient from "./EditCollectionClient";
 
 export default async function EditCollectionPage({ params }) {
-  const session = await auth();
+  // const session = await auth();
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
   // }

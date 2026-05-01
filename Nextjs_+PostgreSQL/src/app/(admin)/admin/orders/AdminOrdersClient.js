@@ -5,8 +5,10 @@ import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
 import { Eye } from "lucide-react";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
-export default function AdminOrdersClient({ session }) {
+export default function AdminOrdersClient() {
+  const { sessionData: session } = useSessionExpiry();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 

@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { useState, useEffect, use } from "react";
+import { getSession, signOut } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import YesNoModal from "@/components/modals/YesNoModal";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useGlobalToast } from "@/context/GlobalToastContext";
-import { authEvents } from "@/lib/authEvents";
+import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
-export default function ProfileTabs({ session }) {
+export default function ProfileTabs() {
   const router = useRouter();
+
+  const { timeLeft, sessionData: session, isAuthenticatedForExpiry } = useSessionExpiry();
   const [activeTab, setActiveTab] = useState("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { setToast } = useGlobalToast();
@@ -119,21 +121,21 @@ export default function ProfileTabs({ session }) {
               <div>
                 <p className="text-myTextColorMain text-xs sm:text-sm">Name</p>
                 <p className="font-medium break-words">
-                  {session.user.name || "N/A"}
+                  {session?.user.name || "N/A"}
                 </p>
               </div>
 
               <div>
                 <p className="text-myTextColorMain text-xs sm:text-sm">Email</p>
                 <p className="font-medium break-words">
-                  {session.user.email}
+                  {session?.user.email}
                 </p>
               </div>
 
               <div>
                 <p className="text-myTextColorMain text-xs sm:text-sm">Role</p>
                 <p className="font-medium">
-                  {session.user.role || "USER"}
+                  {session?.user.role || "N/A"}
                 </p>
               </div>
             </div>
@@ -217,7 +219,6 @@ export default function ProfileTabs({ session }) {
                     key={mode}
                     onClick={() => {
                       setTheme(mode)
-                      localStorage.set("theme", mode)
                     }}
                     className={`
                       cursor-pointer
@@ -247,9 +248,17 @@ export default function ProfileTabs({ session }) {
           text1={"Are you sure, you want to logout?"}
           cancelFunction={() => setShowLogoutModal(false)}
           yesFunction={async () => {
-            await signOut({ redirect: false });
-            authEvents.emit("auth:logout");
-            router.push("/");
+            if (timeLeft > 0) {
+
+              await signOut({ redirect: false });
+              isAuthenticatedForExpiry.current = false;
+              setToast({
+                id: Date.now(),
+                message: "Logged Out",
+                type: "info",
+              });
+              router.push("/");
+            }
           }}
         />
       )}

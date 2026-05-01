@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import AdminCollectionsClient from "./AdminCollectionsClient";
 
 export default async function AdminCollectionsPage() {
-  const session = await auth();
+  // const session = await auth();
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
   // }
@@ -11,5 +11,5 @@ export default async function AdminCollectionsPage() {
   //   redirect("/");
   // }
 
-  return <AdminCollectionsClient session={session} />;
+  return <AdminCollectionsClient/>;
 }

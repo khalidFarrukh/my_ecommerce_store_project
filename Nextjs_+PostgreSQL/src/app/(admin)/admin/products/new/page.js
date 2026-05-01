@@ -3,7 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import { auth } from "@/auth";
 
 export default async function NewProductPage() {
-  const session = await auth();
+  // const session = await auth();
 
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
