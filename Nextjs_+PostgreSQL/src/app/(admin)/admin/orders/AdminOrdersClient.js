@@ -6,6 +6,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
 import { Eye } from "lucide-react";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import CancelOrderButton from "@/components/orders/CancelOrderButton";
 
 export default function AdminOrdersClient() {
   const { sessionData: session } = useSessionExpiry();
@@ -16,6 +17,8 @@ export default function AdminOrdersClient() {
     try {
       const res = await fetch("/api/admin/orders");
       const data = await res.json();
+
+      
       setOrders(data.data || []);
     } catch (err) {
       console.error(err);
@@ -96,13 +99,7 @@ export default function AdminOrdersClient() {
                               >
                                 Confirm
                               </button>
-                              <button
-                                disabled={loading}
-                                onClick={() => updateStatus(order._id, "cancelled")}
-                                className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
-                              >
-                                Cancel
-                              </button>
+                              <CancelOrderButton orderId={order._id} />
                             </div>
                           }
 

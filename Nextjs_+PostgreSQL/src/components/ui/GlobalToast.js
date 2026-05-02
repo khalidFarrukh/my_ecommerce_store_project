@@ -1,50 +1,71 @@
 "use client";
 
 import { useGlobalToast } from "@/context/GlobalToastContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { typeStyles } from "@/utils/staticVariables";
 
 export default function GlobalToast() {
   const { toast, setToast } = useGlobalToast();
 
-  const [visible, setVisible] = useState(false);
   const [displayedToast, setDisplayedToast] = useState(null);
+  const [visible, setVisible] = useState(false);
 
-  // handle enter/exit animation lifecycle
+  const timeoutRef = useRef(null);
+  const phaseRef = useRef("idle"); // idle | exiting | entering
+
   useEffect(() => {
     if (!toast) return;
 
+    // clear any previous timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    // IF same toast id comes again → ignore flicker
+    if (displayedToast?.id === toast.id) return;
+
+    // start exit phase if something already visible
     if (displayedToast) {
+      phaseRef.current = "exiting";
       setVisible(false);
 
-      const exitTimer = setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setDisplayedToast(toast);
 
-        // more reliable than requestAnimationFrame
-        setTimeout(() => setVisible(true), 10);
-      }, 300);
+        // next frame guarantees clean DOM paint
+        requestAnimationFrame(() => {
+          phaseRef.current = "entering";
+          setVisible(true);
+        });
+      }, 250);
 
-      return () => clearTimeout(exitTimer);
+      return;
     }
 
+    // first mount
     setDisplayedToast(toast);
-    setTimeout(() => setVisible(true), 10);
-  }, [toast?.id]); // 👈 important improvement
+
+    requestAnimationFrame(() => {
+      phaseRef.current = "entering";
+      setVisible(true);
+    });
+  }, [toast?.id]);
 
   // auto hide
   useEffect(() => {
     if (!displayedToast) return;
 
-    const timer = setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    timeoutRef.current = setTimeout(() => {
       setVisible(false);
 
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setDisplayedToast(null);
         setToast(null);
-      }, 300);
-    }, 5000);
+        phaseRef.current = "idle";
+      }, 250);
+    }, 4000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timeoutRef.current);
   }, [displayedToast, setToast]);
 
   if (!displayedToast) return null;

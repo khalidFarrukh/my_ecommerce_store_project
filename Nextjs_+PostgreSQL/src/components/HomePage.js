@@ -10,7 +10,6 @@ export default function HomePage({ collections }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setToast } = useGlobalToast();
-  // console.log(session);
 
   useEffect(() => {
     const error = searchParams.get("error");

@@ -18,19 +18,20 @@ import { themeIcons, nextTheme } from "@/utils/staticVariables";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function Header() {
+  const { data: session, status } = useSession();
   const { theme, setTheme } = useTheme();
   const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
   const { windowWidth } = useWindowSizeContext();
-  const { timeLeft } = useSessionExpiry();
+  // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
 
   const cartState = useSelector(state => state.cart.cartState);
 
-  const { data: session, status } = useSession();
+
   const pathname = usePathname();
 
   const isLoading = status === "loading";
   const selectedUrl =
-    status === "authenticated" && timeLeft > 0
+    session && status === "authenticated"
       ? "/profile"
       : `/signIn?callbackUrl=${pathname}`;
 
@@ -247,7 +248,7 @@ export default function Header() {
                   `}
                     href={selectedUrl}
                   >
-                    {status === "authenticated" && timeLeft > 0 ? "Profile" : "Sign in"}
+                    {session && status === "authenticated" ? "Profile" : "Sign in"}
                   </Link>
                 )}
 

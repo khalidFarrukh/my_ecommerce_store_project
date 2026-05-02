@@ -19,6 +19,12 @@ export function SessionExpiryProvider({ children }) {
   const intervalRef = useRef(null);
 
   const applySession = (newSession, newStatus = "authenticated") => {
+    // 🔥 ALWAYS clear old interval first
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     if (!newSession?.expires) {
       setSessionData(null);
       setSessionStatus("unauthenticated");
@@ -26,15 +32,10 @@ export function SessionExpiryProvider({ children }) {
       return;
     }
 
-    console.log(newSession);
-    console.log("timeLEft", timeLeft);
     setSessionData(newSession);
     setSessionStatus(newStatus);
 
     const expiresAt = new Date(newSession.expires).getTime();
-
-    // restart timer cleanly
-    if (intervalRef.current) clearInterval(intervalRef.current);
 
     const tick = () => {
       const diff = expiresAt - Date.now();
@@ -43,7 +44,12 @@ export function SessionExpiryProvider({ children }) {
         setTimeLeft(0);
         setSessionStatus("unauthenticated");
         setSessionData(null);
-        clearInterval(intervalRef.current);
+
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+
         return;
       }
 
@@ -73,12 +79,37 @@ export function SessionExpiryProvider({ children }) {
     sync();
   }, [pathname]);
 
+//   useEffect(() => {
+//   const handlePageShow = async (event) => {
+//     // fired on back/forward cache restore
+//     const newSession = await getSession();
+//     applySession(newSession, newSession ? "authenticated" : "unauthenticated");
+//   };
+
+//   window.addEventListener("pageshow", handlePageShow);
+
+//   return () => {
+//     window.removeEventListener("pageshow", handlePageShow);
+//   };
+// }, []);
+
   // cleanup
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      setTimeLeft(0);
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+  }, [sessionStatus]);
 
   return (
     <SessionExpiryContext.Provider

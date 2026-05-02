@@ -20,6 +20,7 @@ export default function AdminCollectionsClient() {
   const { sessionData: session } = useSessionExpiry();
   const [collections, setCollections] = useState([]);
   const [loadingCollections, setLoadingCollections] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   const fetchCollections = async () => {
     try {
@@ -86,14 +87,27 @@ export default function AdminCollectionsClient() {
         right_content={
           <button
             onClick={async () => {
-              const res = await fetch("/api/admin/collections/new", {
-                method: "POST",
-              });
+              if (isCreating) return;
 
-              const data = await res.json();
-              router.push(`/admin/collections/${data.id}/edit`);
+              try {
+                setIsCreating(true);
+
+                const res = await fetch("/api/admin/collections/new", {
+                  method: "POST",
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                router.push(`/admin/collections/${data.id}/edit`);
+              } catch (err) {
+                console.error(err);
+              } finally {
+                setIsCreating(false);
+              }
             }}
-            className="button1 px-4 py-2"
+            className="button1 w-40 h-10 cursor-pointer disabled:opacity-50 disabled:cursor-none"
           >
 
             + Add Collection

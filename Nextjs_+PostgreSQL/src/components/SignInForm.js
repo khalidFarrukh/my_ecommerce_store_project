@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSession, signIn } from "next-auth/react";
+import { getSession, signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
 import Link from "next/link";
@@ -10,17 +10,26 @@ import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function SignInForm() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isAppReady, setIsAppReady] = useState(false);
+
   const searchParams = useSearchParams();
-  const { timeLeft, sessionData: session } = useSessionExpiry();
+
+  // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
   const { setToast } = useGlobalToast();
 
+  useEffect(() => {
+    setIsAppReady(true);
+  }, []);
 
   useEffect(() => {
     const callbackUrl = searchParams.get("callbackUrl") || "/";
     const safeCallBack = callbackUrl.startsWith("/") ? callbackUrl : "/";
+    const expired = searchParams.get("expired");
 
+    if (expired === "1") return;
     // ✅ If already logged in → redirect immediately
-    if (timeLeft > 0) {
+    if (session && status === "authenticated") {
       if (
         safeCallBack.startsWith("/admin") &&
         session?.user?.role !== "ADMIN"
@@ -34,16 +43,25 @@ export default function SignInForm() {
       );
       return;
     }
+  }, [router, searchParams, session]);
+
+  useEffect(() => {
+
+    if (!isAppReady) return;
 
     // ❗ Only run this if NOT logged in
     const error = searchParams.get("error");
 
-    if (error === "auth_required") {
-      setToast({
-        id: Date.now(),
-        message: "You must be signed in to view this page.",
-        type: "error",
-      });
+    if (error === "auth_required" && !session) {
+
+      setTimeout(() => {
+
+        setToast({
+          id: Date.now(),
+          message: "You must be signed in to view this page.",
+          type: "error",
+        });
+      }, 0)
 
       const params = new URLSearchParams(searchParams.toString());
       params.delete("error");
@@ -51,7 +69,7 @@ export default function SignInForm() {
       const query = params.toString();
       router.replace(query ? `/signIn?${query}` : "/signIn");
     }
-  }, [router, searchParams, timeLeft, session]);
+  }, [router, searchParams, isAppReady]);
 
   // if middleware added callbackUrl (?callbackUrl=/profile)
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -84,7 +102,7 @@ export default function SignInForm() {
 
     setLoading(false);
 
-    if (!result || result.error) {
+    if ((!result || result.error) && isAppReady) {
 
       setToast({
         id: Date.now(),
@@ -112,25 +130,55 @@ export default function SignInForm() {
     // ADMIN redirect
     if (session?.user?.role === "ADMIN") {
       // here will show the admin logged in successfully toast, as they are also users and can login via credentials, so will show the logged in successfully toast here
+      // setToast({
+      //   id: Date.now(),
+      //   message: "Logged In",
+      //   type: "success",
+      // });
+
+      router.push("/admin");
+
+      setTimeout(() => {
+        // 🔥 ignore manual logout
+        if (window.__MANUAL_LOGOUT__) {
+          window.__MANUAL_LOGOUT__ = false; // reset
+        }
+
+        setToast({
+          id: Date.now(),
+          message: "Logged In",
+          type: "success",
+        });
+      }, 0);
+
+
+
+      return;
+    }
+
+    // here only user will reach, so redirect to their intended page or homepage, so will show the logged in successfully toast here
+    // setToast({
+    //   id: Date.now(),
+    //   message: "Logged In",
+    //   type: "success",
+    // });
+
+    // normal user redirect
+    router.push(safeCallBack);
+    setTimeout(() => {
+      // 🔥 ignore manual logout
+      if (window.__MANUAL_LOGOUT__) {
+        window.__MANUAL_LOGOUT__ = false; // reset
+      }
+
       setToast({
         id: Date.now(),
         message: "Logged In",
         type: "success",
       });
+    }, 0);
 
-      router.push("/admin");
-      return;
-    }
 
-    // here only user will reach, so redirect to their intended page or homepage, so will show the logged in successfully toast here
-    setToast({
-      id: Date.now(),
-      message: "Logged In",
-      type: "success",
-    });
-
-    // normal user redirect
-    router.push(safeCallBack);
   };
 
   return (

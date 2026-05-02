@@ -36,9 +36,12 @@ export async function GET(req) {
     _id: p._id.toString(),
   }));
 
+  const totalPages = Math.ceil(total / limit);
+
   return new Response(
     JSON.stringify({
       total,
+      totalPages,
       offset,
       limit,
       data: formatted,

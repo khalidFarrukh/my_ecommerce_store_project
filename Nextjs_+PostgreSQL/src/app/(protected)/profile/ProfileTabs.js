@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { getSession, signOut } from "next-auth/react";
+import { getSession, signOut, useSession } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import YesNoModal from "@/components/modals/YesNoModal";
 import { useRouter } from "next/navigation";
@@ -11,13 +11,15 @@ import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function ProfileTabs() {
   const router = useRouter();
-
-  const { timeLeft, sessionData: session, isAuthenticatedForExpiry } = useSessionExpiry();
+  const { data: session, status } = useSession();
+  // const { timeLeft, sessionData: session, sessionStatus: status, isAuthenticatedForExpiry } = useSessionExpiry();
   const [activeTab, setActiveTab] = useState("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { setToast } = useGlobalToast();
 
   const { theme, setTheme } = useTheme();
+
+  console.log("session: ", session, "  ->  ", status);
 
   // Persist theme when changed
   useEffect(() => {
@@ -248,16 +250,25 @@ export default function ProfileTabs() {
           text1={"Are you sure, you want to logout?"}
           cancelFunction={() => setShowLogoutModal(false)}
           yesFunction={async () => {
-            if (timeLeft > 0) {
+            if (session && status === "authenticated") {
+
+              window.__MANUAL_LOGOUT__ = true;
 
               await signOut({ redirect: false });
-              isAuthenticatedForExpiry.current = false;
-              setToast({
-                id: Date.now(),
-                message: "Logged Out",
-                type: "info",
-              });
+              // isAuthenticatedForExpiry.current = false;
+              // setToast({
+              //   id: Date.now(),
+              //   message: "Logged Out",
+              //   type: "info",
+              // });
               router.push("/");
+              setTimeout(() => {
+                setToast({
+                  id: Date.now(),
+                  message: "Logged Out",
+                  type: "info",
+                });
+              }, 0);
             }
           }}
         />

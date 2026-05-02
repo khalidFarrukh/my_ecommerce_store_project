@@ -15,31 +15,34 @@ import { SessionExpiryProvider } from "@/context/SessionExpiryContext";
 
 export function Providers({ children, session }) {
   return (
-    <SessionProvider session={session}>
-      <SessionExpiryProvider>
-        <ThemeProvider>
-          <ReduxProvider>
-            <AppContextProvider>
-              <GlobalToastProvider>
-                <CategoriesContextProvider>
-                  <SearchModalProvider>
-                    <AlertModalProvider>
-                      <CartButtonProvider>
-                        <ProductPageProvider>
-                          <WindowSizeProvider>
+    <SessionProvider session={session}
+      // refetchInterval={33} // check every 60 seconds
+      refetchOnWindowFocus={true}
+    >
+      {/* <SessionExpiryProvider> */}
+      <ThemeProvider>
+        <ReduxProvider>
+          <AppContextProvider>
+            <GlobalToastProvider>
+              <CategoriesContextProvider>
+                <SearchModalProvider>
+                  <AlertModalProvider>
+                    <CartButtonProvider>
+                      <ProductPageProvider>
+                        <WindowSizeProvider>
 
-                            {children}
-                          </WindowSizeProvider>
-                        </ProductPageProvider>
-                      </CartButtonProvider>
-                    </AlertModalProvider>
-                  </SearchModalProvider>
-                </CategoriesContextProvider>
-              </GlobalToastProvider>
-            </AppContextProvider>
-          </ReduxProvider>
-        </ThemeProvider>
-      </SessionExpiryProvider>
+                          {children}
+                        </WindowSizeProvider>
+                      </ProductPageProvider>
+                    </CartButtonProvider>
+                  </AlertModalProvider>
+                </SearchModalProvider>
+              </CategoriesContextProvider>
+            </GlobalToastProvider>
+          </AppContextProvider>
+        </ReduxProvider>
+      </ThemeProvider>
+      {/* </SessionExpiryProvider> */}
     </SessionProvider>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,7 +8,8 @@ import { useGlobalToast } from "@/context/GlobalToastContext";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
 export default function SignUpForm() {
-  const { timeLeft, sessionData: session, sessionStatus } = useSessionExpiry();
+  const { data: session, status } = useSession();
+  // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setToast } = useGlobalToast();
@@ -16,7 +17,8 @@ export default function SignUpForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
-    if (sessionStatus === "authenticated" && timeLeft > 0) {
+    
+    if (session && status === "authenticated") {
       setToast({
         id: Date.now(),
         message: "Account already logged in",
@@ -24,7 +26,7 @@ export default function SignUpForm() {
       });
       router.replace("/");
     }
-  }, [session, sessionStatus]);
+  }, [session, status]);
 
   const [form, setForm] = useState({
     email: "",

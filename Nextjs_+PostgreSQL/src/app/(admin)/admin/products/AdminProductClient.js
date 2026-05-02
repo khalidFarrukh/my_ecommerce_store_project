@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { getAdminProductIssues } from "@/utils/utilities";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useRouter } from "next/navigation";
+import { Pagination } from "@/components/Pagination";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -18,8 +20,6 @@ function useDebounce(value, delay = 400) {
 
   return debounced;
 }
-
-
 
 function getPriceRange(variants) {
   const prices = variants
@@ -38,44 +38,84 @@ function getTotalStock(variants) {
 }
 
 export default function AdminProductsClient() {
+  const router = useRouter();
   const { sessionData: session } = useSessionExpiry();
   const [draftProducts, setDraftProducts] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
+  const [archivedProducts, setArchivedProducts] = useState([]);
   const [loadingDraft, setLoadingDraft] = useState(true);
   const [loadingActive, setLoadingActive] = useState(true);
+  const [loadingArchived, setLoadingArchived] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+
+
 
   const [activeSearch, setActiveSearch] = useState("");
 
+  const [draftPage, setDraftPage] = useState(1);
+  const [activePage, setActivePage] = useState(1);
+  const [archivedPage, setArchivedPage] = useState(1);
+
+  const limit = 5;
+
+  const [draftTotalPages, setDraftTotalPages] = useState(1);
+  const [activeTotalPages, setActiveTotalPages] = useState(1);
+  const [archivedTotalPages, setArchivedTotalPages] = useState(1);
+
   const fetchDraftProducts = async () => {
     try {
+      setLoadingDraft(true);
+
       const res = await fetch(
-        `/api/admin/products?status=draft&offset=0&limit=20`
+        `/api/admin/products?status=draft&offset=${(draftPage - 1) * limit}&limit=${limit}`
       );
+
       const data = await res.json();
+
       setDraftProducts(data.data);
-    }
-    catch (err) {
+      setDraftTotalPages(data.totalPages); // 👈 important
+    } catch (err) {
       console.error(err);
-    }
-    finally {
+    } finally {
       setLoadingDraft(false);
     }
   };
 
   const fetchActiveProducts = async () => {
     try {
+      setLoadingActive(true);
 
       const res = await fetch(
-        `/api/admin/products?status=active&search=${activeSearch}&offset=0&limit=20`
+        `/api/admin/products?status=active&search=${debouncedActiveSearch}&offset=${(activePage - 1) * limit}&limit=${limit}`
       );
+
       const data = await res.json();
+
       setActiveProducts(data.data);
-    }
-    catch (err) {
+      setActiveTotalPages(data.totalPages); // 👈 important
+    } catch (err) {
       console.error(err);
-    }
-    finally {
+    } finally {
       setLoadingActive(false);
+    }
+  };
+
+  const fetchArchivedProducts = async () => {
+    try {
+      setLoadingArchived(true);
+
+      const res = await fetch(
+        `/api/admin/products?status=archive&offset=${(archivedPage - 1) * limit}&limit=${limit}`
+      );
+
+      const data = await res.json();
+
+      setArchivedProducts(data.data);
+      setArchivedTotalPages(data.totalPages);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingArchived(false);
     }
   };
 
@@ -83,11 +123,19 @@ export default function AdminProductsClient() {
 
   useEffect(() => {
     fetchDraftProducts();
-  }, []);
+  }, [draftPage]);
+
+  useEffect(() => {
+    fetchArchivedProducts();
+  }, [archivedPage]);
 
   useEffect(() => {
     fetchActiveProducts();
-  }, [debouncedActiveSearch]);
+  }, [debouncedActiveSearch, activePage]);
+
+  useEffect(() => {
+    setActivePage(1);
+  }, [debouncedActiveSearch])
 
   useEffect(() => {
     console.log(
@@ -99,18 +147,39 @@ export default function AdminProductsClient() {
   }, [draftProducts])
 
   return (
-    <div className="space-y-6 min-h-[1000px]">
+    <div className="space-y-12 min-h-[1000px]">
 
       <AdminTabContentHeader
         heading="Products"
         description={`Welcome back, ${session?.user?.email}`}
         right_content={
-          <Link
-            href="/admin/products/new"
-            className="button1 px-4 py-2"
+          <button
+            disabled={isCreating}
+            onClick={async () => {
+              if (isCreating) return;
+
+              try {
+                setIsCreating(true);
+
+                const res = await fetch("/api/admin/products/new", {
+                  method: "POST",
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                router.push(`/admin/products/${data.id}/edit`);
+              } catch (err) {
+                console.error(err);
+              } finally {
+                setIsCreating(false);
+              }
+            }}
+            className="button1 w-40 h-10 cursor-pointer disabled:opacity-50 disabled:cursor-none"
           >
-            + Add Product
-          </Link>
+            {isCreating ? "Creating..." : "+ Add Product"}
+          </button>
         }
       />
 
@@ -134,79 +203,86 @@ export default function AdminProductsClient() {
               <LoadingSpinner text="Loading" />
             </div>
             :
-            <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-myBorderColor text-left">
-                    <th className="py-2 pr-2">Product</th>
-                    <th className="px-2 text-center bg-background_3">Variants</th>
-                    <th className="px-2 text-center">Price</th>
-                    <th className="px-2 text-center bg-background_3">Stock</th>
-                    <th className="px-2 text-center">Issues</th>
-                    <th className="px-2 text-center bg-background_3">Actions</th>
-                  </tr>
-                </thead>
+            <div className="h-fit w-full">
+              <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-myBorderColor text-left">
+                      <th className="py-2 pr-2">Product</th>
+                      <th className="px-2 text-center bg-background_3">Variants</th>
+                      <th className="px-2 text-center">Price</th>
+                      <th className="px-2 text-center bg-background_3">Stock</th>
+                      <th className="px-2 text-center">Issues</th>
+                      <th className="px-2 text-center bg-background_3">Actions</th>
+                    </tr>
+                  </thead>
 
-                <tbody>
+                  <tbody>
 
-                  {draftProducts.map(product => {
-                    const issues = getAdminProductIssues(product);
-                    const priceRange = getPriceRange(product.variants);
-                    const stock = getTotalStock(product.variants);
+                    {draftProducts.map(product => {
+                      const issues = getAdminProductIssues(product);
+                      const priceRange = getPriceRange(product.variants);
+                      const stock = getTotalStock(product.variants);
 
-                    return (
-                      <tr key={product._id} className="border-b border-myBorderColor">
+                      return (
+                        <tr key={product._id} className="border-b border-myBorderColor">
 
-                        <td className="min-w-10 max-w-40 truncate py-3 pr-2">
-                          {product.name || "Untitled Product"}
-                        </td>
+                          <td className="min-w-10 max-w-40 truncate py-3 pr-2">
+                            {product.name || "Untitled Product"}
+                          </td>
 
-                        <td className="py-3 px-2 text-center bg-background_3">
-                          {product.variants.length}
-                        </td>
+                          <td className="py-3 px-2 text-center bg-background_3">
+                            {product.variants.length}
+                          </td>
 
-                        <td className="py-3 px-2 text-center text-nowrap">
-                          {priceRange}
-                        </td>
+                          <td className="py-3 px-2 text-center text-nowrap">
+                            {priceRange}
+                          </td>
 
-                        <td className="py-3 px-2 text-center bg-background_3">
-                          {stock}
-                        </td>
+                          <td className="py-3 px-2 text-center bg-background_3">
+                            {stock}
+                          </td>
 
-                        <td className="py-3 px-2 text-center text-nowrap">
-                          {issues.length === 0 ? (
-                            <span className="text-green-500">Ready</span>
-                          ) : (
-                            <span className="text-yellow-500">
-                              {issues[0]}
-                              {issues.length > 1 && ` (+${issues.length - 1})`}
-                            </span>
-                          )}
-                        </td>
+                          <td className="py-3 px-2 text-center text-nowrap">
+                            {issues.length === 0 ? (
+                              <span className="text-green-500">Ready</span>
+                            ) : (
+                              <span className="text-yellow-500">
+                                {issues[0]}
+                                {issues.length > 1 && ` (+${issues.length - 1})`}
+                              </span>
+                            )}
+                          </td>
 
-                        <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+                          <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
 
-                          <Link
-                            href={`/admin/products/${product._id}/edit`}
-                            className="button2 p-2 rounded-full! flex w-max!"
-                          >
-                            <Edit2 className="size-4" />
-                          </Link>
+                            <Link
+                              href={`/admin/products/${product._id}/edit`}
+                              className="button2 p-2 rounded-full! flex w-max!"
+                            >
+                              <Edit2 className="size-4" />
+                            </Link>
 
-                          {issues.length === 0 && (
-                            <button className="button1 px-3 py-1">
-                              Activate
-                            </button>
-                          )}
+                            {issues.length === 0 && (
+                              <button className="button1 px-3 py-1">
+                                Activate
+                              </button>
+                            )}
 
-                        </td>
+                          </td>
 
-                      </tr>
-                    );
-                  })}
+                        </tr>
+                      );
+                    })}
 
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                page={draftPage}
+                totalPages={draftTotalPages}
+                onPageChange={setDraftPage}
+              />
             </div>
         }
 
@@ -242,74 +318,194 @@ export default function AdminProductsClient() {
               <LoadingSpinner text="Loading" />
             </div>
             :
+            <div className="w-full h-fit">
+              <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-myBorderColor text-left">
+                      <th className="py-2 pr-2">Product</th>
+                      <th className="px-2 text-center bg-background_3">Category</th>
+                      <th className="px-2 text-center">Variants</th>
+                      <th className="px-2 text-center bg-background_3">Price</th>
+                      <th className="px-2 text-center">Stock</th>
+                      <th className="px-2 text-center bg-background_3">Actions</th>
+                    </tr>
+                  </thead>
 
-            <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-myBorderColor text-left">
-                    <th className="py-2 pr-2">Product</th>
-                    <th className="px-2 text-center bg-background_3">Category</th>
-                    <th className="px-2 text-center">Variants</th>
-                    <th className="px-2 text-center bg-background_3">Price</th>
-                    <th className="px-2 text-center">Stock</th>
-                    <th className="px-2 text-center bg-background_3">Actions</th>
-                  </tr>
-                </thead>
+                  <tbody>
 
-                <tbody>
+                    {activeProducts.map(product => {
 
-                  {activeProducts.map(product => {
+                      const priceRange = getPriceRange(product.variants);
+                      const stock = getTotalStock(product.variants);
 
-                    const priceRange = getPriceRange(product.variants);
-                    const stock = getTotalStock(product.variants);
+                      return (
+                        <tr key={product._id} className="border-b border-myBorderColor">
 
-                    return (
-                      <tr key={product._id} className="border-b border-myBorderColor">
+                          <td className="min-w-40 max-w-40 truncate py-3 px-2">
+                            {product.name}
+                          </td>
 
-                        <td className="min-w-40 max-w-40 truncate py-3 px-2">
-                          {product.name}
-                        </td>
+                          <td className="py-3 px-2 text-center bg-background_3">
+                            {product.category || "—"}
+                          </td>
 
-                        <td className="py-3 px-2 text-center bg-background_3">
-                          {product.category || "—"}
-                        </td>
+                          <td className="py-3 px-2 text-center">
+                            {product.variants.length}
+                          </td>
 
-                        <td className="py-3 px-2 text-center">
-                          {product.variants.length}
-                        </td>
+                          <td className="py-3 px-2 text-center text-nowrap bg-background_3">
+                            {priceRange}
+                          </td>
 
-                        <td className="py-3 px-2 text-center text-nowrap bg-background_3">
-                          {priceRange}
-                        </td>
+                          <td className="py-3 px-2 text-center">
+                            {stock}
+                          </td>
 
-                        <td className="py-3 px-2 text-center">
-                          {stock}
-                        </td>
+                          <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+                            <Link
+                              href={`/admin/products/${product._id}/edit`}
+                              className="button2 p-2 rounded-full! flex w-max!"
+                            >
+                              <Edit2 className="size-4" />
+                            </Link>
+                            {Number(stock) === 0 && (
+                              <button className="button2 p-2 rounded-full! flex w-max!">
+                                <ArchiveIcon className="size-4" />
+                              </button>
+                            )}
+                          </td>
 
-                        <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
-                          <Link
-                            href={`/admin/products/${product._id}/edit`}
-                            className="button2 p-2 rounded-full! flex w-max!"
-                          >
-                            <Edit2 className="size-4" />
-                          </Link>
-                          {Number(stock) === 0 && (
-                            <button className="button2 p-2 rounded-full! flex w-max!">
-                              <ArchiveIcon className="size-4" />
-                            </button>
-                          )}
-                        </td>
+                        </tr>
+                      );
+                    })}
 
-                      </tr>
-                    );
-                  })}
-
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                page={activePage}
+                totalPages={activeTotalPages}
+                onPageChange={setActivePage}
+              />
             </div>
         }
 
+      </section>
 
+
+      {/* ===================== Archived Products ===================== */}
+
+      <section className="bg-background_2 border border-myBorderColor rounded-lg p-4 space-y-4">
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium">Archived Products</h2>
+        </div>
+
+        {
+          loadingArchived ?
+            <div className="flex items-center justify-center">
+              <LoadingSpinner text="Loading" />
+            </div>
+            :
+            <div className="w-full">
+
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-myBorderColor text-left">
+                      <th className="py-2 pr-2">Product</th>
+                      <th className="px-2 text-center bg-background_3">Category</th>
+                      <th className="px-2 text-center">Variants</th>
+                      <th className="px-2 text-center bg-background_3">Price</th>
+                      <th className="px-2 text-center">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+
+                    {archivedProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-6 text-gray-500">
+                          No archived products
+                        </td>
+                      </tr>
+                    ) : (
+                      archivedProducts.map(product => {
+
+                        const priceRange = getPriceRange(product.variants);
+                        const stock = getTotalStock(product.variants);
+
+                        return (
+                          <tr key={product._id} className="border-b border-myBorderColor">
+
+                            <td className="min-w-40 max-w-40 truncate py-3 px-2">
+                              {product.name}
+                            </td>
+
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {product.category || "—"}
+                            </td>
+
+                            <td className="py-3 px-2 text-center">
+                              {product.variants.length}
+                            </td>
+
+                            <td className="py-3 px-2 text-center text-nowrap bg-background_3">
+                              {priceRange}
+                            </td>
+
+                            <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+
+                              <Link
+                                href={`/admin/products/${product._id}/edit`}
+                                className="button2 p-2 rounded-full! flex w-max!"
+                              >
+                                <Edit2 className="size-4" />
+                              </Link>
+
+                              {/* Restore button */}
+                              <button
+                                className="button1 px-3 py-1"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/admin/products/${product._id}`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ status: "active" }),
+                                    });
+
+                                    if (!res.ok) throw new Error();
+
+                                    fetchArchivedProducts();
+                                    fetchActiveProducts();
+                                  } catch (err) {
+                                    console.error(err);
+                                  }
+                                }}
+                              >
+                                Restore
+                              </button>
+
+                            </td>
+
+                          </tr>
+                        );
+                      })
+                    )}
+
+                  </tbody>
+                </table>
+              </div>
+
+              <Pagination
+                page={archivedPage}
+                totalPages={archivedTotalPages}
+                onPageChange={setArchivedPage}
+              />
+
+            </div>
+        }
       </section>
 
     </div>
