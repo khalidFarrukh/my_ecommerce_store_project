@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
+import { useSession } from "next-auth/react";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -39,7 +40,8 @@ function getTotalStock(variants) {
 
 export default function AdminProductsClient() {
   const router = useRouter();
-  const { sessionData: session } = useSessionExpiry();
+  // const { sessionData: session } = useSessionExpiry();
+  const { data: session } = useSession();
   const [draftProducts, setDraftProducts] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
   const [archivedProducts, setArchivedProducts] = useState([]);

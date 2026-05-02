@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import CancelOrderButton from "@/components/orders/CancelOrderButton";
+import NotFound from "@/components/NotFound";
 
 export default async function OrderPage({ params }) {
   const session = await auth();
@@ -23,19 +24,16 @@ export default async function OrderPage({ params }) {
     userId: session.user.id, // 🔒 security: user can only see own order
   });
 
+  if (!order) {
+    notFound(); // IMPORTANT
+  }
+
   // ✅ convert Mongo ObjectId
   const safeOrder = {
     ...order,
     _id: order._id.toString(),
   };
 
-  if (!order) {
-    return (
-      <div className="p-6 text-center">
-        Order not found
-      </div>
-    );
-  }
 
   return (
     <section className="w-full max-w-4xl mx-auto py-6 space-y-6">

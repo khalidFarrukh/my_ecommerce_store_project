@@ -7,9 +7,11 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import CancelOrderButton from "@/components/orders/CancelOrderButton";
+import { useSession } from "next-auth/react";
 
 export default function AdminOrdersClient() {
-  const { sessionData: session } = useSessionExpiry();
+  // const { sessionData: session } = useSessionExpiry();
+  const { data: session } = useSession();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +20,7 @@ export default function AdminOrdersClient() {
       const res = await fetch("/api/admin/orders");
       const data = await res.json();
 
-      
+
       setOrders(data.data || []);
     } catch (err) {
       console.error(err);

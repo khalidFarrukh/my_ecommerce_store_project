@@ -1,9 +1,8 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+
 import CenteringUI from "@/components/auth/CenteringUI";
 import SignInForm from "../../components/SignInForm";
 
-export default async function SignInPage({ searchParams }) {
+export default function SignInPage() {
   // const session = await auth();
 
   // const _searchParams = await searchParams;

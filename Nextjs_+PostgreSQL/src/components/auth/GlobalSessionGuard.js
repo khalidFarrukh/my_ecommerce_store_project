@@ -6,7 +6,7 @@ import { useGlobalToast } from "@/context/GlobalToastContext";
 import { useSession, signOut } from "next-auth/react";
 
 export default function GlobalSessionGuard() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const { setToast } = useGlobalToast();
@@ -17,13 +17,18 @@ export default function GlobalSessionGuard() {
   const isRestoredFromBFCache = useRef(false);
 
   useEffect(() => {
+    update(); // re-sync session on navigation
+  }, [pathname]);
+
+  useEffect(() => {
     const handlePageShow = (event) => {
+      console.log("restored when event not persisted");
       if (event.persisted) {
         isRestoredFromBFCache.current = true;
-
+        console.log("restored when event persisted");
         // allow React to settle, then refresh
         setTimeout(() => {
-          router.refresh();
+          window.location.reload();
         }, 0);
       }
     };
@@ -43,7 +48,7 @@ export default function GlobalSessionGuard() {
       wasAuthenticated.current = true;
       hasHandledExpiry.current = false; // reset on login
     }
-  }, [status]);
+  }, [pathname, status]);
 
   // ===============================
   // 🧠 REAL-TIME EXPIRY

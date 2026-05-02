@@ -18,6 +18,7 @@ import { addToCart } from "@/store/cartSlice";
 import { useAlertModal } from "@/context/AlertModalContext";
 import { convertDashStringToTextString, handleTextareInput } from "@/utils/utilities";
 import { useWindowSizeContext } from "@/context/WindowSizeContext";
+import NotFound from "@/components/NotFound";
 
 export function useDynamicSticky(ref) {
   const [topValue, setTopValue] = useState(0);
@@ -224,19 +225,21 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
     }
   };
 
+
   const price = matchedVariant?.price
   const discount = matchedVariant?.discount ?? 0
   const finalPrice = matchedVariant
     ? price - Math.round((price * discount) / 100)
     : null
 
-  if (!selected_product) {
-    return (
-      <div className="w-full flex items-center justify-center py-40">
-        <p className="text-gray-400">Loading product…</p>
-      </div>
-    );
-  }
+  // if (!selected_product) {
+  //   return (
+  //     <div className="w-full flex items-center justify-center py-40">
+  //       <p className="text-gray-400">Loading product…</p>
+  //     </div>
+  //   );
+  // }
+
 
   return (
     <>

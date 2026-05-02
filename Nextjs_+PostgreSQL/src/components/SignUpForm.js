@@ -17,7 +17,6 @@ export default function SignUpForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   useEffect(() => {
-    
     if (session && status === "authenticated") {
       setToast({
         id: Date.now(),

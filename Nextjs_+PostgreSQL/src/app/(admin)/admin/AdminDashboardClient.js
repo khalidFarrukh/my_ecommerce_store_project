@@ -4,9 +4,11 @@ import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
 import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useSession } from "next-auth/react";
 
 export default function AdminDashboardClient({ recentOrders, lowStockProducts, totalProducts, totalOrders, revenueAgg }) {
-  const { sessionData: session } = useSessionExpiry();
+  // const { sessionData: session } = useSessionExpiry();
+  const { data: session } = useSession();
   const revenue = revenueAgg[0]?.total || 0;
   return (
     <div className="space-y-6 min-h-[1000px]">

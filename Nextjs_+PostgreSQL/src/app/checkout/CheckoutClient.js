@@ -136,15 +136,17 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      editingAddressId ? setToast({
-        id: Date.now(),
-        message: "Failed to update address",
-        type: "error"
-      }) : setToast({
-        id: Date.now(),
-        message: "Failed to add address",
-        type: "error"
-      });
+      setTimeout(() => {
+        editingAddressId ? setToast({
+          id: Date.now(),
+          message: "Failed to update address",
+          type: "error"
+        }) : setToast({
+          id: Date.now(),
+          message: "Failed to add address",
+          type: "error"
+        });
+      }, 0);
       return;
     }
 
@@ -188,11 +190,13 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      setToast({
-        id: Date.now(),
-        message: "Failed to delete address",
-        type: "error"
-      });
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: "Failed to delete address",
+          type: "error"
+        });
+      }, 0);
       return;
     }
 
@@ -218,11 +222,13 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     });
 
     if (res.status === 401) {
-      setToast({
-        id: Date.now(),
-        message: "Failed to set default address",
-        type: "error"
-      });
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: "Failed to set default address",
+          type: "error"
+        });
+      }, 0);
       return;
     }
 
@@ -315,16 +321,20 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
         throw new Error(data);
       }
 
-      // ✅ success
-      // openAlertModal(data?.message || "Order placed successfully!");
-      setToast({
-        id: Date.now,
-        message: data?.message || "Order placed successfully!",
-        type: "success"
-      })
+
       if (data?.orderId) {
+        // ✅ success
+        // openAlertModal(data?.message || "Order placed successfully!");
         dispatch(removeActiveVariants());
         router.push(`/orders/${data?.orderId}`)
+
+        setTimeout(() => {
+          setToast({
+            id: Date.now,
+            message: data?.message || "Order placed successfully!",
+            type: "success"
+          })
+        }, 0);
       }
       // OPTIONAL:
       // clear cart
@@ -333,11 +343,14 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
     } catch (err) {
       console.error(err);
-      setToast({
-        id: Date.now(),
-        message: err.message || "Failed to place order",
-        type: "error"
-      });
+      setTimeout(() => {
+
+        setToast({
+          id: Date.now(),
+          message: err.message || "Failed to place order",
+          type: "error"
+        });
+      }, 0);
     } finally {
       setPlacingOrder(false);
     }

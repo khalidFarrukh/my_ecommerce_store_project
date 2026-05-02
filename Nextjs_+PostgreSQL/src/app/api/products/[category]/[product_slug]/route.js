@@ -1,54 +1,117 @@
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req, context) {
-  const { category, product_slug } = await context.params;
+  try {
+    // =========================
+    // 1️⃣ Validate params
+    // =========================
+    const params = await context?.params;
 
-  const client = await clientPromise;
-  const db = client.db("my_ecommerce_db");
+    if (!params || !params.category || !params.product_slug) {
+      return Response.json(
+        { error: "Invalid parameters" },
+        { status: 400 }
+      );
+    }
 
-  // Fetch product by category and slugified name
-  const product = await db.collection("products").findOne({
-    category,
-    name: { $regex: `^${product_slug.replace(/-/g, " ")}$`, $options: "i" },
-    status: "active",
-  });
+    const { category, product_slug } = params;
 
-  if (!product) {
-    return new Response(JSON.stringify({ error: "Product not found12" }), {
-      status: 404,
+    // =========================
+    // 2️⃣ Normalize + sanitize slug
+    // =========================
+    const normalizedSlug = product_slug
+      .toLowerCase()
+      .replace(/-/g, " ")
+      .trim();
+
+    // Prevent regex injection
+    const escapedSlug = normalizedSlug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // =========================
+    // 3️⃣ Connect to DB safely
+    // =========================
+    let client;
+    try {
+      client = await clientPromise;
+    } catch (err) {
+      console.error("❌ Mongo connection failed:", err);
+
+      return Response.json(
+        { error: "Database connection failed" },
+        { status: 500 }
+      );
+    }
+
+    const db = client.db("my_ecommerce_db");
+
+    if (!db) {
+      return Response.json(
+        { error: "Database not available" },
+        { status: 500 }
+      );
+    }
+
+    // =========================
+    // 4️⃣ Query product
+    // =========================
+    let product;
+    try {
+      product = await db.collection("products").findOne({
+        category,
+        name: {
+          $regex: `^${escapedSlug}$`,
+          $options: "i",
+        },
+        status: "active",
+      });
+    } catch (err) {
+      console.error("❌ Query failed:", err);
+
+      return Response.json(
+        { error: "Database query failed" },
+        { status: 500 }
+      );
+    }
+
+    // =========================
+    // 5️⃣ Not found
+    // =========================
+    if (!product) {
+      return Response.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    // =========================
+    // 6️⃣ Safe serialization
+    // =========================
+    const formattedProduct = {
+      ...product,
+      _id: product._id?.toString?.() ?? null,
+    };
+
+    console.log(formattedProduct);
+
+    // =========================
+    // 7️⃣ Success response
+    // =========================
+    return Response.json(formattedProduct, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store", // prevent stale/broken cache
+      },
     });
+
+  } catch (err) {
+    // =========================
+    // 8️⃣ Catch ALL fallback
+    // =========================
+    console.error("🔥 Unhandled API error:", err);
+
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
-
-  // Convert _id to string for frontend
-  const formattedProduct = {
-    ...product,
-    _id: product._id.toString(),
-  };
-
-  return new Response(JSON.stringify(formattedProduct), {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
 }
-
-
-
-// import { products } from "@/app/api/data";
-// import { convertTextStringToDashString } from "@/utils/utilities";
-
-// export async function GET(req, context) {
-//   const { category, product_slug } = await context.params;
-//   const product_data = products.find(item => item.category === category && convertTextStringToDashString(item.name) === product_slug) ?? null;
-//   if (!product_data) {
-//     return new Response(JSON.stringify({ error: "Product not found" }), {
-//       status: 404,
-//     });
-//   }
-
-//   return new Response(JSON.stringify(product_data), {
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//   });
-// }

@@ -34,6 +34,7 @@ export default function PageContentWrapper({ children, categories }) {
 
   return (
     <main
+      key={pathname}
       className={`flex-1 flex flex-col ${isValidFlexCenter ? "items-center justify-center" : ""} font-poppins bg-background_1`}
     >
       <div

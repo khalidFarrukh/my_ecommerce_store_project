@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import AdminOrderActions from "./AdminOrderActions";
+import NotFound from "@/components/NotFound";
 
 export default async function AdminCertainOrderPage({ params }) {
   // const session = await auth();
@@ -26,7 +27,7 @@ export default async function AdminCertainOrderPage({ params }) {
   });
 
   if (!order) {
-    return <div className="p-6 text-center">Order not found</div>;
+    notFound(); // IMPORTANT
   }
 
   // ✅ convert ObjectId
