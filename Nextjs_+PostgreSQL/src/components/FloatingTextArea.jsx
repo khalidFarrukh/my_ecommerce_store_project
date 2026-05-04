@@ -20,8 +20,7 @@ export default function FloatingTextArea({
             px-4
             pt-6
             pb-2
-            text-base
-            bg-background_2
+            text-sm
             border
             border-myBorderColor
             rounded-md

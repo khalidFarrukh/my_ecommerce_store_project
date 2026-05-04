@@ -1,6 +1,6 @@
 import React from "react";
-import ProductListingClient from "../../components/ProductListingClient";
 import { getCategories } from "@/utils/utilities";
+import ProductListingClient from "@/components/ProductListingClient";
 
 export default async function Page() {
   return (

@@ -6,7 +6,7 @@ export async function PUT(req) {
   // 🔒 Auth check
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
     });
   }
@@ -16,7 +16,7 @@ export async function PUT(req) {
 
     // ❌ Validate input
     if (!Array.isArray(updates) || updates.length === 0) {
-      return new Response(JSON.stringify({ error: "Invalid data" }), {
+      return new Response(JSON.stringify({ message: "Invalid data" }), {
         status: 400,
       });
     }
@@ -54,7 +54,7 @@ export async function PUT(req) {
     console.error("Reorder error:", err);
 
     return new Response(
-      JSON.stringify({ error: "Something went wrong" }),
+      JSON.stringify({ message: "Something went wrong" }),
       { status: 500 }
     );
   }

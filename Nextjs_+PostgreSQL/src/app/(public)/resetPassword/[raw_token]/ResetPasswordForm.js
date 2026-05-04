@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import FloatingInput from "@/components/FloatingInput";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ForgotPasswordForm() {
+export default function ResetPasswordForm() {
+  const { raw_token } = useParams();
   const router = useRouter();
+
   const [form, setForm] = useState({
-    email: "",
+    password: "",
+    confirmPassword: "",
   });
+
+  const { setToast } = useGlobalToast();
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,25 +30,46 @@ export default function ForgotPasswordForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (form.password.length < 3) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch("/api/password-forgot", {
+      const res = await fetch("/api/password-reset", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: form.email }),
+        body: JSON.stringify({
+          token: raw_token,
+          newPassword: form.password,
+        }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Something went wrong");
+        throw new Error(data.message || "Something went wrong");
       }
 
-      // Always show success message (security)
       setSuccess(true);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        });
+      }, 0)
     }
 
     setLoading(false);
@@ -52,14 +78,12 @@ export default function ForgotPasswordForm() {
   return (
     <>
       <h1 className="text-2xl sm:text-3xl font-semibold text-center">
-        We are here to help
+        Reset Your Password
       </h1>
 
       {success ? (
         <div className="text-center space-y-3">
-          <p className="text-sm">
-            If an email id exists, a reset link has been sent to your email id.
-          </p>
+          <p className="text-sm">Your password has been successfully reset.</p>
 
           <Link
             href="/signIn"
@@ -71,31 +95,29 @@ export default function ForgotPasswordForm() {
       ) : (
         <>
           <p className="text-center text-sm text-[gray]">
-            Enter your email id to receive a password reset link.
+            Enter your new password below.
           </p>
-
           <form
             className="w-full flex flex-col gap-3 items-center"
             onSubmit={handleSubmit}
           >
             <FloatingInput
-              id="email"
-              label="Email"
-              type="email"
+              id="password"
+              label="New Password"
+              type="password"
               required
-              value={form.email}
+              value={form.password}
               onChange={handleChange}
             />
 
-            <p className="mt-3 text-center flex items-center gap-2 justify-end w-full text-sm">
-              Remember your password?
-              <Link
-                href="/signIn"
-                className="text-myTextColorMain hover:underline cursor-pointer"
-              >
-                Sign in
-              </Link>
-            </p>
+            <FloatingInput
+              id="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              required
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
 
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
@@ -106,7 +128,7 @@ export default function ForgotPasswordForm() {
               disabled={loading}
               className="mt-3 w-full py-2 button1 cursor-pointer disabled:opacity-50"
             >
-              {loading ? "Creating link..." : "Create link"}
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
         </>

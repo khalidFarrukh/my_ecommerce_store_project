@@ -30,24 +30,37 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     }
 
     const fetchProducts = async () => {
-      setLoadingProducts(true);
-      const activeProductIds = cartItems
-        .filter(i => i.variants.some(v => v.active))
-        .map(i => i.product_id);
+      try {
+        setLoadingProducts(true);
+        const activeProductIds = cartItems
+          .filter(i => i.variants.some(v => v.active))
+          .map(i => i.product_id);
 
-      if (!activeProductIds.length) return;
+        if (!activeProductIds.length) return;
 
-      const res = await fetch("/api/products/by-ids", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: activeProductIds
-        })
-      });
+        const res = await fetch("/api/products/by-ids", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: activeProductIds
+          })
+        });
 
-      const data = await res.json();
-      setCheckoutProducts(data);
-      setLoadingProducts(false);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        setCheckoutProducts(data);
+      } catch (err) {
+        console.error(err);
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: err.message,
+            type: "error"
+          });
+        }, 0);
+      } finally {
+        setLoadingProducts(false);
+      }
     };
 
     fetchProducts();
@@ -123,51 +136,66 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
   }, []);
 
   const handleAddAddress = async () => {
-    const method = editingAddressId ? "PUT" : "POST";
 
-    const res = await fetch("/api/addresses", {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        editingAddressId
-          ? { ...form, _id: editingAddressId }
-          : form
-      ),
-    });
+    try {
+      const method = editingAddressId ? "PUT" : "POST";
 
-    if (res.status === 401) {
+      const res = await fetch("/api/addresses", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          editingAddressId
+            ? { ...form, _id: editingAddressId }
+            : form
+        ),
+      });
+
+      if (res.status === 401) {
+        setTimeout(() => {
+          editingAddressId ? setToast({
+            id: Date.now(),
+            message: "Failed to update address",
+            type: "error"
+          }) : setToast({
+            id: Date.now(),
+            message: "Failed to add address",
+            type: "error"
+          });
+        }, 0);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      if (editingAddressId) {
+        // UPDATE UI
+        setAddresses(prev =>
+          prev.map(a => (a._id === editingAddressId ? data : a))
+        );
+      } else {
+        // ADD NEW
+        setAddresses(prev => [...prev, data]);
+        if (data.default)
+          setSelectedAddress(data);
+      }
+
+      // reset
+      setShowForm(false);
+      setEditingAddressId(null);
+      setForm({ name: "", phone: "", city: "", addressLine: "" });
+    }
+    catch (err) {
+      console.error(err);
       setTimeout(() => {
-        editingAddressId ? setToast({
+        setToast({
           id: Date.now(),
-          message: "Failed to update address",
-          type: "error"
-        }) : setToast({
-          id: Date.now(),
-          message: "Failed to add address",
+          message: err.message,
           type: "error"
         });
       }, 0);
-      return;
     }
-
-    const data = await res.json();
-
-    if (editingAddressId) {
-      // UPDATE UI
-      setAddresses(prev =>
-        prev.map(a => (a._id === editingAddressId ? data : a))
-      );
-    } else {
-      // ADD NEW
-      setAddresses(prev => [...prev, data]);
-      if (data.default)
-        setSelectedAddress(data);
-    }
-
-    // reset
-    setShowForm(false);
-    setEditingAddressId(null);
-    setForm({ name: "", phone: "", city: "", addressLine: "" });
   };
 
   const handleEditClick = (addr) => {
@@ -183,31 +211,46 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
   };
 
   const handleDeleteAddress = async (addr) => {
-    const res = await fetch(`/api/addresses`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: addr._id }),
-    });
 
-    if (res.status === 401) {
+    try {
+      const res = await fetch(`/api/addresses`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: addr._id }),
+      });
+
+      if (res.status === 401) {
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: "Failed to delete address",
+            type: "error"
+          });
+        }, 0);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      // ✅ replace entire state (no guessing)
+      setAddresses(data);
+
+      // ✅ update selected address safely
+      const newDefault = data.find(a => a.default);
+      setSelectedAddress(newDefault || null);
+    }
+    catch (err) {
+      console.error(err);
       setTimeout(() => {
         setToast({
           id: Date.now(),
-          message: "Failed to delete address",
+          message: err.message,
           type: "error"
         });
       }, 0);
-      return;
     }
-
-    const data = await res.json();
-
-    // ✅ replace entire state (no guessing)
-    setAddresses(data);
-
-    // ✅ update selected address safely
-    const newDefault = data.find(a => a.default);
-    setSelectedAddress(newDefault || null);
   };
 
 
@@ -215,31 +258,46 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
     // optional optimistic UI (good UX)
     // setSelectedAddress(addr);
 
-    const res = await fetch("/api/addresses/set-default", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: addr._id }),
-    });
+    try {
 
-    if (res.status === 401) {
+      const res = await fetch("/api/addresses/set-default", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: addr._id }),
+      });
+
+      if (res.status === 401) {
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: "Failed to set default address",
+            type: "error"
+          });
+        }, 0);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      // ✅ replace full state
+      setAddresses(data);
+
+      // ✅ ensure selected matches backend truth
+      const newDefault = data.find(a => a.default);
+      setSelectedAddress(newDefault || null);
+    }
+    catch (err) {
+      console.error(err);
       setTimeout(() => {
         setToast({
           id: Date.now(),
-          message: "Failed to set default address",
+          message: err.message,
           type: "error"
         });
       }, 0);
-      return;
     }
-
-    const data = await res.json();
-
-    // ✅ replace full state
-    setAddresses(data);
-
-    // ✅ ensure selected matches backend truth
-    const newDefault = data.find(a => a.default);
-    setSelectedAddress(newDefault || null);
   };
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -315,12 +373,11 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
         }),
       });
 
-      const data = await res.json();
 
+      const data = await res.json();
       if (!res.ok) {
         throw new Error(data);
       }
-
 
       if (data?.orderId) {
         // ✅ success
@@ -330,7 +387,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
         setTimeout(() => {
           setToast({
-            id: Date.now,
+            id: Date.now(),
             message: data?.message || "Order placed successfully!",
             type: "success"
           })

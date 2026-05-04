@@ -8,13 +8,17 @@ import { capitalizeEachFirstCharOfWord, convertTextStringToDashString } from "@/
 import { useAlertModal } from "@/context/AlertModalContext";
 import ToggleSlideButton from "@/components/ToggleSlideButton";
 import YesNoModal from "@/components/modals/YesNoModal";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function EditCollectionClient({ collection: initialCollection }) {
   const router = useRouter();
+  const { setToast } = useGlobalToast();
+
   const { isOpen: isAlertModalOpen, openAlertModal } = useAlertModal();
   const [collection, setCollection] = useState(initialCollection);
   const [showDeleteItemModal, setShowDeleteItemModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
 
   // --- Generic field updater (like product form)
   const updateField = (field, value) => {
@@ -26,24 +30,34 @@ export default function EditCollectionClient({ collection: initialCollection }) 
 
   // --- Submit handler
   const handleSubmit = async () => {
-    const res = await fetch(`/api/admin/collections/${collection._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: collection.name,
-        slug: convertTextStringToDashString(collection.name),
-        turnedoff: collection.turnedoff,
-      }),
-    });
 
-    const data = await res.json();
+    try {
 
-    if (!res.ok) {
-      openAlertModal(data.error || "Something went wrong");
-      return;
+      const res = await fetch(`/api/admin/collections/${collection._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: collection.name,
+          slug: convertTextStringToDashString(collection.name),
+          turnedoff: collection.turnedoff,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+
+      router.push("/admin/collections");
+    } catch (err) {
+      console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        });
+      }, 0);
+
     }
-
-    router.push("/admin/collections");
   };
 
   const handleDelete = async () => {
@@ -56,15 +70,18 @@ export default function EditCollectionClient({ collection: initialCollection }) 
 
       const data = await res.json();
 
-      if (!res.ok) {
-        openAlertModal(data.error || "Failed to delete collection");
-        return;
-      }
+      if (!res.ok) throw new Error(data.message || "Failed to delete collection");
 
       router.push("/admin/collections");
     } catch (err) {
       console.error(err);
-      openAlertModal("Something went wrong while deleting");
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        });
+      }, 0);
     } finally {
       setIsDeleting(false);
       setShowDeleteItemModal(false);

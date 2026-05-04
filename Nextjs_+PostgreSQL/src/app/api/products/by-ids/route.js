@@ -8,7 +8,7 @@ export async function POST(req) {
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Invalid or empty ids array" }),
+        JSON.stringify({ message: "Invalid or empty ids array" }),
         { status: 400 }
       );
     }
@@ -27,7 +27,7 @@ export async function POST(req) {
 
     if (!products.length) {
       return new Response(
-        JSON.stringify({ error: "No matching products found" }),
+        JSON.stringify({ message: "No matching products found" }),
         { status: 404 }
       );
     }
@@ -43,7 +43,7 @@ export async function POST(req) {
     console.error("Error fetching products by ids:", error);
 
     return new Response(
-      JSON.stringify({ error: "Server error" }),
+      JSON.stringify({ message: "Server error" }),
       { status: 500 }
     );
   }

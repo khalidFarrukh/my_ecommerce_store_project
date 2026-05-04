@@ -1,6 +1,12 @@
+import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req) {
+
+  const session = await auth();
+  if (!session || session?.user.role !== "ADMIN") {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");

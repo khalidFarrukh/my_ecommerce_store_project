@@ -7,7 +7,7 @@ export async function PUT(req, { params }) {
   const session = await auth();
 
   if (!session || session.user.role !== "ADMIN") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
     });
   }
@@ -36,9 +36,16 @@ export async function PUT(req, { params }) {
     cancelled: [],
   };
 
+  if (!allowedTransitions[order.status]) {
+    return NextResponse.json(
+      { message: "Invalid current order state in DB" },
+      { status: 500 }
+    );
+  }
+
   if (!allowedTransitions[order.status]?.includes(status)) {
     return new Response(
-      JSON.stringify({ error: "Invalid status transition" }),
+      JSON.stringify({ message: "Invalid status transition" }),
       { status: 400 }
     );
   }
@@ -68,7 +75,7 @@ export async function POST(req, { params }) {
   const session = await auth();
 
   if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const { order_id } = await params;

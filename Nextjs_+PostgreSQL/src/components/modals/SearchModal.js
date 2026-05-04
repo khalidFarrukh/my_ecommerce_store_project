@@ -103,7 +103,7 @@ export default function SearchModal() {
               {`
               relative
               w-full
-              h-[60px]
+              
               text-foreground
               text-[120%]
               outline-1
@@ -111,18 +111,26 @@ export default function SearchModal() {
               rounded-[10px]
               bg-background_2
               flex
-              px-3
               gap-3
               items-center
             `}
             >
-              <Search className="min-w-[30px] min-h-[30px]  size-[30px] text-myTextColorMain/50" />
+              <div className="absolute min-w-15 w-15 h-fit flex justify-center">
+
+                <Search className="min-w-[30px] min-h-[30px]  size-[30px] text-myTextColorMain/50" />
+              </div>
               <input
                 className={` 
                   w-full
-                  text-myTextColorMain
-                  text-[20px]
-                  outline-0
+                  min-h-14
+                  h-14
+                  pl-15
+                  pr-4
+                  text-xl
+                  border
+                  border-myBorderColor
+                  rounded-md
+                  outline-none
                   `}
                 type="search"
                 placeholder="Search..."

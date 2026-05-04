@@ -59,6 +59,9 @@ export default function Cart() {
       });
 
       const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
       setCartProductsData(data);
       setLoadingProducts(false);
     };
@@ -295,10 +298,10 @@ export default function Cart() {
                                           {discount > 0 && (
 
                                             <div className="line-through">
-                                              {price}
+                                              Rs. {price}
                                             </div>
                                           )}
-                                          <div className=" font-bold text-2xl ">{finalPrice}</div>
+                                          <div className=" font-bold text-2xl ">Rs. {finalPrice}</div>
 
                                         </div>
 
@@ -376,7 +379,7 @@ export default function Cart() {
                         Subtotal ({activeVariantsSize} items)
                       </div>
                       <div className="text-[14px]">
-                        {subTotal}
+                        Rs. {subTotal}
                       </div>
                     </div>
                     <div className="w-full flex gap-3 justify-between">
@@ -385,7 +388,7 @@ export default function Cart() {
                         <span>(can change)</span>
                       </div>
                       <div className="text-[14px]">
-                        {shippingFee}
+                        Rs. {shippingFee}
                       </div>
                     </div>
                     <div className="w-full flex gap-3 justify-between">
@@ -393,7 +396,7 @@ export default function Cart() {
                         Total
                       </div>
                       <div className="text-[14px]">
-                        {subTotal + shippingFee}
+                        Rs. {subTotal + shippingFee}
                       </div>
                     </div>
                     {activeVariantsSize > 0 ? (

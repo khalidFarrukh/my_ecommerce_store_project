@@ -1,7 +1,5 @@
 "use client"
 import { ArrowLeft } from "lucide-react";
-import { useDispatch, useSelector } from 'react-redux';
-import { closeSidebar } from "@/store/sidebarSlice";
 import { useTheme } from "@/context/ThemeContext";
 import { nextTheme, themeIcons } from "@/utils/staticVariables";
 import { usePathname } from "next/navigation";
@@ -9,30 +7,22 @@ import { useSession } from "next-auth/react";
 import { useWindowSizeContext } from "@/context/WindowSizeContext";
 import Link from "next/link";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import React from "react";
+import { useSidebar } from "@/context/SidebarContext";
 
 
-export default function SideBar() {
-  const { data: session, status } = useSession();
-  const { theme, setTheme } = useTheme();
-  const isOpen = useSelector((state) => state.sidebar.isOpen);
-  const dispatch = useDispatch();
-  // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
-
-  const { windowWidth } = useWindowSizeContext();
-
+export default function SideBar({ children }) {
+  const { data: session } = useSession();
   const pathname = usePathname();
-  const isLoading = status === "loading";
-  const selectedUrl =
-    session && status === "authenticated"
-      ? "/profile"
-      : `/signIn?callbackUrl=${pathname}`;
+
+  const { isOpen, closeSidebar } = useSidebar();
 
 
   return (
     <aside className="font-poppins">
       {
         isOpen &&
-        <div onClick={() => dispatch(closeSidebar())} className="fixed w-full h-full bg-background_1/50 pointer-events-auto z-[99]">
+        <div onClick={() => closeSidebar()} className="fixed w-full h-full bg-background_1/50 pointer-events-auto z-[99]">
 
         </div>
       }
@@ -49,17 +39,17 @@ export default function SideBar() {
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         w-[300px]
         p-4
-        h-full
+        h-screen
         bg-background_1
         border-r
         border-myBorderColor
       `}
       >
-        <div className="w-full flex flex-col gap-10">
+        <div className="w-full h-screen flex flex-col gap-10">
 
-          <div className="w-full flex justify-end">
+          <div className="w-full h-[30px] flex justify-between items-center">
             <button
-              onClick={() => dispatch(closeSidebar())}
+              onClick={() => closeSidebar()}
               className=
               {`
               group
@@ -75,46 +65,15 @@ export default function SideBar() {
             >
               <ArrowLeft />
             </button>
+            {/* Sidebar title */}
+            {
+              session?.user?.role === "ADMIN" &&
+              <div className="shrink-0">
+                <span className="text-[30px] font-bold">Admin</span>
+              </div>
+            }
           </div>
-          <div className="w-full space-y-3">
-
-            {/* <div className="w-full border border-myBorderColor bg-background_2 p-3 rounded-md"> */}
-            {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
-              (
-                <Link
-                  onClick={() => dispatch(closeSidebar())}
-                  className=
-                  {`
-                    flex
-                    cursor-pointer
-                    text-[12px]
-                    font-semibold
-                    hover:text-foreground
-                    h-full
-                    items-center
-                    ${isLoading ? "pointer-events-none opacity-50" : ""}
-                    w-full border border-myBorderColor bg-background_2 p-3 rounded-md
-                  `}
-                  href={selectedUrl}
-                >
-                  {session && status === "authenticated" ? "Profile" : "Sign in"}
-                </Link>
-              )}
-            {/* </div> */}
-
-            <div className="w-full flex justify-between border border-myBorderColor bg-background_2 p-3 rounded-md">
-              <span>Theme</span>
-              <button
-                onClick={() => {
-                  setTheme(nextTheme[theme] || "system")
-                  localStorage.setItem("theme", nextTheme[theme])
-                }}
-                className="cursor-pointer h-full text-foreground"
-              >
-                {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
-              </button>
-            </div>
-          </div>
+          {children}
         </div>
       </div>
     </aside>

@@ -35,7 +35,7 @@ export default function AdminOrderActions({ orderStatus, orderId }) {
       console.error(err);
       setToast({
         id: Date.now(),
-        message: "Error updating order status",
+        message: err.message || "Error updating order status",
         type: "error"
       });
     } finally {

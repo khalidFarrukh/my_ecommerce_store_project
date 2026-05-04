@@ -1,39 +1,14 @@
-import { auth } from "@/auth";
-import { notFound, redirect } from "next/navigation";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+"use client";
+
 import CancelOrderButton from "@/components/orders/CancelOrderButton";
-import NotFound from "@/components/NotFound";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
-export default async function OrderPage({ params }) {
-  const session = await auth();
-  const { orderId } = await params;
-  if (!session?.user?.id) {
-    if (!ObjectId.isValid(orderId)) {
-      redirect("/");
-    }
-    redirect(`/signIn?callbackUrl=/orders/${orderId}&error=auth_required`);
-  }
-
-  const client = await clientPromise;
-  const db = client.db("my_ecommerce_db");
-  const ordersCollection = db.collection("orders");
-
-  const order = await ordersCollection.findOne({
-    _id: new ObjectId(orderId),
-    userId: session.user.id, // 🔒 security: user can only see own order
-  });
-
-  if (!order) {
-    notFound(); // IMPORTANT
-  }
-
-  // ✅ convert Mongo ObjectId
-  const safeOrder = {
-    ...order,
-    _id: order._id.toString(),
-  };
-
+export default function OrderClient({ order }) {
+  const router = useRouter();
+  const [cancelingOrder, setCancelingOrder] = useState(false);
+  const { setToast } = useGlobalToast();
 
   return (
     <section className="w-full max-w-4xl mx-auto py-6 space-y-6">
@@ -41,12 +16,52 @@ export default async function OrderPage({ params }) {
       {/* HEADER */}
       <div className="flex gap-3 flex-col md:flex-row md:justify-between md:items-center">
         <h1 className="order-2 md:order-1 text-sm md:text-2xl font-medium md:font-bold">
-          Order #{safeOrder._id}
+          Order #{order._id}
         </h1>
 
-        {safeOrder.status === "pending" &&
+        {order.status === "pending" &&
           <div className="order-1 md:order-2 w-full md:w-fit flex justify-end gap-3">
-            <CancelOrderButton orderId={safeOrder._id} />
+            <CancelOrderButton
+              cancelingOrder={cancelingOrder}
+              handleCancel={
+                async () => {
+                  try {
+                    setCancelingOrder(true);
+                    const orderId = order._id;
+                    const res = await fetch("/api/orders/cancel", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ orderId }),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                      throw new Error(data);
+                    }
+
+                    setTimeout(() => {
+                      setToast({
+                        id: Date.now(),
+                        message: "Order cancelled successfully",
+                        type: "info"
+                      });
+                    }, 0)
+
+                    router.refresh(); // 🔥 re-fetch server data
+                  } catch (err) {
+                    setTimeout(() => {
+                      setToast({
+                        id: Date.now(),
+                        message: err.message || "Failed to cancel order",
+                        type: "error"
+                      });
+                    }, 0)
+                  } finally {
+                    setCancelingOrder(false);
+                  }
+                }
+              } />
           </div>
         }
 
@@ -56,17 +71,17 @@ export default async function OrderPage({ params }) {
       <div className="border border-myBorderColor rounded-md p-4 bg-background_2 space-y-2">
         <p className="text-sm">
           <span className="text-myTextColorMain">Placed on:</span>{" "}
-          {new Date(safeOrder.createdAt).toLocaleString()}
+          {new Date(order.createdAt).toLocaleString()}
         </p>
 
         <p className="text-sm">
           <span className="text-myTextColorMain">Order status:</span>{" "}
-          {safeOrder.status}
+          {order.status}
         </p>
 
         <p className="text-sm">
           <span className="text-myTextColorMain">Payment:</span>{" "}
-          {safeOrder.payment.method.toUpperCase()} ({safeOrder.payment.status})
+          {order.payment.method.toUpperCase()} ({order.payment.status})
         </p>
       </div>
 
@@ -74,7 +89,7 @@ export default async function OrderPage({ params }) {
       <div className="space-y-4">
         <h2 className="font-semibold text-lg">Items</h2>
 
-        {safeOrder.items.map((item, idx) => (
+        {order.items.map((item, idx) => (
           <div
             key={idx}
             className="flex items-center gap-4 border border-myBorderColor rounded-md p-3 bg-background_2"
@@ -111,27 +126,27 @@ export default async function OrderPage({ params }) {
       <div className="border border-myBorderColor rounded-md p-4 bg-background_2 space-y-1">
         <h2 className="font-semibold mb-2">Shipping Address</h2>
 
-        <p>{safeOrder.shippingAddress.name}</p>
-        <p>{safeOrder.shippingAddress.phone}</p>
-        <p>{safeOrder.shippingAddress.city}</p>
-        <p>{safeOrder.shippingAddress.addressLine}</p>
+        <p>{order.shippingAddress.name}</p>
+        <p>{order.shippingAddress.phone}</p>
+        <p>{order.shippingAddress.city}</p>
+        <p>{order.shippingAddress.addressLine}</p>
       </div>
 
       {/* PRICING */}
       <div className="border border-myBorderColor rounded-md p-4 bg-background_2 space-y-2">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>Rs. {safeOrder.pricing.subtotal}</span>
+          <span>Rs. {order.pricing.subtotal}</span>
         </div>
 
         <div className="flex justify-between">
           <span>Shipping</span>
-          <span>Rs. {safeOrder.pricing.shippingFee}</span>
+          <span>Rs. {order.pricing.shippingFee}</span>
         </div>
 
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>Rs. {safeOrder.pricing.total}</span>
+          <span>Rs. {order.pricing.total}</span>
         </div>
       </div>
     </section>

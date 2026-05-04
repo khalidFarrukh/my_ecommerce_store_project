@@ -13,10 +13,16 @@ export async function PATCH(req) {
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
 
-  const order = await db.collection("orders").findOne({
+  const query = {
     _id: new ObjectId(orderId),
-    userId: session.user.id,
-  });
+  };
+
+  // 👇 only restrict for normal users
+  if (session.user.role !== "ADMIN") {
+    query.userId = session.user.id;
+  }
+
+  const order = await db.collection("orders").findOne(query);
 
   if (!order) {
     return new Response("Order not found", { status: 404 });

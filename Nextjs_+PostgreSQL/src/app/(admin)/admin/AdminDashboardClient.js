@@ -16,7 +16,7 @@ export default function AdminDashboardClient({ recentOrders, lowStockProducts, t
       <AdminTabContentHeader heading={"Dashboard"} description={`Welcome back, ${session?.user?.email}`} />
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid w425:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard title="Products" value={totalProducts} />
         <DashboardCard title="Orders" value={totalOrders} />
         <DashboardCard title="Customers" value="--" />

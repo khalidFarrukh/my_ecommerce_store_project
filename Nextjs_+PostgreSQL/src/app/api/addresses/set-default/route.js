@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 export async function PUT(req) {
   const session = await auth();
   if (!session) {
-    return new Response(JSON.stringify({ error: "Session expired" }), {
+    return new Response(JSON.stringify({ message: "Session expired" }), {
       status: 401,
     });
   }

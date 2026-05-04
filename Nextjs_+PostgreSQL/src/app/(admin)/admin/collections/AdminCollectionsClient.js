@@ -14,11 +14,17 @@ import FloatingInput from "@/components/FloatingInput";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function AdminCollectionsClient() {
   const router = useRouter();
-  const { sessionData: session } = useSessionExpiry();
+  // const { sessionData: session } = useSessionExpiry();
+
+  const { data: session } = useSession();
+  const { setToast } = useGlobalToast();
   const [collections, setCollections] = useState([]);
+
   const [loadingCollections, setLoadingCollections] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -26,10 +32,21 @@ export default function AdminCollectionsClient() {
     try {
       setLoadingCollections(true);
       const res = await fetch("/api/admin/collections");
-      const json = await res.json();
-      setCollections(json.data || []);
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setCollections(data.data || []);
     } catch (err) {
       console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        });
+      }, 0);
+
     } finally {
       setLoadingCollections(false);
     }
@@ -98,11 +115,18 @@ export default function AdminCollectionsClient() {
 
                 const data = await res.json();
 
-                if (!res.ok) throw new Error(data.error);
+                if (!res.ok) throw new Error(data.message);
 
                 router.push(`/admin/collections/${data.id}/edit`);
               } catch (err) {
                 console.error(err);
+                setTimeout(() => {
+                  setToast({
+                    id: Date.now(),
+                    message: err.message,
+                    type: "error"
+                  });
+                }, 0);
               } finally {
                 setIsCreating(false);
               }

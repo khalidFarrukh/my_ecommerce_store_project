@@ -136,7 +136,7 @@ export default function SignInForm() {
       //   type: "success",
       // });
 
-      router.push("/admin");
+      router.push(safeCallBack);
 
       setTimeout(() => {
         // 🔥 ignore manual logout

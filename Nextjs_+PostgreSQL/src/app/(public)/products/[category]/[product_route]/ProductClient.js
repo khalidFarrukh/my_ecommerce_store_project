@@ -496,10 +496,10 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                             `}
                       >
                         {discount > 0 && (
-                          <div className="line-through">{price}</div>
+                          <div className="line-through">Rs. {price}</div>
                         )}
                         <div className="ml-3 font-bold text-2xl">
-                          {finalPrice}.00
+                          Rs. {finalPrice}.00
                         </div>
                       </div>
 

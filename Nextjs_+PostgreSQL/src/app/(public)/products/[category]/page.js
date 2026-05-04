@@ -1,5 +1,5 @@
+import ProductListingClient from "@/components/ProductListingClient";
 import React from "react";
-import ProductListingClient from "../../../components/ProductListingClient";
 
 export default async function Page({ params }) {
   const { category } = await params;

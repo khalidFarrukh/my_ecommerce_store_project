@@ -9,7 +9,7 @@ export async function GET(req, context) {
 
     if (!params || !params.category || !params.product_slug) {
       return Response.json(
-        { error: "Invalid parameters" },
+        { message: "Invalid parameters" },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function GET(req, context) {
       console.error("❌ Mongo connection failed:", err);
 
       return Response.json(
-        { error: "Database connection failed" },
+        { message: "Database connection failed" },
         { status: 500 }
       );
     }
@@ -46,7 +46,7 @@ export async function GET(req, context) {
 
     if (!db) {
       return Response.json(
-        { error: "Database not available" },
+        { message: "Database not available" },
         { status: 500 }
       );
     }
@@ -68,7 +68,7 @@ export async function GET(req, context) {
       console.error("❌ Query failed:", err);
 
       return Response.json(
-        { error: "Database query failed" },
+        { message: "Database query failed" },
         { status: 500 }
       );
     }
@@ -78,7 +78,7 @@ export async function GET(req, context) {
     // =========================
     if (!product) {
       return Response.json(
-        { error: "Product not found" },
+        { message: "Product not found" },
         { status: 404 }
       );
     }
@@ -110,7 +110,7 @@ export async function GET(req, context) {
     console.error("🔥 Unhandled API error:", err);
 
     return Response.json(
-      { error: "Internal server error" },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

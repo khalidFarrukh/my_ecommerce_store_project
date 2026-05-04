@@ -8,14 +8,14 @@ export async function POST(req) {
     // 1. Auth check
     if (!session) {
       return Response.json(
-        { error: "Unauthorized: No session found" },
+        { message: "Unauthorized: No session found" },
         { status: 401 }
       );
     }
 
     if (session.user.role !== "ADMIN") {
       return Response.json(
-        { error: "Forbidden: Admin access required" },
+        { message: "Forbidden: Admin access required" },
         { status: 403 }
       );
     }
@@ -25,7 +25,7 @@ export async function POST(req) {
     // 2. DB connection safety check
     if (!client) {
       return Response.json(
-        { error: "Database connection failed" },
+        { message: "Database connection failed" },
         { status: 500 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(req) {
     // 5. Insert failure check
     if (!result?.insertedId) {
       return Response.json(
-        { error: "Failed to create product" },
+        { message: "Failed to create product" },
         { status: 500 }
       );
     }
@@ -86,7 +86,7 @@ export async function POST(req) {
     // 6. Handle known Mongo / runtime issues cleanly
     return Response.json(
       {
-        error: "Internal server error while creating product",
+        message: "Internal server error while creating product",
         details: process.env.NODE_ENV === "development" ? err.message : undefined,
       },
       { status: 500 }

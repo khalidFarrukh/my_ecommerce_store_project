@@ -1,8 +1,9 @@
-
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 import CenteringUI from "@/components/auth/CenteringUI";
-import SignInForm from "../../components/SignInForm";
+import SignUpForm from "@/components/SignUpForm";
 
-export default function SignInPage() {
+export default async function SignUpPage({ searchParams }) {
   // const session = await auth();
 
   // const _searchParams = await searchParams;
@@ -18,7 +19,6 @@ export default function SignInPage() {
 
   return (
     <CenteringUI >
-      <SignInForm />
-    </CenteringUI>
-  );
+      <SignUpForm />
+    </CenteringUI>);
 }

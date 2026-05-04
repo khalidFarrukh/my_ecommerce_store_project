@@ -6,6 +6,7 @@ export default function FloatingInput({
   label,
   className = "",
   inputClassName = "",
+  keepPlaceHolderAbove = false,
   error = "",
   ...inputprops
 }) {
@@ -26,8 +27,7 @@ export default function FloatingInput({
           h-14
           px-4
           pt-6
-          text-base
-          bg-background_2
+          text-sm
           border
           border-myBorderColor
           rounded-md
@@ -57,7 +57,7 @@ export default function FloatingInput({
           duration-200
           pointer-events-none
           ${
-            focused || hasValue
+            focused || hasValue || keepPlaceHolderAbove
               ? "top-2 text-xs translate-y-0 text-myTextColorMain"
               : "top-1/2 -translate-y-1/2 text-md text-myTextColorMain/50"
           }

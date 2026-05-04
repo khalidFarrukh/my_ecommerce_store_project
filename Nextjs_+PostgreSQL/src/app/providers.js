@@ -12,6 +12,7 @@ import { WindowSizeProvider } from "@/context/WindowSizeContext";
 import { CategoriesContextProvider } from "@/context/CategoriesContext";
 import { GlobalToastProvider } from "@/context/GlobalToastContext";
 import { SessionExpiryProvider } from "@/context/SessionExpiryContext";
+import { SidebarProvider } from "@/context/SidebarContext";
 
 export function Providers({ children, session }) {
   return (
@@ -22,24 +23,26 @@ export function Providers({ children, session }) {
       {/* <SessionExpiryProvider> */}
       <ThemeProvider>
         <ReduxProvider>
-          <AppContextProvider>
-            <GlobalToastProvider>
-              <CategoriesContextProvider>
-                <SearchModalProvider>
-                  <AlertModalProvider>
-                    <CartButtonProvider>
-                      <ProductPageProvider>
-                        <WindowSizeProvider>
+          <SidebarProvider>
+            <AppContextProvider>
+              <GlobalToastProvider>
+                <CategoriesContextProvider>
+                  <SearchModalProvider>
+                    <AlertModalProvider>
+                      <CartButtonProvider>
+                        <ProductPageProvider>
+                          <WindowSizeProvider>
 
-                          {children}
-                        </WindowSizeProvider>
-                      </ProductPageProvider>
-                    </CartButtonProvider>
-                  </AlertModalProvider>
-                </SearchModalProvider>
-              </CategoriesContextProvider>
-            </GlobalToastProvider>
-          </AppContextProvider>
+                            {children}
+                          </WindowSizeProvider>
+                        </ProductPageProvider>
+                      </CartButtonProvider>
+                    </AlertModalProvider>
+                  </SearchModalProvider>
+                </CategoriesContextProvider>
+              </GlobalToastProvider>
+            </AppContextProvider>
+          </SidebarProvider>
         </ReduxProvider>
       </ThemeProvider>
       {/* </SessionExpiryProvider> */}

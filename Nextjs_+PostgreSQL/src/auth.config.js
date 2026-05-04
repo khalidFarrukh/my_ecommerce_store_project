@@ -6,6 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { z } from "zod";
 
 const authConfig = {
   adapter: PrismaAdapter(prisma),
@@ -19,12 +20,24 @@ const authConfig = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
+        // =========================
+        // 1️⃣ Validate input with Zod
+        // =========================
+        const schema = z.object({
+          email: z.email().min(5).max(100),
+          password: z.string().min(4).max(100),
+        });
+
+        const parsed = schema.safeParse(credentials);
+
+        if (!parsed.success) {
+          return null; // 🚫 invalid input → stop immediately
         }
 
+        const { email, password } = parsed.data;
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         // ⚠️ prevents OAuth users logging in via credentials
@@ -33,7 +46,7 @@ const authConfig = {
         }
 
         const isValid = await bcrypt.compare(
-          credentials.password,
+          password,
           user.password
         );
 
@@ -67,12 +80,12 @@ const authConfig = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30, // 7 days
+    maxAge: 60 * 60, // 7 days
     updateAge: 30,
   },
 
   jwt: {
-    maxAge: 30,
+    maxAge: 60 * 60,
     updateAge: 30,
   },
 

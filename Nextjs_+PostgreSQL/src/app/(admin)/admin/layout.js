@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminSidebarForAdminLayout from "@/components/admin/AdminSidebarForAdminLayout";
+
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout({ children }) {
@@ -14,8 +15,8 @@ export default async function AdminLayout({ children }) {
   }
 
   return (
-    <div className="h-fit flex bg-background_1 gap-5">
-      <AdminSidebar />
+    <div className="h-fit flex bg-background_1 md:gap-5">
+      <AdminSidebarForAdminLayout />
 
       <div className="flex-1">
         {children}

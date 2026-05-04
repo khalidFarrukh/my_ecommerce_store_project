@@ -10,6 +10,7 @@ import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
 import { useSession } from "next-auth/react";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -29,9 +30,9 @@ function getPriceRange(variants) {
 
   if (!prices.length) return "—";
 
-  if (prices.length === 1) return `$${prices[0]}`;
+  if (prices.length === 1) return `Rs. ${prices[0]}`;
 
-  return `$${Math.min(...prices)} – $${Math.max(...prices)}`;
+  return `Rs. ${Math.min(...prices)} – Rs. ${Math.max(...prices)}`;
 }
 
 function getTotalStock(variants) {
@@ -42,6 +43,8 @@ export default function AdminProductsClient() {
   const router = useRouter();
   // const { sessionData: session } = useSessionExpiry();
   const { data: session } = useSession();
+  const { setToast } = useGlobalToast();
+
   const [draftProducts, setDraftProducts] = useState([]);
   const [activeProducts, setActiveProducts] = useState([]);
   const [archivedProducts, setArchivedProducts] = useState([]);
@@ -49,7 +52,6 @@ export default function AdminProductsClient() {
   const [loadingActive, setLoadingActive] = useState(true);
   const [loadingArchived, setLoadingArchived] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-
 
 
   const [activeSearch, setActiveSearch] = useState("");
@@ -72,12 +74,21 @@ export default function AdminProductsClient() {
         `/api/admin/products?status=draft&offset=${(draftPage - 1) * limit}&limit=${limit}`
       );
 
+
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
       setDraftProducts(data.data);
       setDraftTotalPages(data.totalPages); // 👈 important
     } catch (err) {
       console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        })
+      }, 0);
     } finally {
       setLoadingDraft(false);
     }
@@ -91,12 +102,21 @@ export default function AdminProductsClient() {
         `/api/admin/products?status=active&search=${debouncedActiveSearch}&offset=${(activePage - 1) * limit}&limit=${limit}`
       );
 
+
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
       setActiveProducts(data.data);
       setActiveTotalPages(data.totalPages); // 👈 important
     } catch (err) {
       console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        })
+      }, 0);
     } finally {
       setLoadingActive(false);
     }
@@ -110,12 +130,21 @@ export default function AdminProductsClient() {
         `/api/admin/products?status=archive&offset=${(archivedPage - 1) * limit}&limit=${limit}`
       );
 
+
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
       setArchivedProducts(data.data);
       setArchivedTotalPages(data.totalPages);
     } catch (err) {
       console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        })
+      }, 0);
     } finally {
       setLoadingArchived(false);
     }
@@ -167,13 +196,20 @@ export default function AdminProductsClient() {
                   method: "POST",
                 });
 
-                const data = await res.json();
 
-                if (!res.ok) throw new Error(data.error);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
 
                 router.push(`/admin/products/${data.id}/edit`);
               } catch (err) {
                 console.error(err);
+                setTimeout(() => {
+                  setToast({
+                    id: Date.now(),
+                    message: err.message,
+                    type: "error"
+                  })
+                }, 0);
               } finally {
                 setIsCreating(false);
               }
@@ -221,61 +257,69 @@ export default function AdminProductsClient() {
 
                   <tbody>
 
-                    {draftProducts.map(product => {
-                      const issues = getAdminProductIssues(product);
-                      const priceRange = getPriceRange(product.variants);
-                      const stock = getTotalStock(product.variants);
+                    {draftProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-6 text-gray-500">
+                          No draft products
+                        </td>
+                      </tr>
+                    ) :
 
-                      return (
-                        <tr key={product._id} className="border-b border-myBorderColor">
+                      draftProducts.map(product => {
+                        const issues = getAdminProductIssues(product);
+                        const priceRange = getPriceRange(product.variants);
+                        const stock = getTotalStock(product.variants);
 
-                          <td className="min-w-10 max-w-40 truncate py-3 pr-2">
-                            {product.name || "Untitled Product"}
-                          </td>
+                        return (
+                          <tr key={product._id} className="border-b border-myBorderColor">
 
-                          <td className="py-3 px-2 text-center bg-background_3">
-                            {product.variants.length}
-                          </td>
+                            <td className="min-w-10 max-w-40 truncate py-3 pr-2">
+                              {product.name || "Untitled Product"}
+                            </td>
 
-                          <td className="py-3 px-2 text-center text-nowrap">
-                            {priceRange}
-                          </td>
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {product.variants.length}
+                            </td>
 
-                          <td className="py-3 px-2 text-center bg-background_3">
-                            {stock}
-                          </td>
+                            <td className="py-3 px-2 text-center text-nowrap">
+                              {priceRange}
+                            </td>
 
-                          <td className="py-3 px-2 text-center text-nowrap">
-                            {issues.length === 0 ? (
-                              <span className="text-green-500">Ready</span>
-                            ) : (
-                              <span className="text-yellow-500">
-                                {issues[0]}
-                                {issues.length > 1 && ` (+${issues.length - 1})`}
-                              </span>
-                            )}
-                          </td>
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {stock}
+                            </td>
 
-                          <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+                            <td className="py-3 px-2 text-center text-nowrap">
+                              {issues.length === 0 ? (
+                                <span className="text-green-500">Ready</span>
+                              ) : (
+                                <span className="text-yellow-500">
+                                  {issues[0]}
+                                  {issues.length > 1 && ` (+${issues.length - 1})`}
+                                </span>
+                              )}
+                            </td>
 
-                            <Link
-                              href={`/admin/products/${product._id}/edit`}
-                              className="button2 p-2 rounded-full! flex w-max!"
-                            >
-                              <Edit2 className="size-4" />
-                            </Link>
+                            <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
 
-                            {issues.length === 0 && (
-                              <button className="button1 px-3 py-1">
-                                Activate
-                              </button>
-                            )}
+                              <Link
+                                href={`/admin/products/${product._id}/edit`}
+                                className="button2 p-2 rounded-full! flex w-max!"
+                              >
+                                <Edit2 className="size-4" />
+                              </Link>
 
-                          </td>
+                              {issues.length === 0 && (
+                                <button className="button1 px-3 py-1">
+                                  Activate
+                                </button>
+                              )}
 
-                        </tr>
-                      );
-                    })}
+                            </td>
+
+                          </tr>
+                        );
+                      })}
 
                   </tbody>
                 </table>
@@ -336,51 +380,60 @@ export default function AdminProductsClient() {
 
                   <tbody>
 
-                    {activeProducts.map(product => {
+                    {activeProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-6 text-gray-500">
+                          No active products
+                        </td>
+                      </tr>
+                    ) :
 
-                      const priceRange = getPriceRange(product.variants);
-                      const stock = getTotalStock(product.variants);
 
-                      return (
-                        <tr key={product._id} className="border-b border-myBorderColor">
+                      activeProducts.map(product => {
 
-                          <td className="min-w-40 max-w-40 truncate py-3 px-2">
-                            {product.name}
-                          </td>
+                        const priceRange = getPriceRange(product.variants);
+                        const stock = getTotalStock(product.variants);
 
-                          <td className="py-3 px-2 text-center bg-background_3">
-                            {product.category || "—"}
-                          </td>
+                        return (
+                          <tr key={product._id} className="border-b border-myBorderColor">
 
-                          <td className="py-3 px-2 text-center">
-                            {product.variants.length}
-                          </td>
+                            <td className="min-w-40 max-w-40 truncate py-3 px-2">
+                              {product.name}
+                            </td>
 
-                          <td className="py-3 px-2 text-center text-nowrap bg-background_3">
-                            {priceRange}
-                          </td>
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {product.category || "—"}
+                            </td>
 
-                          <td className="py-3 px-2 text-center">
-                            {stock}
-                          </td>
+                            <td className="py-3 px-2 text-center">
+                              {product.variants.length}
+                            </td>
 
-                          <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
-                            <Link
-                              href={`/admin/products/${product._id}/edit`}
-                              className="button2 p-2 rounded-full! flex w-max!"
-                            >
-                              <Edit2 className="size-4" />
-                            </Link>
-                            {Number(stock) === 0 && (
-                              <button className="button2 p-2 rounded-full! flex w-max!">
-                                <ArchiveIcon className="size-4" />
-                              </button>
-                            )}
-                          </td>
+                            <td className="py-3 px-2 text-center text-nowrap bg-background_3">
+                              {priceRange}
+                            </td>
 
-                        </tr>
-                      );
-                    })}
+                            <td className="py-3 px-2 text-center">
+                              {stock}
+                            </td>
+
+                            <td className="py-3 px-2 bg-background_3 flex gap-3 items-center justify-center">
+                              <Link
+                                href={`/admin/products/${product._id}/edit`}
+                                className="button2 p-2 rounded-full! flex w-max!"
+                              >
+                                <Edit2 className="size-4" />
+                              </Link>
+                              {Number(stock) === 0 && (
+                                <button className="button2 p-2 rounded-full! flex w-max!">
+                                  <ArchiveIcon className="size-4" />
+                                </button>
+                              )}
+                            </td>
+
+                          </tr>
+                        );
+                      })}
 
                   </tbody>
                 </table>
@@ -477,12 +530,21 @@ export default function AdminProductsClient() {
                                       body: JSON.stringify({ status: "active" }),
                                     });
 
-                                    if (!res.ok) throw new Error();
+                                    const data = await res.json();
+
+                                    if (!res.ok) throw new Error(data.message);
 
                                     fetchArchivedProducts();
                                     fetchActiveProducts();
                                   } catch (err) {
                                     console.error(err);
+                                    setTimeout(() => {
+                                      setToast({
+                                        id: Date.now(),
+                                        message: err.message,
+                                        type: "error"
+                                      })
+                                    }, 0);
                                   }
                                 }}
                               >

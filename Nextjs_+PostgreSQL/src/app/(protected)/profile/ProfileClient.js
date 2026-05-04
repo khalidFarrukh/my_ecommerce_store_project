@@ -9,7 +9,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useGlobalToast } from "@/context/GlobalToastContext";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 
-export default function ProfileTabs() {
+export default function ProfileClient() {
   const router = useRouter();
   const { data: session, status } = useSession();
   // const { timeLeft, sessionData: session, sessionStatus: status, isAuthenticatedForExpiry } = useSessionExpiry();
@@ -45,13 +45,20 @@ export default function ProfileTabs() {
 
         if (!res.ok) {
           setOrders([]);
-          return;
+          throw new Error(resultJson.message)
         }
 
         setOrders(resultJson.data || []);
       } catch (err) {
         console.error(err);
         setOrders([]);
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: err.message,
+            type: "error"
+          });
+        }, 0)
       } finally {
         setLoadingOrders(false);
       }

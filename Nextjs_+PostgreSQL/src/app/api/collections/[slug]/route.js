@@ -31,25 +31,21 @@ export async function GET(req, context) {
     { $match: matchStage },
     { $unwind: "$variants" },
 
-    {
-      $addFields: {
-        priceNum: { $toDouble: "$variants.price" },
-        discountNum: { $toDouble: "$variants.discount" },
-      }
-    },
-
+    // ✅ NO conversion needed anymore
     {
       $addFields: {
         finalPrice: {
-          $subtract: [
-            "$priceNum",
-            {
-              $multiply: [
-                "$priceNum",
-                { $divide: ["$discountNum", 100] }
-              ]
-            }
-          ]
+          $ceil: {
+            $subtract: [
+              "$variants.price",
+              {
+                $multiply: [
+                  "$variants.price",
+                  { $divide: ["$variants.discount", 100] }
+                ]
+              }
+            ]
+          }
         }
       }
     },
@@ -89,9 +85,9 @@ export async function GET(req, context) {
             }
           },
 
+          { $sort: { createdAt: -1 } }, // 🔥 move before skip/limit (important)
           { $skip: skip },
-          { $limit: limit },
-          { $sort: { createdAt: -1 } }
+          { $limit: limit }
         ],
 
         count: [

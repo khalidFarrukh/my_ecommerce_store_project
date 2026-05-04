@@ -12,15 +12,16 @@ import { convertDashStringToTextString, convertTextStringToDashString } from "@/
 import { useSearchModal } from "@/context/SearchModalContext";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { Pagination } from "./Pagination";
-
-
+import NotFound from "./NotFound";
+import { useCategoriesContext } from "@/context/CategoriesContext";
 
 export default function ProductListingClient({ visible_path_name, path_name, route, type }) {
   const { searchedProducts } = useSearchModal();
   const searchParams = useSearchParams();
   const query = searchParams.get("search") || "";
   const sortBy = searchParams.get("sortBy"); // null | price_asc | price_desc | created_at
-
+  const { areCategoriesOpen } = useCategoriesContext();
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const LIMIT = 12;
 
@@ -53,8 +54,11 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
         type,
       });
 
-      if (minPrice) params.append("minPrice", minPrice);
-      if (maxPrice) params.append("maxPrice", maxPrice);
+      const min = searchParams.get("minPrice");
+      const max = searchParams.get("maxPrice");
+
+      if (min) params.append("minPrice", min);
+      if (max) params.append("maxPrice", max);
 
       const res = await fetch(
         `/api/${path_name}/${route}?${params.toString()}`
@@ -248,11 +252,11 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   }
 
-  if (loading && products.length === 0) {
-    return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
-      <LoadingSpinner text="Loading" />
-    </div>
-  }
+  // if (products.length === 0) {
+  //   return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
+  //     <LoadingSpinner text="Loading" />
+  //   </div>
+  // }
 
   return (
     <>
@@ -263,7 +267,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
           relative
           w-full
           bg-background_1
-          my-3
+          py-3
           flex
           flex-col
           items-center
@@ -281,63 +285,85 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
               flex
               gap-5
               w-full
+              ${areCategoriesOpen ? "min-h-[calc(100vh-60px-98px-176px-42px)] md:min-h-[calc(100vh-60px-98px-140px-42px)]" : "min-h-[calc(100vh-60px-48px-176px-42px)] md:min-h-[calc(100vh-60px-48px-140px-42px)]"}
+              transition-all
+              duration-200
               flex-col
               lg:flex-row
               mt-5
               mx-auto
             `}
           >
-            <div className="w-full lg:w-[250px] flex flex-col gap-6">
+            <div className="relative w-full lg:w-[250px] transition-all duration-200 flex flex-col">
+              <div className="z-48 w-full flex justify-end lg:hidden">
+                <button
+                  onClick={() => setIsFiltersOpen(prev => !prev)}
+                  className="button1 px-2 py-1"
+
+                >
+                  Filters
+                </button>
+              </div>
               <div
-                className=
-                {`
+                className={`
+                  overflow-hidden
+                  transition-all
+                  duration-300
+                  ${isFiltersOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"}
+                  lg:max-h-none lg:opacity-100
+                `}
+              >
+                <div className="w-full lg:sticky z-47 flex flex-col gap-6 bg-background_1">
+                  <div
+                    className=
+                    {`
                   w-full
                   h-fit
                   text-[14px]
                 `}
-              >
-                Sort by
-                <div className="flex flex-col gap-y-2 mt-3">
-                  <button
-                    onClick={() => setSort("created_at")}
-                    className={`cursor-pointer w-max ${sortBy === "created_at" || !sortBy ? "font-bold" : ""}`}
                   >
-                    Latest arrival
-                  </button>
+                    Sort by
+                    <div className="w-fit flex flex-col gap-y-2 mt-3">
+                      <button
+                        onClick={() => setSort("created_at")}
+                        className={`cursor-pointer w-max ${sortBy === "created_at" || !sortBy ? "font-bold" : ""}`}
+                      >
+                        Latest arrival
+                      </button>
 
-                  <button
-                    onClick={() => setSort("price_asc")}
-                    className={`cursor-pointer w-max ${sortBy === "price_asc" ? "font-bold" : ""}`}
-                  >
-                    Price: low to high
-                  </button>
+                      <button
+                        onClick={() => setSort("price_asc")}
+                        className={`cursor-pointer w-max ${sortBy === "price_asc" ? "font-bold" : ""}`}
+                      >
+                        Price: low to high
+                      </button>
 
-                  <button
-                    onClick={() => setSort("price_desc")}
-                    className={`cursor-pointer w-max ${sortBy === "price_desc" ? "font-bold" : ""}`}
-                  >
-                    Price: high to low
-                  </button>
-                </div>
-              </div>
-              <div className="w-full h-fit text-[14px]">
-                <h3 className="mb-2">Price Range</h3>
+                      <button
+                        onClick={() => setSort("price_desc")}
+                        className={`cursor-pointer w-max ${sortBy === "price_desc" ? "font-bold" : ""}`}
+                      >
+                        Price: high to low
+                      </button>
+                    </div>
+                  </div>
+                  <div className="w-full h-fit text-[14px]">
+                    <h3 className="mb-2">Price Range</h3>
 
-                <div className="px-2">
-                  {/* Range track */}
-                  <div className="relative h-6 flex items-center">
+                    <div className="px-2">
+                      {/* Range track */}
+                      <div className="relative h-6 flex items-center">
 
-                    {/* Min slider */}
-                    <input
-                      type="range"
-                      min={0}
-                      max={actualMaxPrice}
-                      value={minPrice}
-                      onChange={(e) => {
-                        const val = Math.min(Number(e.target.value), maxPrice - 1);
-                        setMinPrice(val);
-                      }}
-                      className="
+                        {/* Min slider */}
+                        <input
+                          type="range"
+                          min={0}
+                          max={actualMaxPrice}
+                          value={minPrice}
+                          onChange={(e) => {
+                            const val = Math.min(Number(e.target.value), maxPrice - 1);
+                            setMinPrice(val);
+                          }}
+                          className="
                         z-1 absolute w-full pointer-events-none appearance-none bg-transparent
                         [&::-webkit-slider-thumb]:pointer-events-auto
                         [&::-webkit-slider-thumb]:appearance-none
@@ -348,20 +374,20 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
                         [&::-webkit-slider-thumb]:cursor-pointer
                         [&::-webkit-slider-thumb]:-translate-x-1/2
                       "
-                    />
+                        />
 
-                    {/* Max slider */}
-                    <input
-                      type="range"
-                      min={0}
-                      max={actualMaxPrice}
-                      value={maxPrice}
-                      onChange={(e) => {
-                        const val = Math.max(Number(e.target.value), minPrice + 1);
-                        setMaxPrice(val);
-                      }}
-                      // className="absolute w-full pointer-events-none appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto"
-                      className="
+                        {/* Max slider */}
+                        <input
+                          type="range"
+                          min={0}
+                          max={actualMaxPrice}
+                          value={maxPrice}
+                          onChange={(e) => {
+                            const val = Math.max(Number(e.target.value), minPrice + 1);
+                            setMaxPrice(val);
+                          }}
+                          // className="absolute w-full pointer-events-none appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto"
+                          className="
                         z-1 absolute w-full pointer-events-none appearance-none bg-transparent
                         [&::-webkit-slider-thumb]:pointer-events-auto
                         [&::-webkit-slider-thumb]:appearance-none
@@ -372,83 +398,93 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
                         [&::-webkit-slider-thumb]:cursor-pointer
                         [&::-webkit-slider-thumb]:translate-x-1/2
                       "
-                    />
+                        />
 
-                    {/* Track background */}
-                    <div className="w-full h-1 bg-background_3 rounded" />
+                        {/* Track background */}
+                        <div className="w-full h-1 bg-background_3 rounded" />
 
-                    {/* Active range */}
-                    <div
-                      className="z-0 absolute h-1 bg-foreground rounded"
-                      style={{
-                        left: `calc(${(minPrice / actualMaxPrice) * 100}% - 8px)`,
-                        right: `calc(${100 - (maxPrice / actualMaxPrice) * 100}% - 8px)`,
-                      }}
-                    />
+                        {/* Active range */}
+                        <div
+                          className="z-0 absolute h-1 bg-foreground rounded"
+                          style={{
+                            left: `calc(${(minPrice / actualMaxPrice) * 100}% - 8px)`,
+                            right: `calc(${100 - (maxPrice / actualMaxPrice) * 100}% - 8px)`,
+                          }}
+                        />
+                      </div>
+
+                      {/* Values */}
+                      <div className="flex justify-between mt-2 text-sm">
+                        <span>Rs. {minPrice}</span>
+                        <span>Rs. {maxPrice}</span>
+                      </div>
+                    </div>
+                    <div className="w-full flex space-x-3">
+                      {/* Actions */}
+                      <button
+                        onClick={applyPriceFilter}
+                        className="mt-3 px-3 py-1 w-1/2 button1 border-foreground! cursor-pointer"
+                      >
+                        Apply
+                      </button>
+
+                      <button
+                        onClick={clearPriceFilter}
+                        className="mt-2 px-3 py-1 text-sm w-1/2 button1 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Values */}
-                  <div className="flex justify-between mt-2 text-sm">
-                    <span>{minPrice}</span>
-                    <span>{maxPrice}</span>
-                  </div>
-                </div>
-                <div className="w-full flex space-x-3">
-                  {/* Actions */}
-                  <button
-                    onClick={applyPriceFilter}
-                    className="mt-3 px-3 py-1 w-1/2 button1 border-foreground! cursor-pointer"
-                  >
-                    Apply
-                  </button>
-
-                  <button
-                    onClick={clearPriceFilter}
-                    className="mt-2 px-3 py-1 text-sm w-1/2 button1 cursor-pointer"
-                  >
-                    Clear
-                  </button>
                 </div>
               </div>
             </div>
             <div
-              className=
-              {`
-                flex-1
-              `}
+              className="flex-1"
             >
               {
                 products.length > 0 &&
                 <h1 className="text-[30px] font-bold"><Title /></h1>
               }
-              <SmallCardsList
-                productList={sortedProducts}
-                className={`
-                grid
-                grid-cols-2
-                lg:grid-cols-4
-                mt-5
-                gap-x-5
-                gap-y-5
-                w-full
-                `}
-                card1_className={"!min-h-[300px] !h-[15vw] !lg:h-[15vw]"}
-              />
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination
-                    page={page}
-                    totalPages={totalPages}
-                    onPageChange={setPageAndURL}
-                  />
-                </div>
-              )}
+              {
+                products.length > 0 ?
+                  <>
+                    <SmallCardsList
+                      productList={sortedProducts}
+                      className={`
+                      grid
+
+                      grid-cols-2
+                      md:grid-cols-3
+                      lg:grid-cols-4
+                      mt-5
+                      gap-x-5
+                      gap-y-5
+                      w-full
+                      `}
+                      card1_className={"!min-h-[300px] !h-[15vw] !lg:h-[15vw]"}
+                    />
+                    {totalPages > 1 && (
+                      <div className="mt-8">
+                        <Pagination
+                          page={page}
+                          totalPages={totalPages}
+                          onPageChange={setPageAndURL}
+                        />
+                      </div>
+                    )}
+                  </>
+                  :
+                  <div className="w-full h-full flex items-center justify-center">
+                    No product found
+                  </div>
+              }
 
             </div>
           </div>
 
-        </section>
-      </div>
+        </section >
+      </div >
     </>
   );
 }

@@ -1,13 +1,18 @@
 "use client";
 
+import { useAdminSidebar } from "@/context/SidebarContext";
+import { useWindowSizeContext } from "@/context/WindowSizeContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function AdminSidebar() {
+export default function AdminSidebarForAdminLayout() {
   const pathname = usePathname();
+  const { windowWidth } = useWindowSizeContext();
+
+  if (windowWidth < 768) return null;
 
   return (
-    <aside className="w-56 border-r border-myBorderColor pr-5 sticky top-[calc(60px+12px)] h-[calc(100vh-60px-24px)] flex flex-col justify-center">
+    <aside className="w-56 border-r border-myBorderColor pr-5 sticky top-[calc(60px+20px)] h-[calc(100vh-60px-24px)] flex flex-col justify-center">
       <div className="h-fit ">
         {/* Sidebar title */}
         <div className="mb-6 shrink-0">

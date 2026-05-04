@@ -12,6 +12,8 @@ import {
   handleTextareInput,
 } from "@/utils/utilities";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useSession } from "next-auth/react";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function EditProductForm({
   // session,
@@ -19,7 +21,10 @@ export default function EditProductForm({
   categories = [],
   allCollections = [],
 }) {
-  const { sessionData: session } = useSessionExpiry();
+  // const { sessionData: session } = useSessionExpiry();
+  const { data: session } = useSession();
+  const { setToast } = useGlobalToast();
+
   const router = useRouter();
   const variantRefs = useRef({});
   const [errors, setErrors] = useState({});
@@ -135,8 +140,8 @@ export default function EditProductForm({
         {
           id: crypto.randomUUID(),
           options: [],
-          price: "",
-          discount: "",
+          price: 0,
+          discount: 0,
           stock: 0,
           default: false,
           images: [],
@@ -220,18 +225,31 @@ export default function EditProductForm({
   };
 
   const handleSubmit = async () => {
-    const res = await fetch(`/api/admin/products/${product._id}`, {
-      method: "PUT",
-      body: JSON.stringify(product),
-      headers: { "Content-Type": "application/json" },
-    });
+    try {
+      const res = await fetch(`/api/admin/products/${product._id}`, {
+        method: "PUT",
+        body: JSON.stringify(product),
+        headers: { "Content-Type": "application/json" },
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success)
-      router.push(
-        `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
-      );
+      if (!res.ok) throw new Error(data.message);
+
+      if (data.success)
+        router.push(
+          `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
+        );
+    } catch (err) {
+      console.error(err);
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error",
+        });
+      }, 0);
+    }
   };
 
   useEffect(() => {
@@ -256,30 +274,6 @@ export default function EditProductForm({
       });
     }
   }, [variantId, refsReady, product]);
-  // useEffect(() => {
-  //   if (!variantId) return;
-
-  //   let attempts = 0;
-
-  //   const scrollToVariant = () => {
-  //     const el = variantRefs.current[variantId];
-
-  //     if (el) {
-  //       const yOffset = -200;
-  //       const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-  //       window.scrollTo({
-  //         top: y,
-  //         behavior: "smooth",
-  //       });
-  //     } else if (attempts < 10) {
-  //       attempts++;
-  //       setTimeout(scrollToVariant, 100); // retry
-  //     }
-  //   };
-
-  //   scrollToVariant();
-  // }, [variantId, product]);
 
   return (
     <div className="space-y-6 mb-20">
@@ -290,7 +284,7 @@ export default function EditProductForm({
         <FloatingInput
           id="product_name"
           label="Product Name"
-          inputClassName="bg-background_1!"
+          inputClassName=""
           type="text"
           value={product.name}
           onChange={(e) => updateField("name", e.target.value)}
@@ -299,7 +293,7 @@ export default function EditProductForm({
           ref={descriptionTextareaRef}
           id="description"
           label="Description"
-          inputClassName="bg-background_1!"
+          inputClassName=""
           value={product.description}
           rows={1}
           onChange={(e) => {
@@ -313,7 +307,7 @@ export default function EditProductForm({
             <FloatingInput
               id="category"
               label="Category"
-              inputClassName="bg-background_1!"
+              inputClassName=""
               type="text"
               value={categoryQuery}
               onFocus={() => setShowCategoryDropdown(true)}
@@ -454,7 +448,7 @@ export default function EditProductForm({
               key={key}
               id={key}
               label={field.name}
-              inputClassName="bg-background_1!"
+              inputClassName=""
               type="text"
               placeholder={field.placeHolder}
               value={product.info[key]}
@@ -541,8 +535,9 @@ export default function EditProductForm({
                     <FloatingInput
                       id="price"
                       label="Price"
-                      inputClassName="input1!"
-                      type="text"
+                      inputClassName="pr-0!"
+                      type="number"
+                      keepPlaceHolderAbove={true}
                       value={variant.price}
                       placeholder={""}
                       onChange={(e) =>
@@ -553,8 +548,9 @@ export default function EditProductForm({
                     <FloatingInput
                       id="discount"
                       label="Discount"
-                      inputClassName="input1!"
-                      type="text"
+                      inputClassName="pr-0!"
+                      type="number"
+                      keepPlaceHolderAbove={true}
                       value={variant.discount}
                       onChange={(e) =>
                         updateVariant(i, "discount", e.target.value)
@@ -564,8 +560,9 @@ export default function EditProductForm({
                     <FloatingInput
                       id="stock"
                       label="Stock"
-                      inputClassName="input1!"
+                      inputClassName="pr-0!"
                       type="number"
+                      keepPlaceHolderAbove={true}
                       value={variant.stock}
                       onChange={(e) =>
                         updateVariant(i, "stock", e.target.value)
@@ -616,7 +613,7 @@ export default function EditProductForm({
                                 id={`option_name_${option.id}`}
                                 label="Option Name"
                                 className="w-1/2!"
-                                inputClassName="input1!"
+                                inputClassName=""
                                 type="text"
                                 value={option.name}
                                 onChange={(e) =>
@@ -633,7 +630,7 @@ export default function EditProductForm({
                                 id={`option_value_${option.id}`}
                                 label="Option Value"
                                 className="w-1/2!"
-                                inputClassName="input1!"
+                                inputClassName=""
                                 type="text"
                                 value={option.value}
                                 onChange={(e) =>
@@ -694,7 +691,7 @@ export default function EditProductForm({
                             <FloatingInput
                               id={`image_src_${img.id}`}
                               label="Image URL"
-                              inputClassName="input1!"
+                              inputClassName=""
                               type="text"
                               value={img.src}
                               onChange={(e) =>
@@ -705,7 +702,7 @@ export default function EditProductForm({
                             <FloatingInput
                               id={`image_alt_${img.id}`}
                               label="Alt Text"
-                              inputClassName="input1!"
+                              inputClassName=""
                               type="text"
                               value={img.alt}
                               onChange={(e) =>

@@ -197,7 +197,7 @@ export async function POST(req) {
       console.error("Transaction failed:", error);
 
       return NextResponse.json(
-        { message: error.message || "Order processing failed" },
+        { message: err.message || "Order processing failed" },
         { status: 500 }
       );
     } finally {

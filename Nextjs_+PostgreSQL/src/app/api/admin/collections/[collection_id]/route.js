@@ -1,89 +1,231 @@
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import z from "zod";
 
 export async function GET(req, context) {
   const session = await auth();
   const { collection_id } = await context.params;
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
-  const collection = await db.collection("collections").findOne({ _id: new ObjectId(collection_id) });
+  if (!ObjectId.isValid(collection_id)) {
+    return Response.json({ message: "Invalid ID" }, { status: 400 });
+  }
+  try {
+    // db logic
+    const collection = await db.collection("collections").findOne({ _id: new ObjectId(collection_id) });
 
-  if (!collection) return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
-  return new Response(JSON.stringify({ data: collection }), { headers: { "Content-Type": "application/json" } });
+    if (!collection) return new Response(JSON.stringify({ message: "Not found" }), { status: 404 });
+    return new Response(JSON.stringify({ data: collection }), { headers: { "Content-Type": "application/json" } });
+  } catch (err) {
+    console.error(err);
+    return Response.json({ message: "Server error" }, { status: 500 });
+  }
 }
 
+// =========================
+// 🔐 Zod schema
+// =========================
+const updateCollectionSchema = z.object({
+  name: z.string().min(2).max(100).trim(),
+  slug: z.string().min(2).max(100).trim(),
+  turnedoff: z.boolean(),
+});
+
+// =========================
+// 🔐 Escape regex helper
+// =========================
+const escapeRegex = (str) =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export async function PUT(req, context) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  // =========================
+  // 1️⃣ Auth session
+  // =========================
+  const authSession = await auth();
+
+  if (!authSession || authSession.user.role !== "ADMIN") {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  // =========================
+  // 2️⃣ Params validation
+  // =========================
   const { collection_id } = await context.params;
+
+  if (!ObjectId.isValid(collection_id)) {
+    return Response.json({ message: "Invalid ID" }, { status: 400 });
+  }
+
+  // =========================
+  // 3️⃣ Body validation (Zod)
+  // =========================
   const body = await req.json();
 
-  const client = await clientPromise;
-  const db = client.db("my_ecommerce_db");
+  const parsed = updateCollectionSchema.safeParse(body);
 
-  // 🔥 Check for duplicate (case-insensitive, excluding current doc)
-  const existing = await db.collection("collections").findOne({
-    _id: { $ne: new ObjectId(collection_id) },
-    name: { $regex: `^${body.name}$`, $options: "i" },
-  });
-
-  if (existing) {
-    return new Response(
-      JSON.stringify({ error: "A collection with this name already exists." }),
+  if (!parsed.success) {
+    return Response.json(
+      { message: "Invalid input" },
       { status: 400 }
     );
   }
 
-  await db.collection("collections").updateOne(
-    { _id: new ObjectId(collection_id) },
-    {
-      $set: {
-        name: body.name,
-        slug: body.slug,
-        turnedoff: body.turnedoff,
-        updatedAt: new Date(),
-      },
-    }
-  );
+  const { name, slug, turnedoff } = parsed.data;
 
-  return new Response(JSON.stringify({ success: true }), {
-    headers: { "Content-Type": "application/json" },
-  });
-}
+  // =========================
+  // 4️⃣ DB + Transaction
+  // =========================
+  const client = await clientPromise;
+  const dbSession = client.startSession();
 
-export async function DELETE(req, { params }) {
   try {
-    const session = await auth();
+    await dbSession.withTransaction(async () => {
+      const db = client.db("my_ecommerce_db");
 
-    if (!session || session.user.role !== "ADMIN") {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+      // 🔍 Prevent regex injection
+      const safeName = escapeRegex(name);
 
-    const { collection_id } = await params;
-    const client = await clientPromise;
-    const db = client.db("my_ecommerce_db");
+      // 🔍 Check duplicate
+      const existing = await db.collection("collections").findOne(
+        {
+          _id: { $ne: new ObjectId(collection_id) },
+          name: { $regex: `^${safeName}$`, $options: "i" },
+        },
+        { session: dbSession }
+      );
 
-    const result = await db.collection("collections").deleteOne({
-      _id: new ObjectId(collection_id),
+      if (existing) {
+        throw new Error("DUPLICATE");
+      }
+
+      // ✏️ Update
+      const result = await db.collection("collections").updateOne(
+        { _id: new ObjectId(collection_id) },
+        {
+          $set: {
+            name,
+            slug,
+            turnedoff,
+            updatedAt: new Date(),
+          },
+        },
+        { session: dbSession }
+      );
+
+      if (result.matchedCount === 0) {
+        throw new Error("NOT_FOUND");
+      }
     });
 
-    if (result.deletedCount === 0) {
+    return Response.json({ success: true });
+
+  } catch (err) {
+    if (err.message === "DUPLICATE") {
       return Response.json(
-        { error: "Collection not found" },
+        { message: "Collection already exists" },
+        { status: 400 }
+      );
+    }
+
+    if (err.message === "NOT_FOUND") {
+      return Response.json(
+        { message: "Collection not found" },
         { status: 404 }
       );
     }
 
-    return Response.json({ success: true });
-  } catch (err) {
-    console.error(err);
+    console.error("🔥 Transaction error:", err);
+
     return Response.json(
-      { error: "Server error" },
+      { message: "Transaction failed" },
       { status: 500 }
     );
+  } finally {
+    await dbSession.endSession();
+  }
+}
+
+// =========================
+// 🔐 Zod schema (params)
+// =========================
+const paramsSchema = z.object({
+  collection_id: z.string().min(2),
+});
+
+export async function DELETE(req, { params }) {
+  // =========================
+  // 1️⃣ Auth session
+  // =========================
+  const authSession = await auth();
+  const rawParams = await params;
+
+  if (!authSession || authSession.user.role !== "ADMIN") {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  // =========================
+  // 2️⃣ Validate params (Zod)
+  // =========================
+  const parsedParams = paramsSchema.safeParse(rawParams);
+
+  if (!parsedParams.success) {
+    return Response.json({ message: "Invalid parameters" }, { status: 400 });
+  }
+
+  const { collection_id } = parsedParams.data;
+
+  // =========================
+  // 3️⃣ Validate ObjectId
+  // =========================
+  if (!ObjectId.isValid(collection_id)) {
+    return Response.json({ message: "Invalid ID" }, { status: 400 });
+  }
+
+  const client = await clientPromise;
+  const dbSession = client.startSession();
+
+  try {
+    // =========================
+    // 4️⃣ Transaction
+    // =========================
+    await dbSession.withTransaction(async () => {
+      const db = client.db("my_ecommerce_db");
+
+      // 🔥 Delete collection
+      const result = await db.collection("collections").deleteOne(
+        { _id: new ObjectId(collection_id) },
+        { session: dbSession }
+      );
+
+      if (result.deletedCount === 0) {
+        throw new Error("NOT_FOUND");
+      }
+
+      // // 🔥 Optional: cascade delete related products
+      // await db.collection("products").deleteMany(
+      //   { collection_id },
+      //   { session: dbSession }
+      // );
+    });
+
+    return Response.json({ success: true });
+
+  } catch (err) {
+    if (err.message === "NOT_FOUND") {
+      return Response.json(
+        { message: "Collection not found" },
+        { status: 404 }
+      );
+    }
+
+    console.error("🔥 Transaction error:", err);
+
+    return Response.json(
+      { message: "Transaction failed" },
+      { status: 500 }
+    );
+  } finally {
+    await dbSession.endSession();
   }
 }

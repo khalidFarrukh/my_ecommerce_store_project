@@ -8,7 +8,6 @@ import CustomCartBox from "@/components/smallCartBox";
 import Footer from "@/components/Footer";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CategoriesSection from "@/components/CategoriesSection";
-import SideBar from "@/components/sidebar";
 import { Providers } from "./providers";
 import GlobalSessionGuard from "@/components/auth/GlobalSessionGuard";
 import PageContentWrapper from "@/components/PageContentWrapper";
@@ -17,6 +16,7 @@ import SearchModal from "@/components/modals/SearchModal";
 import AlertModal from "@/components/modals/AlertModal";
 import Script from "next/script";
 import GlobalToast from "@/components/ui/GlobalToast";
+import SidebarWrapper from "@/components/SidebarWrapper";
 
 const inter = Inter({
   variable: "--font-inter", // optional
@@ -69,7 +69,7 @@ export default async function RootLayout({ children }) {
       >
         <Providers>
           <GlobalSessionGuard />
-          <SideBar />
+          <SidebarWrapper />
           {/* FIXED HEADER OUTSIDE CONTAINER */}
           <Header />
           <CategoriesSection categories={categories} />

@@ -67,7 +67,7 @@
   --buttonActive: #ffffff;
   --buttonTextActive: #000000;
 
-  --inputBgNormal: #0f0f0f;
+  --inputBgNormal: #111111;
 
   --myBorderColor: #555555;
   --myTextColorMain: #d1d5db;
@@ -95,6 +95,7 @@
   --breakpoint-w768: 768px;
   --breakpoint-w650: 650px;
   --breakpoint-w512: 512px;
+  --breakpoint-w425: 425px;
   --breakpoint-w375: 375px;
   --breakpoint-w320: 320px;
 }
@@ -163,28 +164,51 @@ body {
   color: var(--buttonTextActive) !important;
 }
 
-.input1 {
+input,
+textarea {
   background-color: var(--inputBgNormal);
   color: var(--foreground);
-  border: 1px solid var(--myBorderColor);
-  border-radius: 6px;
-
-  padding: 8px 10px;
-  font-size: 14px;
-
-  outline: none;
-  width: 100%;
 }
 
-.input1::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--myTextColorLightGray);
 }
 
-.input1:focus {
+input:hover,
+textarea:hover {
+  background-color: var(--background_1);
+}
+
+input:focus,
+textarea:focus {
   border-color: var(--foreground);
   background-color: var(--background_1);
 }
 
+/* Reset base */
+input[type="range"] {
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Track (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 16px;
+}
+
+/* Thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+/* Firefox track */
+input[type="range"]::-moz-range-track {
+  background: transparent;
+  height: 16px;
+}
 
 
 /* bg-background_1 text-foreground border border-myBorderColor hover:bg-foreground hover:text-background_1 hover:border-background_1 focus:bg-background_1 focus:text-foreground focus:border-myBorderColor */
@@ -238,12 +262,7 @@ body {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0px 1000px var(--inputBgNormal) inset;
-  -webkit-text-fill-color: var(--foreground);
-  transition: background-color 5000s ease-in-out 0s;
-}
-
+input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,

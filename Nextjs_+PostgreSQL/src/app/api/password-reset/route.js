@@ -9,7 +9,7 @@ export async function POST(req) {
 
     if (!token || !newPassword) {
       return NextResponse.json(
-        { error: "Token and new password are required." },
+        { message: "Token and new password are required." },
         { status: 400 }
       );
     }
@@ -24,7 +24,7 @@ export async function POST(req) {
 
     if (!resetRecord || resetRecord.expiresAt < new Date()) {
       return NextResponse.json(
-        { error: "Invalid or expired token or already used token." },
+        { message: "Invalid or expired token or already used token." },
         { status: 400 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(req) {
 
     if (!user || !user.password) {
       return NextResponse.json(
-        { error: "User not found or password reset not allowed." },
+        { message: "User not found or password reset not allowed." },
         { status: 400 }
       );
     }
@@ -45,7 +45,7 @@ export async function POST(req) {
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
       return NextResponse.json(
-        { error: "New password must be different from old password." },
+        { message: "New password must be different from old password." },
         { status: 400 }
       );
     }
@@ -73,7 +73,7 @@ export async function POST(req) {
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "Server error. Please try again." },
+      { message: "Server error. Please try again." },
       { status: 500 }
     );
   }

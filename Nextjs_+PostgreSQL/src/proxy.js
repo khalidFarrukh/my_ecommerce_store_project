@@ -38,7 +38,7 @@ export async function proxy(req) {
 
 export const config = {
   matcher: [
-    // "/cart",
+    // "/orders/:path",
     "/profile",
     "/checkout",
     "/admin/:path*",

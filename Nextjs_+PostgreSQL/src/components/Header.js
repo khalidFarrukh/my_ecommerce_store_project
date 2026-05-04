@@ -1,11 +1,9 @@
 "use client"
 import Image from "next/image";
-import SideBar from "@/components/sidebar";
 import { Laptop, MenuIcon, Moon, Search, ShoppingCart, Sun } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import Link from "next/link";
 import CustomCartBox from "./smallCartBox";
-import { closeSidebar, openSidebar } from "@/store/sidebarSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchModal } from "@/context/SearchModalContext";
 import { useCartButtonContext } from "@/context/CartButtonContext";
@@ -16,6 +14,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useWindowSizeContext } from "@/context/WindowSizeContext";
 import { themeIcons, nextTheme } from "@/utils/staticVariables";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useAdminSidebar, useSidebar } from "@/context/SidebarContext";
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -25,13 +24,13 @@ export default function Header() {
   // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
 
   const cartState = useSelector(state => state.cart.cartState);
-
+  const { isOpen, openSidebar } = useSidebar();
 
   const pathname = usePathname();
 
   const isLoading = status === "loading";
   const selectedUrl =
-    session && status === "authenticated"
+    session
       ? "/profile"
       : `/signIn?callbackUrl=${pathname}`;
 
@@ -48,20 +47,8 @@ export default function Header() {
       setIsCartBtnHovered(false);
   }, [pathname])
 
-  const dispatch = useDispatch();
   const { openSearchModal } = useSearchModal();
 
-  // const nextTheme = {
-  //   light: "dark",
-  //   dark: "system",
-  //   system: "light",
-  // };
-
-  // const themeIcons = {
-  //   light: <Moon className="min-w-[20px] min-h-[20px] size-[20px]" />,
-  //   dark: <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />,
-  //   system: <Sun className="min-w-[20px] min-h-[20px] size-[20px]" />,
-  // };
   return (
     <>
       <header
@@ -115,7 +102,7 @@ export default function Header() {
               {
                 windowWidth < 768 &&
                 <button
-                  onClick={() => dispatch(openSidebar())}
+                  onClick={() => openSidebar()}
                   className=
                   {`
                 cursor-pointer
@@ -209,8 +196,7 @@ export default function Header() {
               </button>
               {
                 session?.user.role === "ADMIN" &&
-                status === "authenticated" &&
-                pathname !== "/admin" &&
+                !pathname.startsWith("/admin") &&
                 (
                   <Link
                     className=
@@ -223,7 +209,6 @@ export default function Header() {
                       hover:text-foreground
                       h-full
                       items-center
-                      ${isLoading ? "pointer-events-none opacity-50" : ""}
                     `}
                     href={"/admin"}
                   >
@@ -244,11 +229,10 @@ export default function Header() {
                     hover:text-foreground
                     h-full
                     items-center
-                    ${isLoading ? "pointer-events-none opacity-50" : ""}
                   `}
                     href={selectedUrl}
                   >
-                    {session && status === "authenticated" ? "Profile" : "Sign in"}
+                    {session ? "Profile" : "Sign in"}
                   </Link>
                 )}
 

@@ -12,7 +12,6 @@ export default function Card1({ className, productObj, id }) {
   const { variant, price, discount, finalPrice } = getDefaultVariantPricing(productObj);
   const product_route = convertTextStringToDashString(productObj.name);
   const { closeSearchModal } = useSearchModal();
-  const classes = "w-"
   return (
     <>
       <Link
@@ -108,7 +107,7 @@ export default function Card1({ className, productObj, id }) {
                     line-through
                   `}
                 >
-                  {price}
+                  Rs. {price}
                 </div>
               }
               <div
@@ -118,7 +117,7 @@ export default function Card1({ className, productObj, id }) {
                   ${discount > 0 && "text-[var(--myTextColorBlue)]"}
                 `}
               >
-                {finalPrice}
+                Rs. {finalPrice}
               </div>
             </div>
 

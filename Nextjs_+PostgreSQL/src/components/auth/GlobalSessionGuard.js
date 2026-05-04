@@ -22,13 +22,11 @@ export default function GlobalSessionGuard() {
 
   useEffect(() => {
     const handlePageShow = (event) => {
-      console.log("restored when event not persisted");
       if (event.persisted) {
         isRestoredFromBFCache.current = true;
-        console.log("restored when event persisted");
         // allow React to settle, then refresh
         setTimeout(() => {
-          window.location.reload();
+          router.refresh();
         }, 0);
       }
     };
@@ -81,16 +79,16 @@ export default function GlobalSessionGuard() {
 
         if (pathname !== "/signIn") {
           router.replace(`/signIn?callbackUrl=${pathname}&expired=1`);
+          setTimeout(() => {
+
+            setToast({
+              id: Date.now(),
+              message: "Session expired. Please sign in again.",
+              type: "error",
+            });
+          }, 0)
         }
 
-        setTimeout(() => {
-
-          setToast({
-            id: Date.now(),
-            message: "Session expired. Please sign in again.",
-            type: "error",
-          });
-        }, 0)
       }
     };
 
@@ -121,15 +119,15 @@ export default function GlobalSessionGuard() {
 
       if (pathname !== "/signIn") {
         router.replace(`/signIn?callbackUrl=${pathname}&expired=1`);
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: "Session expired. Please sign in again.",
+            type: "error",
+          });
+        }, 0);
       }
 
-      setTimeout(() => {
-        setToast({
-          id: Date.now(),
-          message: "Session expired. Please sign in again.",
-          type: "error",
-        });
-      }, 0);
     }
   }, [status, pathname, router, setToast]);
 

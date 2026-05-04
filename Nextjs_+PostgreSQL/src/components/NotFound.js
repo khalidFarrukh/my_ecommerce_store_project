@@ -9,7 +9,7 @@ export default function NotFound({ message }) {
   const pathname = usePathname();
   return (
     <React.Fragment key={pathname}>
-      <div className={`${areCategoriesOpen ? "min-h-[calc(100vh-60px-98px-176px)]" : "min-h-[calc(100vh-60px-48px-176px)]"} ${areCategoriesOpen ? "md:min-h-[calc(100vh-60px-98px-140px)]" : "md:min-h-[calc(100vh-60px-48px-140px)]"}  flex items-center justify-center`}>
+      <div className={`${areCategoriesOpen ? "min-h-[calc(100vh-60px-98px-176px-24px)] md:min-h-[calc(100vh-60px-98px-140px-24px)]" : "min-h-[calc(100vh-60px-48px-176px-24px)] md:min-h-[calc(100vh-60px-48px-140px-24px)]"} flex items-center justify-center bg-[red]`}>
         {message}
       </div>
     </React.Fragment>

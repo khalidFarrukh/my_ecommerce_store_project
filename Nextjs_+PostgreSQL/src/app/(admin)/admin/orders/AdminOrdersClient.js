@@ -8,18 +8,24 @@ import { Eye } from "lucide-react";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import CancelOrderButton from "@/components/orders/CancelOrderButton";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function AdminOrdersClient() {
   // const { sessionData: session } = useSessionExpiry();
   const { data: session } = useSession();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [cancelingOrder, setCancelingOrder] = useState(false);
+  const { setToast } = useGlobalToast();
 
   const fetchOrders = async () => {
     try {
       const res = await fetch("/api/admin/orders");
       const data = await res.json();
 
+      if (!res.ok) throw new Error(data.message);
 
       setOrders(data.data || []);
     } catch (err) {
@@ -97,11 +103,51 @@ export default function AdminOrdersClient() {
                               <button
                                 disabled={loading}
                                 onClick={() => updateStatus(order._id, "confirmed")}
-                                className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                                className={`px-3 py-1 button1 text-sm !rounded-md cursor-pointer`}
                               >
                                 Confirm
                               </button>
-                              <CancelOrderButton orderId={order._id} />
+                              <CancelOrderButton
+                                cancelingOrder={cancelingOrder}
+                                handleCancel={
+                                  async () => {
+                                    try {
+                                      setCancelingOrder(true);
+                                      const orderId = order._id;
+                                      const res = await fetch("/api/orders/cancel", {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ orderId }),
+                                      });
+
+                                      const data = await res.json();
+
+                                      if (!res.ok) {
+                                        throw new Error(data.message);
+                                      }
+
+                                      setTimeout(() => {
+                                        setToast({
+                                          id: Date.now(),
+                                          message: "Order cancelled successfully",
+                                          type: "info"
+                                        });
+                                      }, 0)
+
+                                      router.refresh(); // 🔥 re-fetch server data
+                                    } catch (err) {
+                                      setTimeout(() => {
+                                        setToast({
+                                          id: Date.now(),
+                                          message: err.message || "Failed to cancel order",
+                                          type: "error"
+                                        });
+                                      }, 0)
+                                    } finally {
+                                      setCancelingOrder(false);
+                                    }
+                                  }
+                                } />
                             </div>
                           }
 
@@ -147,7 +193,7 @@ export default function AdminOrdersClient() {
                           }
                         </td>
                         <td className="py-3 px-2 text-center">
-                          <div className="bg-background_3 border border-myBorderColor text-sm">
+                          <div className="bg-background_3 border border-myBorderColor text-sm px-3 py-1 rounded-md">
                             {order.status}
                           </div>
                         </td>

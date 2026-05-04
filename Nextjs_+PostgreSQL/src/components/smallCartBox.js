@@ -1,6 +1,6 @@
 "use client"
 import Image from "next/image";
-import SideBar from "@/components/sidebar";
+import SideBar from "@/components/SideBar";
 import { useCartButtonContext } from "@/context/CartButtonContext";
 import Link from "next/link";
 import { useSelector } from "react-redux";

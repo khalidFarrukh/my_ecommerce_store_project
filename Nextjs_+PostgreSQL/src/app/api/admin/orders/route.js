@@ -5,7 +5,7 @@ export async function GET() {
   const session = await auth();
 
   if (!session || session.user.role !== "ADMIN") {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
     });
   }

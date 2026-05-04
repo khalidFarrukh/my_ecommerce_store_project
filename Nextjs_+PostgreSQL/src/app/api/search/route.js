@@ -51,7 +51,7 @@ export async function GET(req) {
 
   } catch (error) {
     console.error("Search error:", error);
-    return new Response(JSON.stringify({ error: "Server error" }), { status: 500 });
+    return new Response(JSON.stringify({ message: "Server error" }), { status: 500 });
   }
 }
 

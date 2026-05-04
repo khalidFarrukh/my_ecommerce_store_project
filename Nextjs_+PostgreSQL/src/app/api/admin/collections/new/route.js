@@ -10,7 +10,7 @@ export async function POST() {
 
     if (!session?.user?.id || session?.user?.role !== "ADMIN") {
       return Response.json(
-        { error: "Unauthorized" },
+        { message: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -22,7 +22,7 @@ export async function POST() {
 
     if (!client) {
       return Response.json(
-        { error: "Database connection failed" },
+        { message: "Database connection failed" },
         { status: 500 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST() {
 
     if (!result?.insertedId) {
       return Response.json(
-        { error: "Failed to create collection" },
+        { message: "Failed to create collection" },
         { status: 500 }
       );
     }
@@ -89,7 +89,7 @@ export async function POST() {
     // =========================
     return Response.json(
       {
-        error: "Internal server error",
+        message: "Internal server error",
         details: process.env.NODE_ENV === "development"
           ? err.message
           : undefined,

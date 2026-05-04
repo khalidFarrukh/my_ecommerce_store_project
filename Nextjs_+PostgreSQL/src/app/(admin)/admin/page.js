@@ -37,7 +37,8 @@ export default async function AdminPage() {
         $elemMatch: {
           stock: { $lt: 10 }
         }
-      }
+      },
+      status: "active"
     })
     .toArray();
 
