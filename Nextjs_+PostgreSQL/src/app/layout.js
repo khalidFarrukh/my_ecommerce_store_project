@@ -4,7 +4,6 @@ import "./globals.css";
 import ReduxProvider from '../providers/ReduxProvider';
 import { AppContextProvider } from "@/context/AppContext";
 import Header from "@/components/Header";
-import CustomCartBox from "@/components/smallCartBox";
 import Footer from "@/components/Footer";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CategoriesSection from "@/components/CategoriesSection";
