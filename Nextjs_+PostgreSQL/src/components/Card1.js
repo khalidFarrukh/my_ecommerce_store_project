@@ -1,6 +1,6 @@
 
 import Image from "next/image";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowUpRight, ArrowRight, Star } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { getDefaultVariantPricing } from "@/utils/productVariant";
@@ -76,48 +76,60 @@ export default function Card1({ className, productObj, id }) {
               w-full
               text-[95%]
               font-semibold
-              reverse
+              gap-2
             `}
           >
-            <div
-              className=
-              {`
-                wrap-break-words
-                w-full
-                whitespace-normal
-              `}
-            >
-              {productObj.name}
+            <div className="w-full flex flex-col gap-2">
+              <div className="w-full flex items-center gap-2">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm">4.5</span>
+              </div>
+              <div
+                className=
+                {`
+                  
+                  w-full
+                  whitespace-normal
+                  line-clamp-2
+                `}
+              >
+                {productObj.name}
+              </div>
             </div>
             <div
               className=
               {`
                 flex
                 justify-end
-                flex-wrap
                 text-right
               `}
             >
-              {
-                discount > 0 &&
+              <div className=" flex flex-col gap-2">
+
+                {
+                  discount > 0 &&
+                  <div
+                    className=
+                    {`
+                      
+                    text-nowrap                  
+                    line-through
+                    text-sm
+                  `}
+                  >
+                    Rs. {price}
+                  </div>
+                }
                 <div
                   className=
                   {`
-                    ml-3
-                    line-through
-                  `}
-                >
-                  Rs. {price}
-                </div>
-              }
-              <div
-                className=
-                {`
-                  ml-3
+
+                    text-nowrap
                   ${discount > 0 && "text-[var(--myTextColorBlue)]"}
                 `}
-              >
-                Rs. {finalPrice}
+                >
+                  Rs. {finalPrice}
+                </div>
               </div>
             </div>
 

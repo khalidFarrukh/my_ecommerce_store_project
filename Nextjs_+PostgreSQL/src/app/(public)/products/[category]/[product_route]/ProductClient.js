@@ -1,5 +1,5 @@
 "use client"
-import { ArrowUpRight, ArrowRight, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowRight, Plus, Star } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Card2 from "@/components/Card2";
@@ -255,7 +255,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                   <Link
                     key={index}
                     href={"/collections/" + collectionId}
-                    className="block"
+                    className="flex w-fit"
                   >
                     <h3 className="text-myTextColorLightGray text-base font-bold hover:text-foreground">
                       {convertDashStringToTextString(collectionId)}
@@ -271,6 +271,11 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
               <p className="w-full text-sm line-clamp-2">
                 {selected_product.description}
               </p>
+
+              <div className="w-full flex items-center gap-2">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm">4.5</span>
+              </div>
             </div>
           }
           <div
@@ -287,13 +292,13 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
               >
                 {
                   windowWidth >= 1024 &&
-                  <>
+                  <div className="space-y-3">
                     {
                       selected_product.collectionIds.map((collectionId, index) => (
                         <Link
                           key={index}
                           href={"/collections/" + collectionId}
-                          className="block"
+                          className="flex w-fit"
                         >
                           <h3 className="text-myTextColorLightGray text-base font-bold hover:text-foreground">
                             {convertDashStringToTextString(collectionId)}
@@ -302,14 +307,19 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                       ))
                     }
 
-                    < h1 className="mt-3 w-full text-4xl font-semibold">
+                    < h1 className=" w-full text-4xl font-semibold">
                       {selected_product.name}
                     </h1>
 
-                    <p className="mt-3 w-full text-sm">
+                    <p className=" w-full text-sm">
                       {selected_product.description}
                     </p>
-                  </>
+
+                    <div className="w-full flex items-center gap-2">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm">4.5</span>
+                    </div>
+                  </div>
                 }
                 <hr className="w-full mt-5 border-t border-myBorderColor" />
 
