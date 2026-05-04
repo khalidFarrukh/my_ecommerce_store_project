@@ -28,7 +28,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
 
   const minParam = Number(searchParams.get("minPrice")) || 0;
@@ -252,7 +252,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   }
 
-  if (products.length === 0) {
+  if (loading) {
     return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
       <LoadingSpinner text="Loading" />
     </div>
