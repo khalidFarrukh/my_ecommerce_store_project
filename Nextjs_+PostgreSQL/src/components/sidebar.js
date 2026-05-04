@@ -11,7 +11,7 @@ import React from "react";
 import { useSidebar } from "@/context/SidebarContext";
 
 
-export default function SideBar({ children }) {
+export default function Sidebar({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
 

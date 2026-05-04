@@ -1,8 +1,8 @@
 "use client"
 import { usePathname } from "next/navigation";
-import SideBar from "./SideBar";
 import UserSidebarContainer from "./UserSidebarContainer";
 import AdminSidebarContainer from "./admin/AdminSidebarContainer";
+import Sidebar from "./Sidebar";
 
 export default function SidebarWrapper() {
   const pathname = usePathname();
@@ -10,8 +10,8 @@ export default function SidebarWrapper() {
   const isAdmin = pathname.startsWith("/admin");
 
   return (
-    <SideBar>
+    <Sidebar>
       {isAdmin ? <AdminSidebarContainer /> : <UserSidebarContainer />}
-    </SideBar>
+    </Sidebar>
   );
 }
