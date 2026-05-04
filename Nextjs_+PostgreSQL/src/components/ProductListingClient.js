@@ -252,11 +252,11 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   }
 
-  // if (products.length === 0) {
-  //   return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
-  //     <LoadingSpinner text="Loading" />
-  //   </div>
-  // }
+  if (products.length === 0) {
+    return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading" />
+    </div>
+  }
 
   return (
     <>
