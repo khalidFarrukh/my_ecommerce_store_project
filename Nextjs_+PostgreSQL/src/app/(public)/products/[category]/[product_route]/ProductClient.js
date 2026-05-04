@@ -229,7 +229,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   const price = matchedVariant?.price
   const discount = matchedVariant?.discount ?? 0
   const finalPrice = matchedVariant
-    ? price - Math.round((price * discount) / 100)
+    ? price - Math.ceil((price * discount) / 100)
     : null
 
   // if (!selected_product) {
