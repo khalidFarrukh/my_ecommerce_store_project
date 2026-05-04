@@ -42,7 +42,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
 
   const fetchProducts = async (pageToFetch = 1) => {
-    if (!route || loading || fetchingRef.current) return;
+    if (!route || fetchingRef.current) return;
 
     fetchingRef.current = true;
     setLoading(true);
