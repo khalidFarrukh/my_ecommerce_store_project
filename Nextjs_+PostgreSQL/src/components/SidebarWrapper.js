@@ -9,6 +9,7 @@ export default function SidebarWrapper() {
 
   const isAdmin = pathname.startsWith("/admin");
 
+
   return (
     <Sidebar>
       {isAdmin ? <AdminSidebarContainer /> : <UserSidebarContainer />}
