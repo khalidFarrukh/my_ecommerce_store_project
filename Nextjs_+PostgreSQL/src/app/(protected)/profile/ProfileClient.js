@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { getSession, signOut, useSession } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
 import YesNoModal from "@/components/modals/YesNoModal";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useGlobalToast } from "@/context/GlobalToastContext";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
@@ -16,6 +16,7 @@ export default function ProfileClient() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { setToast } = useGlobalToast();
+  const searchParams = useSearchParams();
 
   const { theme, setTheme } = useTheme();
 
@@ -25,6 +26,17 @@ export default function ProfileClient() {
   useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("activeTab");
+
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+    else {
+      setActiveTab("overview")
+    }
+  }, [searchParams]);
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -99,7 +111,14 @@ export default function ProfileClient() {
           {["overview", "security", "orders", "appearance"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("activeTab", tab);
+
+                router.push(`?${params.toString()}`);
+              }}
               className={`
                 cursor-pointer
                 text-sm sm:text-base
