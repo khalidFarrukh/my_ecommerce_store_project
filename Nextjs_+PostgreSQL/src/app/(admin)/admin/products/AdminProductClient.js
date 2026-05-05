@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { Pagination } from "@/components/Pagination";
 import { useSession } from "next-auth/react";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import { StrictProductSchema } from "@/schemas/productSchema";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -266,7 +267,11 @@ export default function AdminProductsClient() {
                     ) :
 
                       draftProducts.map(product => {
-                        const issues = getAdminProductIssues(product);
+                        const result = StrictProductSchema.safeParse(product);
+                        let issues = [];
+                        if (!result.success) {
+                          issues = result.error.issues;
+                        }
                         const priceRange = getPriceRange(product.variants);
                         const stock = getTotalStock(product.variants);
 
@@ -294,8 +299,7 @@ export default function AdminProductsClient() {
                                 <span className="text-green-500">Ready</span>
                               ) : (
                                 <span className="text-yellow-500">
-                                  {issues[0]}
-                                  {issues.length > 1 && ` (+${issues.length - 1})`}
+                                  {issues.length > 10 ? "10+" : `${issues.length} left`}
                                 </span>
                               )}
                             </td>

@@ -164,7 +164,7 @@ export default function AdminCollectionsClient() {
               <LoadingSpinner text="Loading" />
             </div> :
             <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
-              <div className="w-full text-sm">
+              <div className="min-w-[700px] w-full max-w-[1154px] text-sm">
                 <div className="grid grid-cols-[250px_1fr_120px_120px_50px] border-b border-myBorderColor py-2 font-medium">
                   <div>ID</div>
                   <div>Name</div>
@@ -175,7 +175,7 @@ export default function AdminCollectionsClient() {
                 <DragDropContext onDragEnd={handleDragEnd}>
                   <Droppable droppableId="collections">
                     {(provided) => (
-                      <div ref={provided.innerRef} {...provided.droppableProps} className="scrollbar-hide overflow-y-scroll max-h-[calc(100vh-60px-24px-250px)]">
+                      <div ref={provided.innerRef} {...provided.droppableProps} className=" max-h-[calc(100vh-60px-24px-250px)]">
                         {collections.map((collection, index) => (
                           <Draggable
                             key={collection._id}

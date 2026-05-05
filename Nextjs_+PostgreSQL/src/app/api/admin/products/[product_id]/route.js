@@ -1,40 +1,7 @@
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { z } from "zod";
-
-// ==========================
-// ZOD SCHEMAS
-// ==========================
-const OptionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  value: z.string(),
-});
-
-const ImageSchema = z.object({
-  id: z.string(),
-  src: z.string().url(),
-  alt: z.string().optional(),
-});
-
-const VariantSchema = z.object({
-  id: z.string(),
-  options: z.array(OptionSchema),
-  price: z.number().nonnegative(),
-  discount: z.number().min(0).max(100),
-  stock: z.number().int().nonnegative(),
-  default: z.boolean(),
-  images: z.array(ImageSchema),
-});
-
-const ProductSchema = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string().optional(),
-  variants: z.array(VariantSchema).optional(),
-  category: z.string().optional(),
-  status: z.enum(["active", "inactive"]).optional(),
-});
+import { BaseProductSchema, StrictProductSchema } from "@/schemas/productSchema";
 
 // ==========================
 // API ROUTE
@@ -58,6 +25,7 @@ export async function PUT(req, context) {
     return Response.json({ message: "Invalid product ID" }, { status: 400 });
   }
 
+
   // ==========================
   // PARSE BODY
   // ==========================
@@ -70,25 +38,47 @@ export async function PUT(req, context) {
 
   const { _id, ...updateData } = body;
 
-  // ==========================
-  // ZOD VALIDATION
-  // ==========================
-  const parsed = ProductSchema.safeParse(updateData);
-
-  if (!parsed.success) {
-    return Response.json(
-      {
-        message: "Data Validation failed",
-
-      },
-      { status: 400 }
-    );
-  }
-
-  const safeData = parsed.data;
-
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
+
+  const dbProduct = await db.collection("products").findOne({ _id: new ObjectId(product_id) });
+
+  const from = dbProduct.status;
+  const to = updateData.status;
+
+  const shouldValidate =
+    (from === "draft" && to === "active") ||
+    (from === "active" && to === "archive");
+
+  if (from === "active" && to === "archive") {
+    const hasStock = updateData.variants?.some(v => v.stock > 0);
+
+    if (hasStock) {
+      return Response.json({
+        message: "Cannot archive product with stock remaining",
+      }, { status: 400 });
+    }
+  }
+
+  let safeData;
+
+  if (shouldValidate) {
+    const parsed = StrictProductSchema.safeParse(updateData);
+
+    if (!parsed.success) {
+      return Response.json({ message: "Validation failed" }, { status: 400 });
+    }
+
+    safeData = parsed.data;
+  } else {
+    const parsed = BaseProductSchema.partial().safeParse(updateData);
+
+    if (!parsed.success) {
+      return Response.json({ message: "Invalid Data" }, { status: 400 });
+    }
+
+    safeData = parsed.data;
+  }
 
   const session = client.startSession();
 
@@ -99,7 +89,7 @@ export async function PUT(req, context) {
       // ==========================
       // CATEGORY UPSERT (atomic)
       // ==========================
-      const categorySlug = safeData.category?.toLowerCase();
+      const categorySlug = safeData?.category?.toLowerCase();
 
       if (categorySlug) {
         await db.collection("categories").updateOne(

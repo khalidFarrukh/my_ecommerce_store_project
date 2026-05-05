@@ -14,6 +14,11 @@ import {
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useSession } from "next-auth/react";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import {
+  BaseProductSchema,
+  StrictProductSchema,
+} from "@/schemas/productSchema";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function EditProductForm({
   // session,
@@ -27,17 +32,28 @@ export default function EditProductForm({
 
   const router = useRouter();
   const variantRefs = useRef({});
-  const [errors, setErrors] = useState({});
-  const [product, setProduct] = useState(initialProduct);
+  const [isProductLoading, setIsProductLoading] = useState(false);
+  const [zodIssues, setZodIssues] = useState([]);
+
+  const [product, setProduct] = useState({
+    _id: "",
+    name: "",
+    description: "",
+    category: "",
+    collectionIds: [],
+    info: {},
+    variants: [],
+    status: "draft",
+  });
+  const [isHydrated, setIsHydrated] = useState(null);
+
   const [refsReady, setRefsReady] = useState(false);
 
   const searchParams = useSearchParams();
   const variantId = searchParams.get("variant");
 
   // --- State for category autocomplete ---
-  const [categoryQuery, setCategoryQuery] = useState(
-    capitalizeEachFirstCharOfWord(initialProduct.category) || "",
-  );
+  const [categoryQuery, setCategoryQuery] = useState("");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const filteredCategories = categories.filter((cat) =>
     cat?.name.toLowerCase().includes(categoryQuery.toLowerCase()),
@@ -47,6 +63,73 @@ export default function EditProductForm({
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false);
 
   const descriptionTextareaRef = useRef(null);
+
+  useEffect(() => {
+    if (!initialProduct?._id) return;
+    setIsProductLoading(true);
+    const key = `product_draft_${initialProduct._id}`;
+    const saved = localStorage.getItem(key);
+
+    let finalProduct = initialProduct;
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+
+        const isValid = BaseProductSchema.partial().safeParse(
+          parsed.data,
+        ).success;
+
+        if (
+          isValid &&
+          parsed.updatedAt > new Date(initialProduct.updatedAt).getTime()
+        ) {
+          finalProduct = parsed.data;
+        } else {
+          localStorage.removeItem(key);
+        }
+      } catch {
+        localStorage.removeItem(key);
+      }
+    }
+
+    setProduct(finalProduct);
+    setCategoryQuery(
+      capitalizeEachFirstCharOfWord(finalProduct.category || ""),
+    );
+    setIsHydrated(true);
+    setIsProductLoading(false);
+  }, [initialProduct?._id, initialProduct?.updatedAt]);
+
+  useEffect(() => {
+    if (!isHydrated || !product?._id) return;
+
+    const key = `product_draft_${product._id}`;
+
+    const timeout = setTimeout(() => {
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          data: product,
+          updatedAt: Date.now(),
+        }),
+      );
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [product, isHydrated]);
+
+  useEffect(() => {
+    const result = StrictProductSchema.safeParse(product);
+
+    if (!result.success) {
+      const issues = result.error.issues;
+      console.log(issues);
+      setZodIssues(issues);
+    } else {
+      setZodIssues([]);
+    }
+  }, [product]);
 
   // optional: initialize height if textarea has default value
   useEffect(() => {
@@ -236,10 +319,13 @@ export default function EditProductForm({
 
       if (!res.ok) throw new Error(data.message);
 
-      if (data.success)
+      if (data.success) {
+        const key = `product_draft_${product._id}`;
+        localStorage.removeItem(key); // ✅ ONLY NOW
         router.push(
           `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
         );
+      }
     } catch (err) {
       console.error(err);
       setTimeout(() => {
@@ -275,6 +361,24 @@ export default function EditProductForm({
     }
   }, [variantId, refsReady, product]);
 
+  const isSamePath = (a, b) => {
+    if (a.length !== b.length) return false;
+    return a.every((val, i) => val === b[i]);
+  };
+
+  const getFieldError = (path) => {
+    const issue = zodIssues.find((i) => isSamePath(i.path, path));
+    return issue?.message || "";
+  };
+
+  if (!product) {
+    return (
+      <div className="min-h-[calc(100vh-60px-80px-24px-192px)] md:min-h-[calc(100vh-60px-130px)] flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 mb-20">
       {/* Basic Info */}
@@ -285,6 +389,7 @@ export default function EditProductForm({
           id="product_name"
           label="Product Name"
           inputClassName=""
+          error={getFieldError(["name"])}
           type="text"
           value={product.name}
           onChange={(e) => updateField("name", e.target.value)}
@@ -294,6 +399,7 @@ export default function EditProductForm({
           id="description"
           label="Description"
           inputClassName=""
+          error={getFieldError(["description"])}
           value={product.description}
           rows={1}
           onChange={(e) => {
@@ -308,6 +414,7 @@ export default function EditProductForm({
               id="category"
               label="Category"
               inputClassName=""
+              error={getFieldError(["category"])}
               type="text"
               value={categoryQuery}
               onFocus={() => setShowCategoryDropdown(true)}
@@ -452,31 +559,10 @@ export default function EditProductForm({
               type="text"
               placeholder={field.placeHolder}
               value={product.info[key]}
-              error={errors[key]} // ✅ dynamic error
+              error={getFieldError(["info", key])}
               onChange={(e) => {
                 const value = e.target.value;
-
                 updateInfo(key, value);
-
-                setErrors((prev) => ({
-                  ...prev,
-                  [key]: "",
-                }));
-              }}
-              onBlur={(e) => {
-                const value = e.target.value;
-
-                if (field.regex && value && !field.regex.test(value)) {
-                  setErrors((prev) => ({
-                    ...prev,
-                    [key]: field.error,
-                  }));
-                } else {
-                  setErrors((prev) => ({
-                    ...prev,
-                    [key]: "",
-                  }));
-                }
               }}
             />
           );
@@ -487,7 +573,15 @@ export default function EditProductForm({
 
       <div className="bg-background_2 border border-myBorderColor rounded-lg p-6 flex flex-col gap-10">
         <div className="flex items-center justify-between ">
-          <h2 className="text-lg font-medium">Variants</h2>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-medium">Variants</h2>
+
+            {getFieldError(["variants"]) && (
+              <p className="text-red-500 text-xs mt-1">
+                {getFieldError(["variants"])}
+              </p>
+            )}
+          </div>
 
           <button
             onClick={addVariant}
@@ -536,12 +630,13 @@ export default function EditProductForm({
                       id="price"
                       label="Price"
                       inputClassName="pr-0!"
+                      error={getFieldError(["variants", i, "price"])}
                       type="number"
                       keepPlaceHolderAbove={true}
                       value={variant.price}
                       placeholder={""}
                       onChange={(e) =>
-                        updateVariant(i, "price", e.target.value)
+                        updateVariant(i, "price", Number(e.target.value))
                       }
                     />
 
@@ -549,11 +644,12 @@ export default function EditProductForm({
                       id="discount"
                       label="Discount"
                       inputClassName="pr-0!"
+                      error={getFieldError(["variants", i, "discount"])}
                       type="number"
                       keepPlaceHolderAbove={true}
                       value={variant.discount}
                       onChange={(e) =>
-                        updateVariant(i, "discount", e.target.value)
+                        updateVariant(i, "discount", Number(e.target.value))
                       }
                     />
 
@@ -561,11 +657,12 @@ export default function EditProductForm({
                       id="stock"
                       label="Stock"
                       inputClassName="pr-0!"
+                      error={getFieldError(["variants", i, "stock"])}
                       type="number"
                       keepPlaceHolderAbove={true}
                       value={variant.stock}
                       onChange={(e) =>
-                        updateVariant(i, "stock", e.target.value)
+                        updateVariant(i, "stock", Number(e.target.value))
                       }
                     />
                   </div>
@@ -574,7 +671,15 @@ export default function EditProductForm({
 
                   <div className="bg-background_2 border border-myBorderColor rounded-lg p-4 flex flex-col gap-10">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm">Options</p>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-sm">Options</p>
+
+                        {getFieldError(["variants", i, "options"]) && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {getFieldError(["variants", i, "options"])}
+                          </p>
+                        )}
+                      </div>
 
                       <button
                         onClick={() => addOption(i)}
@@ -614,6 +719,13 @@ export default function EditProductForm({
                                 label="Option Name"
                                 className="w-1/2!"
                                 inputClassName=""
+                                error={getFieldError([
+                                  "variants",
+                                  i,
+                                  "options",
+                                  optionIndex,
+                                  "name",
+                                ])}
                                 type="text"
                                 value={option.name}
                                 onChange={(e) =>
@@ -631,6 +743,13 @@ export default function EditProductForm({
                                 label="Option Value"
                                 className="w-1/2!"
                                 inputClassName=""
+                                error={getFieldError([
+                                  "variants",
+                                  i,
+                                  "options",
+                                  optionIndex,
+                                  "value",
+                                ])}
                                 type="text"
                                 value={option.value}
                                 onChange={(e) =>
@@ -653,7 +772,15 @@ export default function EditProductForm({
 
                   <div className="bg-background_2 border border-myBorderColor rounded-lg p-4 flex flex-col gap-10">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm">Images</p>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-sm">Images</p>
+
+                        {getFieldError(["variants", i, "images"]) && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {getFieldError(["variants", i, "images"])}
+                          </p>
+                        )}
+                      </div>
 
                       <button
                         onClick={() => addImage(i)}
@@ -692,6 +819,13 @@ export default function EditProductForm({
                               id={`image_src_${img.id}`}
                               label="Image URL"
                               inputClassName=""
+                              error={getFieldError([
+                                "variants",
+                                i,
+                                "images",
+                                imgIndex,
+                                "src",
+                              ])}
                               type="text"
                               value={img.src}
                               onChange={(e) =>
@@ -703,6 +837,13 @@ export default function EditProductForm({
                               id={`image_alt_${img.id}`}
                               label="Alt Text"
                               inputClassName=""
+                              error={getFieldError([
+                                "variants",
+                                i,
+                                "images",
+                                imgIndex,
+                                "alt",
+                              ])}
                               type="text"
                               value={img.alt}
                               onChange={(e) =>
@@ -734,32 +875,6 @@ export default function EditProductForm({
           </div>
         )}
       </div>
-      {/* Status Section
-      <div className="bg-background_2 border border-myBorderColor rounded-lg p-6 flex justify-between items-center">
-        <h2 className="text-lg font-medium">Status</h2>
-        <div className="relative w-48 bg-background_3">
-          <select
-            value={product.status}
-            onChange={(e) => updateField("status", e.target.value)}
-            className="
-              input1!
-              w-full
-              cursor-pointer
-              bg-background_3
-              px-4
-              py-2
-            "
-          >
-            <option value="draft">Draft</option>
-            {product.status === "draft" && (
-              <option value="active">Active</option>
-            )}
-            {product.status === "active" && (
-              <option value="archive">Archive</option>
-            )}
-          </select>
-        </div>
-      </div> */}
 
       <div className="flex gap-3">
         {/* Update or Save button */}
@@ -772,7 +887,9 @@ export default function EditProductForm({
 
         {/* Activate button */}
         {product.status === "draft" &&
-          getAdminProductIssues(product).length === 0 && ( // if issues exist then don't show the activate button
+          zodIssues.length === 0 &&
+          product.variants.some((v) => v.stock > 0) && (
+            // if issues exist then don't show the activate button
             <button
               onClick={() => {
                 updateField("status", "active");
@@ -785,17 +902,18 @@ export default function EditProductForm({
           )}
 
         {/* Archive button */}
-        {product.status === "active" && (
-          <button
-            onClick={() => {
-              updateField("status", "archive");
-              handleSubmit();
-            }}
-            className="button1 px-6 py-2 cursor-pointer"
-          >
-            Archive
-          </button>
-        )}
+        {product.status === "active" &&
+          !product.variants.some((v) => v.stock > 0) && (
+            <button
+              onClick={() => {
+                updateField("status", "archive");
+                handleSubmit();
+              }}
+              className="button1 px-6 py-2 cursor-pointer"
+            >
+              Archive
+            </button>
+          )}
       </div>
     </div>
   );

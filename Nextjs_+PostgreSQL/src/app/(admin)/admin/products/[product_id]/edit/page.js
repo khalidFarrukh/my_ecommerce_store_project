@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 export default async function EditProductPage({ params }) {
   // const session = await auth();
 
-  
+
   // if (!session) {
   //   redirect("/signIn?callbackUrl=/admin");
   // }
@@ -36,7 +36,6 @@ export default async function EditProductPage({ params }) {
     _id: product._id.toString(),
   };
 
-  console.log("formattedProduct -> ", formattedProduct);
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,7 @@ export default function FloatingTextArea({
   label,
   className = "",
   inputClassName = "",
+  error = "",
   ...inputprops
 }) {
   const [focused, setFocused] = useState(false);
@@ -12,10 +13,11 @@ export default function FloatingTextArea({
   const hasValue = inputprops.value && inputprops.value !== "";
 
   return (
-    <div className={`relative w-full ${className}`}>
-      <textarea
-        id={id}
-        className={`
+    <div className={`w-full space-y-1 ${className}`}>
+      <div className={`relative w-full`}>
+        <textarea
+          id={id}
+          className={`
             w-full  
             px-4
             pt-6
@@ -25,26 +27,25 @@ export default function FloatingTextArea({
             border-myBorderColor
             rounded-md
             outline-none
-            focus:border-foreground/20
-            focus:ring-2
-            focus:ring-foreground/20
             resize-none overflow-hidden
+            ${error ? "border-red-500 focus:ring-red-500" : "focus:border-foreground/20 focus:ring-foreground/20"}
+
             ${inputClassName}
           `}
-        {...inputprops}
-        onFocus={(e) => {
-          setFocused(true);
-          inputprops.onFocus?.(e); // call parent onFocus
-        }}
-        onBlur={(e) => {
-          setFocused(false);
-          inputprops.onBlur?.(e); // call parent onBlur
-        }}
-      />
+          {...inputprops}
+          onFocus={(e) => {
+            setFocused(true);
+            inputprops.onFocus?.(e); // call parent onFocus
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            inputprops.onBlur?.(e); // call parent onBlur
+          }}
+        />
 
-      <label
-        htmlFor={id}
-        className={`
+        <label
+          htmlFor={id}
+          className={`
           z-1
           absolute
           w-full
@@ -58,10 +59,12 @@ export default function FloatingTextArea({
               : "top-11 -translate-y-7 text-md text-myTextColorMain/50"
           }
         `}
-      >
-        {label}
-        {inputprops.required && <span className="text-red-500"> *</span>}
-      </label>
+        >
+          {label}
+          {inputprops.required && <span className="text-red-500"> *</span>}
+        </label>
+      </div>
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
   );
 }
