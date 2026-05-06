@@ -261,7 +261,7 @@ export default function AdminProductsClient() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries(["admin-products"]);
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
     },
     onError: (err) => {
       setToast({
