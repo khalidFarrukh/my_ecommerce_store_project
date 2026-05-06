@@ -31,36 +31,20 @@ export default function HomePage({ collections }) {
   }, [searchParams, router]);
   return (
     <>
-      <div
-        classcategory=
-        {`
-          z-[1]
-          relative
-          w-full
-          bg-white
-          my-5
-          flex
-          flex-col
-          items-center
-        `}
-      >
-        <div className=
-          {`
-            mt-6
-            lg:mt-12
-          `} />
+      <div className="mt-6 lg:mt-12">
         {
           collections.map((collection, index) => {
 
             if (Boolean(!collection?.turnedoff && (collection?.hasProducts || collection?.slug === "all-products"))) {
               // console.log()
               return (
-                <HomeMainSection key={index} collection_name={collection.name} collection_slug={collection.slug} />
+                <HomeMainSection key={index} collection={collection} />
               )
             }
           })
         }
       </div>
+
     </>
   )
 }

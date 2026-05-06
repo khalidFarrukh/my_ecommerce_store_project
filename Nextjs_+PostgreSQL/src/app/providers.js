@@ -13,6 +13,7 @@ import { CategoriesContextProvider } from "@/context/CategoriesContext";
 import { GlobalToastProvider } from "@/context/GlobalToastContext";
 import { SessionExpiryProvider } from "@/context/SessionExpiryContext";
 import { SidebarProvider } from "@/context/SidebarContext";
+import { ReactQueryProvider } from "@/context/ReactQueryContext";
 
 export function Providers({ children, session }) {
   return (
@@ -22,28 +23,30 @@ export function Providers({ children, session }) {
     >
       {/* <SessionExpiryProvider> */}
       <ThemeProvider>
-        <ReduxProvider>
-          <SidebarProvider>
-            <AppContextProvider>
-              <GlobalToastProvider>
-                <CategoriesContextProvider>
-                  <SearchModalProvider>
-                    <AlertModalProvider>
-                      <CartButtonProvider>
-                        <ProductPageProvider>
-                          <WindowSizeProvider>
+        <ReactQueryProvider>
+          <ReduxProvider>
+            <SidebarProvider>
+              <AppContextProvider>
+                <GlobalToastProvider>
+                  <CategoriesContextProvider>
+                    <SearchModalProvider>
+                      <AlertModalProvider>
+                        <CartButtonProvider>
+                          <ProductPageProvider>
+                            <WindowSizeProvider>
 
-                            {children}
-                          </WindowSizeProvider>
-                        </ProductPageProvider>
-                      </CartButtonProvider>
-                    </AlertModalProvider>
-                  </SearchModalProvider>
-                </CategoriesContextProvider>
-              </GlobalToastProvider>
-            </AppContextProvider>
-          </SidebarProvider>
-        </ReduxProvider>
+                              {children}
+                            </WindowSizeProvider>
+                          </ProductPageProvider>
+                        </CartButtonProvider>
+                      </AlertModalProvider>
+                    </SearchModalProvider>
+                  </CategoriesContextProvider>
+                </GlobalToastProvider>
+              </AppContextProvider>
+            </SidebarProvider>
+          </ReduxProvider>
+        </ReactQueryProvider>
       </ThemeProvider>
       {/* </SessionExpiryProvider> */}
     </SessionProvider>

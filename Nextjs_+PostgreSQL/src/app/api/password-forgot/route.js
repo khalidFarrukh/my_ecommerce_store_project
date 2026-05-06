@@ -36,12 +36,12 @@ export async function POST(req) {
 
     // 📩 Send Email
     await transporter.sendMail({
-      from: `"JinStore Support" <${process.env.EMAIL_FROM}>`,
+      from: `${process.env.BRAND_NAME}" Support" <${process.env.EMAIL_FROM}>`,
       to: email,
       subject: "Password Reset Request",
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-          <h2>JinStore Password Reset</h2>
+          <h2>${process.env.BRAND_NAME} Password Reset</h2>
           <p>You requested to reset your password.</p>
           <p>Click the button below to reset it:</p>
           <a 

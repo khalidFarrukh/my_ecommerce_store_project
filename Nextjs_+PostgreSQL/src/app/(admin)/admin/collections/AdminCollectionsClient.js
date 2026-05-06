@@ -16,6 +16,7 @@ import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function AdminCollectionsClient() {
   const router = useRouter();
@@ -23,56 +24,119 @@ export default function AdminCollectionsClient() {
 
   const { data: session } = useSession();
   const { setToast } = useGlobalToast();
-  const [collections, setCollections] = useState([]);
+  // const [collections, setCollections] = useState([]);
 
-  const [loadingCollections, setLoadingCollections] = useState(true);
+  // const [loadingCollections, setLoadingCollections] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
-  const fetchCollections = async () => {
-    try {
-      setLoadingCollections(true);
+  // const fetchCollections = async () => {
+  //   try {
+  //     setLoadingCollections(true);
+  //     const res = await fetch("/api/admin/collections");
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message);
+
+  //     setCollections(data.data || []);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setTimeout(() => {
+  //       setToast({
+  //         id: Date.now(),
+  //         message: err.message,
+  //         type: "error"
+  //       });
+  //     }, 0);
+
+  //   } finally {
+  //     setLoadingCollections(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchCollections();
+  // }, []);
+
+  const { data: collections, isLoading: loadingCollections } = useQuery({
+    queryKey: ["collections"],
+    queryFn: async () => {
       const res = await fetch("/api/admin/collections");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+      return data.data || [];
+    },
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const toggleMutation = useMutation({
+    mutationFn: async (collection) => {
+      const res = await fetch(`/api/admin/collections/${collection._id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          ...collection,
+          turnedoff: !collection.turnedoff,
+        }),
+      });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
 
-      setCollections(data.data || []);
-    } catch (err) {
-      console.error(err);
-      setTimeout(() => {
-        setToast({
-          id: Date.now(),
-          message: err.message,
-          type: "error"
-        });
-      }, 0);
+      if (!res.ok) throw new Error(data.message || "Failed to update");
+    },
 
-    } finally {
-      setLoadingCollections(false);
-    }
-  };
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+    },
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
 
-  useEffect(() => {
-    fetchCollections();
-  }, []);
 
-  const toggleTurnedOff = async (collection) => {
-    const res = await fetch(`/api/admin/collections/${collection._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...collection,
-        turnedoff: !collection.turnedoff,
-      }),
-    });
-    if (res.ok) fetchCollections();
-  };
+  // useEffect(() => {
+  //   console.log("Collections updated:", collections);
+  // }, [collections]);
 
-  useEffect(() => {
-    console.log("Collections updated:", collections);
-  }, [collections]);
+  const reorderMutation = useMutation({
+    mutationFn: async (updated) => {
+      await fetch("/api/admin/collections/reorder", {
+        method: "PUT",
+        body: JSON.stringify(updated.map(({ _id, orderNo }) => ({ _id, orderNo }))),
+      });
+    },
 
-  const handleDragEnd = async (result) => {
+    onMutate: async (updated) => {
+      await queryClient.cancelQueries({ queryKey: ["collections"] });
+
+      const previous = queryClient.getQueryData(["collections"]);
+
+      queryClient.setQueryData(["collections"], updated);
+
+      return { previous };
+    },
+
+    onError: (err, _, context) => {
+      queryClient.setQueryData(["collections"], context.previous);
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+    },
+  });
+
+  const handleDragEnd = (result) => {
     if (!result.destination) return;
 
     const items = Array.from(collections);
@@ -84,16 +148,7 @@ export default function AdminCollectionsClient() {
       orderNo: index + 1,
     }));
 
-    setCollections(updated);
-
-    // 🔥 persist to backend
-    await fetch("/api/admin/collections/reorder", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        updated.map(({ _id, orderNo }) => ({ _id, orderNo }))
-      ),
-    });
+    reorderMutation.mutate(updated);
   };
 
   return (
@@ -199,10 +254,14 @@ export default function AdminCollectionsClient() {
 
 
                                 {/* ID */}
-                                <div className="truncate">{collection._id}</div>
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className=" truncate">{collection._id}</div>
 
                                 {/* Name */}
-                                <div className="truncate">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="truncate">
                                   {collection.name || "Untitled"}
                                 </div>
 
@@ -212,7 +271,7 @@ export default function AdminCollectionsClient() {
                                     width={44}
                                     height={24}
                                     checked={!collection.turnedoff}
-                                    onChange={() => toggleTurnedOff(collection)}
+                                    onChange={() => toggleMutation.mutate(collection)}
                                   />
                                 </div>
 

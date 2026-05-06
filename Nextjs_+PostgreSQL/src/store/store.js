@@ -16,7 +16,7 @@ const rootReducer = combineReducers({
 });
 
 const persistConfig = {
-  key: 'JinStoreData',
+  key: 'FKStoreData',
   storage,
 };
 

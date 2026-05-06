@@ -14,8 +14,8 @@ export function getVariantPricing(variant) {
 
   const price = variant?.price ?? 0;
   const discount = variant?.discount ?? 0;
-
-  const finalPrice = Math.ceil(price - (price * discount) / 100);
+  const rawFinalPrice = price - ((price * discount) / 100);
+  const finalPrice = Math.ceil(rawFinalPrice);
 
   return {
     variant,

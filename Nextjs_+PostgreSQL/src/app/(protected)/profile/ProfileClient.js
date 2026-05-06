@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useGlobalToast } from "@/context/GlobalToastContext";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ProfileClient() {
   const router = useRouter();
@@ -19,8 +20,6 @@ export default function ProfileClient() {
   const searchParams = useSearchParams();
 
   const { theme, setTheme } = useTheme();
-
-  console.log("session: ", session, "  ->  ", status);
 
   // Persist theme when changed
   useEffect(() => {
@@ -38,46 +37,74 @@ export default function ProfileClient() {
     }
   }, [searchParams]);
 
-  const [orders, setOrders] = useState([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
+  // const [orders, setOrders] = useState([]);
+  // const [loadingOrders, setLoadingOrders] = useState(false);
 
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ["orders", session?.user?.email],
+    queryFn: async () => {
+      const res = await fetch("/api/orders/my-orders", {
+        credentials: "include",
+      });
 
-  useEffect(() => {
-    if (activeTab !== "orders") return;
+      const resultJson = await res.json();
 
-    const fetchOrders = async () => {
-      try {
-        setLoadingOrders(true);
-
-        const res = await fetch("/api/orders/my-orders", {
-          credentials: "include",
-        });
-
-        const resultJson = await res.json();
-
-        if (!res.ok) {
-          setOrders([]);
-          throw new Error(resultJson.message)
-        }
-
-        setOrders(resultJson.data || []);
-      } catch (err) {
-        console.error(err);
-        setOrders([]);
-        setTimeout(() => {
-          setToast({
-            id: Date.now(),
-            message: err.message,
-            type: "error"
-          });
-        }, 0)
-      } finally {
-        setLoadingOrders(false);
+      if (!res.ok) {
+        throw new Error(resultJson.message || "Failed to fetch orders");
       }
-    };
 
-    fetchOrders();
-  }, [activeTab]);
+      return resultJson.data; // 🔥 return only data
+    },
+
+    enabled: activeTab === "orders" && status === "authenticated",
+
+    onError: (err) => {
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error",
+        });
+      }, 0);
+    },
+  });
+
+  // useEffect(() => {
+  //   if (activeTab !== "orders") return;
+
+  //   const fetchOrders = async () => {
+  //     try {
+  //       setLoadingOrders(true);
+
+  //       const res = await fetch("/api/orders/my-orders", {
+  //         credentials: "include",
+  //       });
+
+  //       const resultJson = await res.json();
+
+  //       if (!res.ok) {
+  //         setOrders([]);
+  //         throw new Error(resultJson.message)
+  //       }
+
+  //       setOrders(resultJson.data || []);
+  //     } catch (err) {
+  //       console.error(err);
+  //       setOrders([]);
+  //       setTimeout(() => {
+  //         setToast({
+  //           id: Date.now(),
+  //           message: err.message,
+  //           type: "error"
+  //         });
+  //       }, 0)
+  //     } finally {
+  //       setLoadingOrders(false);
+  //     }
+  //   };
+
+  //   fetchOrders();
+  // }, [activeTab]);
 
   return (
     <>

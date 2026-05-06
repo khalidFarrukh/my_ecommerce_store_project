@@ -32,7 +32,6 @@ export default function EditProductForm({
 
   const router = useRouter();
   const variantRefs = useRef({});
-  const [isProductLoading, setIsProductLoading] = useState(false);
   const [zodIssues, setZodIssues] = useState([]);
 
   const [product, setProduct] = useState({
@@ -66,7 +65,6 @@ export default function EditProductForm({
 
   useEffect(() => {
     if (!initialProduct?._id) return;
-    setIsProductLoading(true);
     const key = `product_draft_${initialProduct._id}`;
     const saved = localStorage.getItem(key);
 
@@ -98,7 +96,6 @@ export default function EditProductForm({
       capitalizeEachFirstCharOfWord(finalProduct.category || ""),
     );
     setIsHydrated(true);
-    setIsProductLoading(false);
   }, [initialProduct?._id, initialProduct?.updatedAt]);
 
   useEffect(() => {
@@ -124,7 +121,6 @@ export default function EditProductForm({
 
     if (!result.success) {
       const issues = result.error.issues;
-      console.log(issues);
       setZodIssues(issues);
     } else {
       setZodIssues([]);

@@ -10,7 +10,7 @@ export default async function Page({ params }) {
   // 1️⃣ Fetch selected product
   const productRes = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${category}/${product_route}`,
-    // { cache: "no-store" }
+    { cache: "no-store" }
   );
 
   if (!productRes.ok) {
@@ -24,7 +24,7 @@ export default async function Page({ params }) {
   if (selectedProduct?._id !== null) {
     const relatedRes = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${selectedProduct.category}/related_products?offset=0&limit=4&exclude=${selectedProduct._id}`,
-      // { cache: "no-store" }
+      { cache: "no-store" }
     );
 
     const relatedJson = await relatedRes.json();

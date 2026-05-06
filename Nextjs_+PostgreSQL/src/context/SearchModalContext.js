@@ -4,7 +4,6 @@ import { createContext, useContext, useReducer } from "react";
 
 const initialState = {
   isOpen: false,
-  searchedProducts: {}, // { query: [products] }
 };
 
 function searchModalReducer(state, action) {
@@ -15,14 +14,6 @@ function searchModalReducer(state, action) {
       return { ...state, isOpen: false };
     case "TOGGLE":
       return { ...state, isOpen: !state.isOpen };
-    case "SET_SEARCHED_PRODUCTS":
-      return {
-        ...state,
-        searchedProducts: {
-          ...state.searchedProducts,
-          [action.query]: action.products,
-        },
-      };
     default:
       return state;
   }
@@ -36,16 +27,11 @@ export function SearchModalProvider({ children }) {
   const openSearchModal = () => dispatch({ type: "OPEN" });
   const closeSearchModal = () => dispatch({ type: "CLOSE" });
   const toggleSearchModal = () => dispatch({ type: "TOGGLE" });
-  const setSearchedProducts = (query, products) =>
-    dispatch({ type: "SET_SEARCHED_PRODUCTS", query, products });
-
   const value = {
     isOpen: state.isOpen,
-    searchedProducts: state.searchedProducts,
     openSearchModal,
     closeSearchModal,
     toggleSearchModal,
-    setSearchedProducts,
   };
 
   return (

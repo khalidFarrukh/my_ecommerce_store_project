@@ -10,34 +10,35 @@ import CancelOrderButton from "@/components/orders/CancelOrderButton";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function AdminOrdersClient() {
   // const { sessionData: session } = useSessionExpiry();
   const { data: session } = useSession();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [orders, setOrders] = useState([]);
+  // const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [cancelingOrder, setCancelingOrder] = useState(false);
   const { setToast } = useGlobalToast();
 
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch("/api/admin/orders");
-      const data = await res.json();
+  // const fetchOrders = async () => {
+  //   try {
+  //     const res = await fetch("/api/admin/orders");
+  //     const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message);
+  //     if (!res.ok) throw new Error(data.message);
 
-      setOrders(data.data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setOrders(data.data || []);
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  // useEffect(() => {
+  //   fetchOrders();
+  // }, []);
 
   const updateStatus = async (orderId, status) => {
     await fetch(`/api/admin/orders/${orderId}`, {
@@ -49,6 +50,87 @@ export default function AdminOrdersClient() {
     fetchOrders();
   };
 
+  const queryClient = useQueryClient();
+
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ["admin-orders"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/orders");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      return data.data || [];
+    },
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }) => {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      return data;
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
+
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const res = await fetch("/api/orders/cancel", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      return data;
+    },
+
+    onSuccess: () => {
+      setToast({
+        id: Date.now(),
+        message: "Order cancelled successfully",
+        type: "info",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
+
   return (
     <div className="space-y-6 min-h-[1000px]">
       <AdminTabContentHeader
@@ -59,7 +141,7 @@ export default function AdminOrdersClient() {
         <h2 className="text-lg font-medium">All Orders</h2>
 
         {
-          loading ?
+          isLoading ?
             <div className=" flex items-center justify-center">
               <LoadingSpinner text="Loading" />
             </div>
@@ -68,13 +150,13 @@ export default function AdminOrdersClient() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-myBorderColor text-left">
-                    <th className="py-2">Order ID</th>
-                    <th className="text-center bg-background_3">User</th>
-                    <th className="text-center">Total</th>
-                    <th className="text-center bg-background_3">Set status</th>
-                    <th className="text-center ">Status</th>
-                    <th className="text-center bg-background_3">Payment</th>
-                    <th className="text-center px-2">Actions</th>
+                    <th className="pr-2 py-2 text-nowrap">Order ID</th>
+                    <th className="px-2 text-center bg-background_3">User</th>
+                    <th className="px-2 text-center">Total</th>
+                    <th className="px-2 text-center bg-background_3 text-nowrap">Set status</th>
+                    <th className="px-2 text-center ">Status</th>
+                    <th className="px-2 text-center bg-background_3">Payment</th>
+                    <th className="px-2 text-center">Actions</th>
                   </tr>
                 </thead>
 
@@ -101,61 +183,34 @@ export default function AdminOrdersClient() {
                           {order.status === "pending" &&
                             <div className="flex gap-4 flex-nowrap w-full items-center justify-center">
                               <button
-                                disabled={loading}
-                                onClick={() => updateStatus(order._id, "confirmed")}
-                                className={`px-3 py-1 button1 text-sm !rounded-md cursor-pointer`}
+                                disabled={isLoading}
+                                onClick={() =>
+                                  updateStatusMutation.mutate({
+                                    orderId: order._id,
+                                    status: "confirmed",
+                                  })
+                                }
+                                className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
                               >
                                 Confirm
                               </button>
                               <CancelOrderButton
                                 cancelingOrder={cancelingOrder}
-                                handleCancel={
-                                  async () => {
-                                    try {
-                                      setCancelingOrder(true);
-                                      const orderId = order._id;
-                                      const res = await fetch("/api/orders/cancel", {
-                                        method: "PATCH",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ orderId }),
-                                      });
-
-                                      const data = await res.json();
-
-                                      if (!res.ok) {
-                                        throw new Error(data.message);
-                                      }
-
-                                      setTimeout(() => {
-                                        setToast({
-                                          id: Date.now(),
-                                          message: "Order cancelled successfully",
-                                          type: "info"
-                                        });
-                                      }, 0)
-
-                                      router.refresh(); // 🔥 re-fetch server data
-                                    } catch (err) {
-                                      setTimeout(() => {
-                                        setToast({
-                                          id: Date.now(),
-                                          message: err.message || "Failed to cancel order",
-                                          type: "error"
-                                        });
-                                      }, 0)
-                                    } finally {
-                                      setCancelingOrder(false);
-                                    }
-                                  }
-                                } />
+                                handleCancel={() => cancelOrderMutation.mutate(order._id)}
+                              />
                             </div>
                           }
 
                           {order.status === "confirmed" &&
                             <button
-                              disabled={loading}
-                              onClick={() => updateStatus(order._id, "processing")}
-                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              disabled={isLoading}
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  orderId: order._id,
+                                  status: "processing",
+                                })
+                              }
+                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
                             >
                               Start packing order
                             </button>
@@ -163,9 +218,14 @@ export default function AdminOrdersClient() {
 
                           {order.status === "processing" &&
                             <button
-                              disabled={loading}
-                              onClick={() => updateStatus(order._id, "packed")}
-                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              disabled={isLoading}
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  orderId: order._id,
+                                  status: "packed",
+                                })
+                              }
+                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
                             >
                               Order packed
                             </button>
@@ -173,9 +233,14 @@ export default function AdminOrdersClient() {
 
                           {order.status === "packed" &&
                             <button
-                              disabled={loading}
-                              onClick={() => updateStatus(order._id, "shipped")}
-                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              disabled={isLoading}
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  orderId: order._id,
+                                  status: "shipped",
+                                })
+                              }
+                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
                             >
                               Shipped
                             </button>
@@ -184,9 +249,14 @@ export default function AdminOrdersClient() {
                           {order.status === "shipped" &&
 
                             <button
-                              disabled={loading}
-                              onClick={() => updateStatus(order._id, "delivered")}
-                              className={`p-1 bg-background_2 border border-myBorderColor text-sm cursor-pointer`}
+                              disabled={isLoading}
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  orderId: order._id,
+                                  status: "delivered",
+                                })
+                              }
+                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
                             >
                               Delivered
                             </button>

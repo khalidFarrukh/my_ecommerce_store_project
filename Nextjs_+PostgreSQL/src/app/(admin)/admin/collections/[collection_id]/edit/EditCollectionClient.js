@@ -111,7 +111,7 @@ export default function EditCollectionClient({ collection: initialCollection }) 
             label="Collection Name"
             inputClassName="input!"
             type="text"
-            value={capitalizeEachFirstCharOfWord(collection.name) || "" || ""}
+            value={capitalizeEachFirstCharOfWord(collection.name) || ""}
             onChange={(e) => updateField("name", capitalizeEachFirstCharOfWord(e.target.value))}
           />
         </div>

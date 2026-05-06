@@ -4,6 +4,7 @@ import { useState } from "react";
 import FloatingInput from "@/components/FloatingInput";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useGlobalToast } from "@/context/GlobalToastContext";
 
 export default function ForgotPasswordForm() {
   const router = useRouter();

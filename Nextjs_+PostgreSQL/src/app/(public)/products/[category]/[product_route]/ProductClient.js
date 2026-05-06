@@ -225,12 +225,14 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
     }
   };
 
-
   const price = matchedVariant?.price
   const discount = matchedVariant?.discount ?? 0
-  const finalPrice = matchedVariant
-    ? price - Math.ceil((price * discount) / 100)
-    : null
+  const rawFinalPrice = matchedVariant
+    ? price - ((price * discount) / 100)
+    : 0
+  const finalPrice = Math.ceil(rawFinalPrice);
+
+
 
   // if (!selected_product) {
   //   return (
@@ -264,17 +266,21 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                 ))
               }
 
-              < h1 className="w-full text-4xl font-semibold">
-                {selected_product.name}
-              </h1>
+              <div className="flex gap-4 justify-between">
 
-              <p className="w-full text-sm line-clamp-2">
-                {selected_product.description}
-              </p>
+                <div className="space-y-3">
+                  < h1 className=" w-full text-4xl font-semibold">
+                    {selected_product.name}
+                  </h1>
 
-              <div className="w-full flex items-center gap-2">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm">4.5</span>
+                  <p className=" w-full text-sm">
+                    {selected_product.description}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Star className="md:size-8 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm md:text-xl">4.5</span>
+                </div>
               </div>
             </div>
           }
@@ -306,19 +312,23 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                         </Link>
                       ))
                     }
+                    <div className="flex gap-4 justify-between">
 
-                    < h1 className=" w-full text-4xl font-semibold">
-                      {selected_product.name}
-                    </h1>
+                      <div className="space-y-3">
+                        < h1 className=" w-full text-4xl font-semibold">
+                          {selected_product.name}
+                        </h1>
 
-                    <p className=" w-full text-sm">
-                      {selected_product.description}
-                    </p>
-
-                    <div className="w-full flex items-center gap-2">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">4.5</span>
+                        <p className=" w-full text-sm">
+                          {selected_product.description}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <Star className="size-6 xl:size-8 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm xl:text-base">4.5</span>
+                      </div>
                     </div>
+
                   </div>
                 }
                 <hr className="w-full mt-5 border-t border-myBorderColor" />
@@ -492,68 +502,70 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                     </div>
                   )}
 
-                  {matchedVariant ? (
-                    <div
-                      className={`
-                            w-full flex flex-col gap-5
-                          `}
-                    >
+                  {
+
+                    matchedVariant ? (
                       <div
                         className={`
+                            w-full flex flex-col gap-5
+                          `}
+                      >
+                        <div
+                          className={`
                               w-full
                               flex
                               items-center
                             `}
-                      >
-                        {discount > 0 && (
-                          <div className="line-through">Rs. {price}</div>
-                        )}
-                        <div className="ml-3 font-bold text-2xl">
-                          Rs. {finalPrice}.00
-                        </div>
-                      </div>
-
-                      {/* Quantity Selector */}
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold">Quantity</p>
-
-                        <div className="flex items-center overflow-hidden">
-                          <button
-                            onClick={decreaseQty}
-                            disabled={selected_quantity === 1}
-                            className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            -
-                          </button>
-
-                          <div className="px-4 bg-background_1">
-                            {selected_quantity}
+                        >
+                          {discount > 0 && (
+                            <div className="line-through">Rs. {price}</div>
+                          )}
+                          <div className="ml-3 font-bold text-2xl">
+                            Rs. {finalPrice}
                           </div>
-
-                          <button
-                            onClick={increaseQty}
-                            disabled={selected_quantity === 3}
-                            className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            +
-                          </button>
                         </div>
+
+                        {/* Quantity Selector */}
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold">Quantity</p>
+
+                          <div className="flex items-center overflow-hidden">
+                            <button
+                              onClick={decreaseQty}
+                              disabled={selected_quantity === 1}
+                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              -
+                            </button>
+
+                            <div className="px-4 bg-background_1">
+                              {selected_quantity}
+                            </div>
+
+                            <button
+                              onClick={increaseQty}
+                              disabled={selected_quantity === 3}
+                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* CTA */}
+                        <button
+                          onClick={handleAddToCart}
+                          className="w-full h-9 border button1 cursor-pointer rounded-md"
+                        >
+                          Add to Cart
+                        </button>
+
                       </div>
-
-                      {/* CTA */}
-                      <button
-                        onClick={handleAddToCart}
-                        className="w-full h-9 border button1 cursor-pointer rounded-md"
-                      >
-                        Add to Cart
-                      </button>
-
-                    </div>
-                  ) : (
-                    <div className="w-full h-9 bg-background_2 text-(--myTextColorLightGray) flex items-center justify-center cursor-not-allowed rounded-md">
-                      Out of stock
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-9 bg-background_2 text-(--myTextColorLightGray) flex items-center justify-center cursor-not-allowed rounded-md">
+                        Out of stock
+                      </div>
+                    )}
 
                 </div>
               </div>

@@ -1,137 +1,146 @@
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(req, context) {
-  const { slug } = await context.params;
-  const url = new URL(req.url);
+  try {
+    const { slug } = await context.params;
+    const url = new URL(req.url);
 
-  const type = url.searchParams.get("type") || "collection";
+    const type = url.searchParams.get("type") || "collection";
 
-  const minPrice = parseFloat(url.searchParams.get("minPrice") || "0");
-  const maxPrice = parseFloat(url.searchParams.get("maxPrice") || "Infinity");
+    const minPrice = Number(url.searchParams.get("minPrice") || "0");
+    const maxPriceParam = url.searchParams.get("maxPrice");
 
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = parseInt(url.searchParams.get("limit") || "10");
+    const maxPrice =
+      maxPriceParam && maxPriceParam !== "Infinity"
+        ? Number(maxPriceParam)
+        : Number.MAX_SAFE_INTEGER;
 
-  const skip = (page - 1) * limit;
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
 
-  let matchStage = { status: "active" };
+    const skip = (page - 1) * limit;
 
-  if (type === "collection") {
-    if (slug !== "all-products") {
-      matchStage.collectionIds = slug;
+    let matchStage = { status: "active" };
+
+    if (type === "collection") {
+      if (slug !== "all-products") {
+        matchStage.collectionIds = slug;
+      }
+    } else if (type === "category") {
+      matchStage.category = slug;
     }
-  } else if (type === "category") {
-    matchStage.category = slug;
-  }
 
-  const client = await clientPromise;
-  const db = client.db("my_ecommerce_db");
+    const client = await clientPromise;
+    const db = client.db("my_ecommerce_db");
 
-  const result = await db.collection("products").aggregate([
-    { $match: matchStage },
-    { $unwind: "$variants" },
+    const result = await db.collection("products").aggregate([
+      { $match: matchStage },
+      { $unwind: "$variants" },
 
-    // ✅ NO conversion needed anymore
-    {
-      $addFields: {
-        finalPrice: {
-          $ceil: {
-            $subtract: [
-              "$variants.price",
-              {
-                $multiply: [
-                  "$variants.price",
-                  { $divide: ["$variants.discount", 100] }
-                ]
-              }
-            ]
+      // ✅ NO conversion needed anymore
+      {
+        $addFields: {
+          finalPrice: {
+            $ceil: {
+              $subtract: [
+                "$variants.price",
+                {
+                  $multiply: [
+                    "$variants.price",
+                    { $divide: ["$variants.discount", 100] }
+                  ]
+                }
+              ]
+            }
           }
         }
-      }
-    },
+      },
+      {
+        $facet: {
+          products: [
+            {
+              $match: {
+                finalPrice: { $gte: minPrice, $lte: maxPrice }
+              }
+            },
 
-    {
-      $facet: {
-        products: [
-          {
-            $match: {
-              finalPrice: { $gte: minPrice, $lte: maxPrice }
-            }
-          },
+            {
+              $group: {
+                _id: "$_id",
+                name: { $first: "$name" },
+                description: { $first: "$description" },
+                category: { $first: "$category" },
+                collectionIds: { $first: "$collectionIds" },
+                status: { $first: "$status" },
+                createdAt: { $first: "$createdAt" },
+                updatedAt: { $first: "$updatedAt" },
+                info: { $first: "$info" },
 
-          {
-            $group: {
-              _id: "$_id",
-              name: { $first: "$name" },
-              description: { $first: "$description" },
-              category: { $first: "$category" },
-              collectionIds: { $first: "$collectionIds" },
-              status: { $first: "$status" },
-              createdAt: { $first: "$createdAt" },
-              updatedAt: { $first: "$updatedAt" },
-              info: { $first: "$info" },
-
-              variants: {
-                $push: {
-                  id: "$variants.id",
-                  options: "$variants.options",
-                  price: "$variants.price",
-                  discount: "$variants.discount",
-                  stock: "$variants.stock",
-                  default: "$variants.default",
-                  images: "$variants.images"
+                variants: {
+                  $push: {
+                    id: "$variants.id",
+                    options: "$variants.options",
+                    price: "$variants.price",
+                    discount: "$variants.discount",
+                    stock: "$variants.stock",
+                    default: "$variants.default",
+                    images: "$variants.images"
+                  }
                 }
               }
-            }
-          },
+            },
 
-          { $sort: { createdAt: -1 } }, // 🔥 move before skip/limit (important)
-          { $skip: skip },
-          { $limit: limit }
-        ],
+            { $sort: { createdAt: -1 } }, // 🔥 move before skip/limit (important)
+            { $skip: skip },
+            { $limit: limit }
+          ],
 
-        count: [
-          {
-            $match: {
-              finalPrice: { $gte: minPrice, $lte: maxPrice }
-            }
-          },
-          { $group: { _id: "$_id" } },
-          { $count: "total" }
-        ],
+          count: [
+            {
+              $match: {
+                finalPrice: { $gte: minPrice, $lte: maxPrice }
+              }
+            },
+            { $group: { _id: "$_id" } },
+            { $count: "total" }
+          ],
 
-        priceRange: [
-          {
-            $group: {
-              _id: null,
-              minPrice: { $min: "$finalPrice" },
-              maxPrice: { $max: "$finalPrice" }
+          priceRange: [
+            {
+              $group: {
+                _id: null,
+                minPrice: { $min: "$finalPrice" },
+                maxPrice: { $max: "$finalPrice" }
+              }
             }
-          }
-        ]
+          ]
+        }
       }
-    }
-  ]).toArray();
+    ]).toArray();
 
-  const products_data = result[0].products;
-  const total = result[0].count[0]?.total || 0;
-  const totalPages = Math.ceil(total / limit);
-  const priceRange = result[0].priceRange[0] || { minPrice: 0, maxPrice: 0 };
+    const products_data = result[0].products;
+    const total = result[0].count[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+    const priceRange = result[0].priceRange[0] || { minPrice: 0, maxPrice: 0 };
 
-  const formattedProducts = products_data.map(p => ({
-    ...p,
-    _id: p._id.toString()
-  }));
+    const formattedProducts = products_data.map(p => ({
+      ...p,
+      _id: p._id.toString()
+    }));
 
-  return new Response(JSON.stringify({
-    total,
-    page,
-    totalPages,
-    priceRange,
-    data: formattedProducts
-  }), {
-    headers: { "Content-Type": "application/json" }
-  });
+    return new Response(JSON.stringify({
+      total,
+      page,
+      totalPages,
+      priceRange,
+      data: formattedProducts
+    }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    console.error("Search error:", error);
+    return new Response(JSON.stringify({ message: "Server error" }), { status: 500 });
+  }
 }
 
 
@@ -179,5 +188,3 @@ export async function GET(req, context) {
 //     },
 //   });
 // }
-
-

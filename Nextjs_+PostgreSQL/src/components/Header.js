@@ -116,25 +116,6 @@ export default function Header() {
                 </button>
               }
 
-              {/* {
-                windowWidth < 575 &&
-                <Link
-                  href="/"
-                  className=
-                  {`
-                    mx-auto
-                    text-base 
-                    h-full
-                    text-center
-                    font-semibold
-                    hover:text-foreground
-                    flex
-                    items-center
-                  `}
-                >
-                  MEDUSA STORE
-                </Link>
-              } */}
               {
                 windowWidth >= 768 &&
                 <button
@@ -202,7 +183,7 @@ export default function Header() {
                     className=
                     {`
                       hidden
-                      lg:flex
+                      md:flex
                       cursor-pointer
                       text-[12px]
                       font-semibold

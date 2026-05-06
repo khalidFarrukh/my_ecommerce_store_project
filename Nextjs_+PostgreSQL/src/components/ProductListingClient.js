@@ -14,132 +14,112 @@ import LoadingSpinner from "./ui/LoadingSpinner";
 import { Pagination } from "./Pagination";
 import NotFound from "./NotFound";
 import { useCategoriesContext } from "@/context/CategoriesContext";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ProductListingClient({ visible_path_name, path_name, route, type }) {
   const { searchedProducts } = useSearchModal();
   const searchParams = useSearchParams();
-  const query = searchParams.get("search") || "";
-  const sortBy = searchParams.get("sortBy"); // null | price_asc | price_desc | created_at
   const { areCategoriesOpen } = useCategoriesContext();
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [products, setProducts] = useState([]);
-  const LIMIT = 12;
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [products, setProducts] = useState([]);
+  // const [totalPages, setTotalPages] = useState(1);
 
-  const [loading, setLoading] = useState(true);
-  const fetchingRef = useRef(false);
+  // const [loading, setLoading] = useState(true);
+  // const fetchingRef = useRef(false);
+  // const [actualMaxPrice, setActualMaxPrice] = useState(0);
+  const LIMIT = 10;
 
+  const page = Number(searchParams.get("page") || 1);
   const minParam = Number(searchParams.get("minPrice")) || 0;
   const maxParam = Number(searchParams.get("maxPrice")) || 0;
-
-  const [actualMaxPrice, setActualMaxPrice] = useState(0);
-  const [minPrice, setMinPrice] = useState(minParam || 0);
-  const [maxPrice, setMaxPrice] = useState(maxParam || 0);
+  const query = searchParams.get("search") || "";
+  const sortBy = searchParams.get("sortBy"); // null | price_asc | price_desc | created_at
 
 
+  const isSearch = type === "search";
 
-
-  const fetchProducts = async (pageToFetch = 1) => {
-    if (!route || fetchingRef.current) return;
-
-    fetchingRef.current = true;
-    setLoading(true);
-
-    try {
+  const productsQuery = useQuery({
+    queryKey: ["products", route, page, minParam, maxParam, sortBy],
+    queryFn: async () => {
       const params = new URLSearchParams({
-        page: pageToFetch,
+        page,
         limit: LIMIT,
         type,
       });
 
-      const min = searchParams.get("minPrice");
-      const max = searchParams.get("maxPrice");
-
-      if (min) params.append("minPrice", min);
-      if (max) params.append("maxPrice", max);
+      if (minParam) params.append("minPrice", minParam);
+      if (maxParam) params.append("maxPrice", maxParam);
 
       const res = await fetch(
         `/api/${path_name}/${route}?${params.toString()}`
       );
 
-      const json = await res.json();
-      console.log(json)
-      setProducts(json.data);
-      setTotalPages(json.totalPages);
-      setActualMaxPrice(Math.ceil(json.priceRange.maxPrice));
-      setPage(pageToFetch);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      fetchingRef.current = false;
-      setLoading(false);
-    }
-  };
+      return res.json();
+    },
+    enabled: !isSearch, // 🔥 only run if NOT search
+    keepPreviousData: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    gcTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
-  const fetchSearchProducts = async () => {
-    if (!query) return;
+  const searchQuery = useQuery({
+    queryKey: ["search", query, page, minParam, maxParam], // 🔥 include page
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        q: query,
+        page,
+        limit: LIMIT,
+      });
 
-    const normalizedQuery = query.trim().toLowerCase();
+      if (minParam) params.append("minPrice", minParam);
+      if (maxParam) params.append("maxPrice", maxParam);
 
-    // 1️⃣ Check context cache first
-    if (searchedProducts[normalizedQuery]?.length > 0) {
-      setProducts(searchedProducts[normalizedQuery]);
-      setHasMore(false); // no pagination for now
-      return;
-    }
-
-    // 2️⃣ Otherwise, fetch from API
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const json = await res.json();
-      setProducts(json);
-      setHasMore(false); // search usually doesn't paginate
-      // Optional: store in context if you want
-      // setSearchedProducts(normalizedQuery, json);
-    } catch (err) {
-      console.error("Error fetching search products:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await fetch(`/api/search?${params.toString()}`);
+      return res.json();
+    },
+    enabled: isSearch && !!query,
+    keepPreviousData: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    gcTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
 
-  useEffect(() => {
-    setProducts([]);
-    setPage(1);
-  }, [route]);
+  const products = isSearch
+    ? (searchQuery.data?.data || [])
+    : (productsQuery.data?.data || []);
+
+  const totalPages = isSearch
+    ? (searchQuery.data?.totalPages || 1)
+    : (productsQuery.data?.totalPages || 1);
+
+  const actualMaxPrice = isSearch
+    ? (searchQuery.data?.priceRange?.maxPrice || 0)
+    : (productsQuery.data?.priceRange?.maxPrice || 0);
+
+  const isLoading = isSearch
+    ? searchQuery.isLoading
+    : productsQuery.isLoading;
+
+
+  const [minPrice, setMinPrice] = useState(minParam || 0);
+  const [maxPrice, setMaxPrice] = useState(maxParam || actualMaxPrice);
 
   useEffect(() => {
     setMinPrice(minParam);
   }, [minParam]);
 
   useEffect(() => {
-    if (maxParam > 0) {
-      // if URL has maxPrice → use it
-      setMaxPrice(maxParam);
-    } else if (actualMaxPrice > 0) {
-      // fallback to API max
-      setMaxPrice(actualMaxPrice);
-    }
+    setMaxPrice(maxParam || actualMaxPrice);
   }, [maxParam, actualMaxPrice]);
 
-  useEffect(() => {
-    if (type === "search") {
-      fetchSearchProducts();
-    } else {
-      fetchProducts(page);
-    }
-  }, [route, query, type, page, minParam, maxParam]);
-
   const setPageAndURL = (p) => {
-    setPage(p);
-
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", p);
-
     router.push(`?${params.toString()}`);
   };
 
@@ -178,16 +158,6 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
   }, [products, sortBy]);
 
   const router = useRouter();
-
-  // const setSort = (value) => {
-  //   if (!value) {
-  //     router.push(`/${visible_path_name}/${route}`);
-  //   } else {
-  //     router.push(
-  //       `/${visible_path_name}/${route}?sortBy=${value}`
-  //     );
-  //   }
-  // };
 
   const setSort = (value) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -252,7 +222,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
 
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="min-h-[calc(100vh-60px-98px-176px)] md:min-h-[calc(100vh-60px-98px-140px)] flex items-center justify-center">
       <LoadingSpinner text="Loading" />
     </div>
@@ -284,6 +254,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
             {`
               flex
               gap-5
+              lg:gap-10
               w-full
               ${areCategoriesOpen ? "min-h-[calc(100vh-60px-98px-176px-42px)] md:min-h-[calc(100vh-60px-98px-140px-42px)]" : "min-h-[calc(100vh-60px-48px-176px-42px)] md:min-h-[calc(100vh-60px-48px-140px-42px)]"}
               transition-all
@@ -298,7 +269,7 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
               <div className="z-48 w-full flex justify-end lg:hidden">
                 <button
                   onClick={() => setIsFiltersOpen(prev => !prev)}
-                  className="button1 px-2 py-1"
+                  className="button1 px-2 py-1 cursor-pointer"
 
                 >
                   Filters
@@ -443,12 +414,10 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
               className="flex-1"
             >
               {
-                products.length > 0 &&
-                <h1 className="text-[30px] font-bold"><Title /></h1>
-              }
-              {
                 products.length > 0 ?
                   <>
+                    <h1 className="text-[30px] font-bold"><Title /></h1>
+
                     <SmallCardsList
                       productList={sortedProducts}
                       className={`
@@ -475,8 +444,8 @@ export default function ProductListingClient({ visible_path_name, path_name, rou
                     )}
                   </>
                   :
-                  <div className="w-full h-full flex items-center justify-center">
-                    No product found
+                  <div className="min-h-[calc(100vh-60px-300px)] lg:min-h-[calc(100vh-300px)] flex items-center justify-center">
+                    No product
                   </div>
               }
 

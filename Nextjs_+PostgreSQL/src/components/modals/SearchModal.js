@@ -5,13 +5,14 @@ import { useSearchModal } from "@/context/SearchModalContext";
 import { Delete, Search, X } from "lucide-react";
 import SmallCardsList from "../SmallCardsList";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 export default function SearchModal() {
 
   const router = useRouter();
-  const { isOpen, closeSearchModal, setSearchedProducts } = useSearchModal();
+  const { isOpen, closeSearchModal } = useSearchModal();
   const [query, setQuery] = useState("");
-  const [products, setProducts] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
@@ -20,24 +21,38 @@ export default function SearchModal() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!query) {
-      setProducts([]);
-      return;
-    }
-
-    const delayDebounce = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(query)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setProducts(data);
-          // Save fetched results to context
-          setSearchedProducts(query.trim().toLowerCase(), data);
-        })
-        .catch((err) => console.error("Error fetching products:", err));
+    const t = setTimeout(() => {
+      setDebouncedQuery(query);
     }, 300);
 
-    return () => clearTimeout(delayDebounce);
+    return () => clearTimeout(t);
   }, [query]);
+
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["search", debouncedQuery],
+
+    queryFn: async () => {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
+      const json = await res.json();
+
+      if (!res.ok) throw new Error("Search failed");
+
+      return json.data;
+    },
+
+    enabled: !!debouncedQuery,
+    onError: (err) => {
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error",
+        });
+      }, 0);
+    },
+    staleTime: 1000 * 30,
+  });
 
   const goToSearchPage = () => {
     if (query.trim()) {

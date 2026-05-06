@@ -17,10 +17,20 @@ export default async function Home() {
           pipeline: [
             {
               $match: {
-                $expr: { $in: ["$$collectionSlug", "$collectionIds"] },
-              },
+                $expr: {
+                  $and: [
+                    { $eq: ["$status", "active"] }, // ✅ only active products
+                    {
+                      $or: [
+                        { $in: ["$$collectionSlug", "$collectionIds"] }, // normal collections
+                        { $eq: ["$$collectionSlug", "all-products"] }    // all products collection
+                      ]
+                    }
+                  ]
+                }
+              }
             },
-            { $limit: 1 }, // only need to know if at least 1 product exists
+            { $limit: 3 }, // only need to know if at least 1 product exists
           ],
           as: "products",
         },
@@ -30,9 +40,9 @@ export default async function Home() {
           hasProducts: { $gt: [{ $size: "$products" }, 0] },
         },
       },
-      {
-        $project: { products: 0 }, // remove unnecessary data
-      },
+      // {
+      //   $project: { products: 0 }, // remove unnecessary data
+      // },
       {
         $sort: { orderNo: 1 },
       },
@@ -42,6 +52,10 @@ export default async function Home() {
   const safeCollections = collections.map(col => ({
     ...col,
     _id: col._id.toString(),
+    products: col.products.map(p => ({
+      ...p,
+      _id: p._id.toString(),
+    })),
   }));
 
   return <HomePage collections={safeCollections} />;

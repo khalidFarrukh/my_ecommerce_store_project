@@ -101,29 +101,19 @@ const authConfig = {
       // initial login
       if (user) {
         token.id = user.id;
-        token.role = user.role;
       }
 
-      // if (!token.id) return token;
-      if (token)
+      // ALWAYS sync role from DB (simple + correct)
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { role: true },
+        });
 
-        // 🚨 ONLY check DB for ADMIN users
-        if (token.role === "ADMIN") {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id },
-            select: { role: true },
-          });
+        if (!dbUser) return null; // force logout
 
-          // user deleted or demoted
-          if (!dbUser) {
-            return null; // force logout (safest)
-          }
-
-          // enforce latest DB role
-          if (dbUser.role !== "ADMIN") {
-            token.role = dbUser.role; // demote immediately
-          }
-        }
+        token.role = dbUser.role;
+      }
 
       return token;
     }

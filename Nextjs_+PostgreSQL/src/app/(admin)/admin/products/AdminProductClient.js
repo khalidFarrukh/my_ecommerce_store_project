@@ -12,6 +12,7 @@ import { Pagination } from "@/components/Pagination";
 import { useSession } from "next-auth/react";
 import { useGlobalToast } from "@/context/GlobalToastContext";
 import { StrictProductSchema } from "@/schemas/productSchema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 function useDebounce(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -46,12 +47,13 @@ export default function AdminProductsClient() {
   const { data: session } = useSession();
   const { setToast } = useGlobalToast();
 
-  const [draftProducts, setDraftProducts] = useState([]);
-  const [activeProducts, setActiveProducts] = useState([]);
-  const [archivedProducts, setArchivedProducts] = useState([]);
-  const [loadingDraft, setLoadingDraft] = useState(true);
-  const [loadingActive, setLoadingActive] = useState(true);
-  const [loadingArchived, setLoadingArchived] = useState(true);
+  // const [draftProducts, setDraftProducts] = useState([]);
+  // const [activeProducts, setActiveProducts] = useState([]);
+  // const [archivedProducts, setArchivedProducts] = useState([]);
+
+  // const [loadingDraft, setLoadingDraft] = useState(true);
+  // const [loadingActive, setLoadingActive] = useState(true);
+  // const [loadingArchived, setLoadingArchived] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
 
@@ -63,120 +65,238 @@ export default function AdminProductsClient() {
 
   const limit = 5;
 
-  const [draftTotalPages, setDraftTotalPages] = useState(1);
-  const [activeTotalPages, setActiveTotalPages] = useState(1);
-  const [archivedTotalPages, setArchivedTotalPages] = useState(1);
+  // const [draftTotalPages, setDraftTotalPages] = useState(1);
+  // const [activeTotalPages, setActiveTotalPages] = useState(1);
+  // const [archivedTotalPages, setArchivedTotalPages] = useState(1);
 
-  const fetchDraftProducts = async () => {
-    try {
-      setLoadingDraft(true);
+  // const fetchDraftProducts = async () => {
+  //   try {
+  //     setLoadingDraft(true);
 
+  //     const res = await fetch(
+  //       `/api/admin/products?status=draft&offset=${(draftPage - 1) * limit}&limit=${limit}`
+  //     );
+
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message);
+
+  //     setDraftProducts(data.data);
+  //     setDraftTotalPages(data.totalPages); // 👈 important
+  //   } catch (err) {
+  //     console.error(err);
+  //     setTimeout(() => {
+  //       setToast({
+  //         id: Date.now(),
+  //         message: err.message,
+  //         type: "error"
+  //       })
+  //     }, 0);
+  //   } finally {
+  //     setLoadingDraft(false);
+  //   }
+  // };
+
+  // const fetchActiveProducts = async () => {
+  //   try {
+  //     setLoadingActive(true);
+
+  //     const res = await fetch(
+  //       `/api/admin/products?status=active&search=${debouncedActiveSearch}&offset=${(activePage - 1) * limit}&limit=${limit}`
+  //     );
+
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message);
+
+  //     setActiveProducts(data.data);
+  //     setActiveTotalPages(data.totalPages); // 👈 important
+  //   } catch (err) {
+  //     console.error(err);
+  //     setTimeout(() => {
+  //       setToast({
+  //         id: Date.now(),
+  //         message: err.message,
+  //         type: "error"
+  //       })
+  //     }, 0);
+  //   } finally {
+  //     setLoadingActive(false);
+  //   }
+  // };
+
+  // const fetchArchivedProducts = async () => {
+  //   try {
+  //     setLoadingArchived(true);
+
+  //     const res = await fetch(
+  //       `/api/admin/products?status=archive&offset=${(archivedPage - 1) * limit}&limit=${limit}`
+  //     );
+
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message);
+
+  //     setArchivedProducts(data.data);
+  //     setArchivedTotalPages(data.totalPages);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setTimeout(() => {
+  //       setToast({
+  //         id: Date.now(),
+  //         message: err.message,
+  //         type: "error"
+  //       })
+  //     }, 0);
+  //   } finally {
+  //     setLoadingArchived(false);
+  //   }
+  // };
+
+  const {
+    data: draftData,
+    isLoading: loadingDraft,
+  } = useQuery({
+    queryKey: ["admin-products", "draft", draftPage],
+    queryFn: async () => {
       const res = await fetch(
         `/api/admin/products?status=draft&offset=${(draftPage - 1) * limit}&limit=${limit}`
       );
 
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      setDraftProducts(data.data);
-      setDraftTotalPages(data.totalPages); // 👈 important
-    } catch (err) {
-      console.error(err);
+      return data;
+    },
+    onError: (err) => {
       setTimeout(() => {
         setToast({
           id: Date.now(),
           message: err.message,
-          type: "error"
-        })
+          type: "error",
+        });
       }, 0);
-    } finally {
-      setLoadingDraft(false);
-    }
-  };
+    },
+    staleTime: 1000 * 30,
+  });
 
-  const fetchActiveProducts = async () => {
-    try {
-      setLoadingActive(true);
+  const debouncedActiveSearch = useDebounce(activeSearch);
 
+  const {
+    data: activeData,
+    isLoading: loadingActive,
+  } = useQuery({
+    queryKey: ["admin-products", "active", activePage, debouncedActiveSearch],
+    queryFn: async () => {
       const res = await fetch(
         `/api/admin/products?status=active&search=${debouncedActiveSearch}&offset=${(activePage - 1) * limit}&limit=${limit}`
       );
 
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      setActiveProducts(data.data);
-      setActiveTotalPages(data.totalPages); // 👈 important
-    } catch (err) {
-      console.error(err);
+      return data;
+    },
+
+    onError: (err) => {
       setTimeout(() => {
         setToast({
           id: Date.now(),
           message: err.message,
-          type: "error"
-        })
+          type: "error",
+        });
       }, 0);
-    } finally {
-      setLoadingActive(false);
-    }
-  };
+    },
+    staleTime: 1000 * 30,
+  });
 
-  const fetchArchivedProducts = async () => {
-    try {
-      setLoadingArchived(true);
 
+  const {
+    data: archiveData,
+    isLoading: loadingArchived,
+  } = useQuery({
+    queryKey: ["admin-products", "archive", archivedPage],
+    queryFn: async () => {
       const res = await fetch(
-        `/api/admin/products?status=archive&offset=${(archivedPage - 1) * limit}&limit=${limit}`
+        `/api/admin/products?status=archive&offset=${(activePage - 1) * limit}&limit=${limit}`
       );
 
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      setArchivedProducts(data.data);
-      setArchivedTotalPages(data.totalPages);
-    } catch (err) {
-      console.error(err);
+      return data;
+    },
+
+    onError: (err) => {
       setTimeout(() => {
         setToast({
           id: Date.now(),
           message: err.message,
-          type: "error"
-        })
+          type: "error",
+        });
       }, 0);
-    } finally {
-      setLoadingArchived(false);
-    }
-  };
+    },
+    staleTime: 1000 * 30,
+  });
 
-  const debouncedActiveSearch = useDebounce(activeSearch);
+  const draftProducts = draftData?.data || [];
+  const activeProducts = activeData?.data || [];
+  const archivedProducts = archiveData?.data || [];
 
-  useEffect(() => {
-    fetchDraftProducts();
-  }, [draftPage]);
+  const draftTotalPages = draftData?.totalPages || 1;
+  const activeTotalPages = activeData?.totalPages || 1;
+  const archivedTotalPages = archiveData?.totalPages || 1;
 
-  useEffect(() => {
-    fetchArchivedProducts();
-  }, [archivedPage]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchActiveProducts();
-  }, [debouncedActiveSearch, activePage]);
+  const restoreMutation = useMutation({
+    mutationFn: async (id) => {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: "active" }),
+      });
 
-  useEffect(() => {
-    setActivePage(1);
-  }, [debouncedActiveSearch])
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+    },
 
-  useEffect(() => {
-    console.log(
-      draftProducts.map(p => ({
-        name: p.name,
-        createdAt: p.createdAt
-      }))
-    );
-  }, [draftProducts])
+    onSuccess: () => {
+      queryClient.invalidateQueries(["admin-products"]);
+    },
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+  });
+
+
+  // useEffect(() => {
+  //   fetchDraftProducts();
+  // }, [draftPage]);
+
+  // useEffect(() => {
+  //   fetchArchivedProducts();
+  // }, [archivedPage]);
+
+  // useEffect(() => {
+  //   fetchActiveProducts();
+  // }, [debouncedActiveSearch, activePage]);
+
+  // useEffect(() => {
+  //   setActivePage(1);
+  // }, [debouncedActiveSearch])
+
+  // useEffect(() => {
+  //   console.log(
+  //     draftProducts.map(p => ({
+  //       name: p.name,
+  //       createdAt: p.createdAt
+  //     }))
+  //   );
+  // }, [draftProducts])
 
   return (
     <div className="space-y-12 min-h-[1000px]">
@@ -526,33 +646,10 @@ export default function AdminProductsClient() {
                               {/* Restore button */}
                               <button
                                 className="button1 px-3 py-1"
-                                onClick={async () => {
-                                  try {
-                                    const res = await fetch(`/api/admin/products/${product._id}`, {
-                                      method: "PUT",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ status: "active" }),
-                                    });
-
-                                    const data = await res.json();
-
-                                    if (!res.ok) throw new Error(data.message);
-
-                                    fetchArchivedProducts();
-                                    fetchActiveProducts();
-                                  } catch (err) {
-                                    console.error(err);
-                                    setTimeout(() => {
-                                      setToast({
-                                        id: Date.now(),
-                                        message: err.message,
-                                        type: "error"
-                                      })
-                                    }, 0);
-                                  }
-                                }}
+                                onClick={() => restoreMutation.mutate(product._id)}
+                                disabled={restoreMutation.isPending}
                               >
-                                Restore
+                                {restoreMutation.isPending ? "Restoring..." : "Restore"}
                               </button>
 
                             </td>

@@ -5,17 +5,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Card1 from "./Card1";
 
-export default function HomeMainSection({ collection_name, collection_slug }) {
-  const [products, setProducts] = useState([]);
-  useEffect(() => {
-    if (products.length === 0)
-      fetch("/api/collections/" + collection_slug + "?offset=0&limit=3")
-        .then((res) => res.json())
-        .then((res) => {
-          setProducts(res.data);
-        })
-        .catch((err) => console.error("Error fetching products:", err));
-  }, []);
+export default function HomeMainSection({ collection }) {
+  // const [products, setProducts] = useState([]);
+  // useEffect(() => {
+  //   if (products.length === 0)
+  //     fetch("/api/collections/" + collection_slug + "?offset=0&limit=3")
+  //       .then((res) => res.json())
+  //       .then((res) => {
+  //         setProducts(res.data);
+  //       })
+  //       .catch((err) => console.error("Error fetching products:", err));
+  // }, []);
 
   return (
     <>
@@ -46,11 +46,11 @@ export default function HomeMainSection({ collection_name, collection_slug }) {
             `}
           >
             <h1>
-              {collection_name}
+              {collection?.name}
             </h1>
 
             <Link
-              href={`/collections/${collection_slug}`}
+              href={`/collections/${collection?.slug}`}
               className=
               {`
                 absolute
@@ -93,7 +93,7 @@ export default function HomeMainSection({ collection_name, collection_slug }) {
             `}
           >
             {
-              products.map((item, index) => {
+              collection?.products.map((item, index) => {
                 return (
                   <Card1
                     key={item?._id}

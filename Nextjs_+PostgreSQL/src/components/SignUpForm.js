@@ -65,18 +65,18 @@ export default function SignUpForm() {
       }),
     });
 
-    // if (!res.ok) {
-    //   const data = await res.json();
-    //   setToast({
-    //     id: Date.now(),
-    //     message: data.error || "Failed to sign up",
-    //     type: "error"
-    //   });
-    //   setLoading(false);
-    //   return;
-    // }
-
     const data = await res.json();
+
+    if (!res.ok) {
+      setToast({
+        id: Date.now(),
+        message: data.message || "Failed to sign up",
+        type: "error"
+      });
+      setLoading(false);
+      return;
+    }
+
 
     if (data.success) {
       // 1️⃣ login
@@ -110,7 +110,7 @@ export default function SignUpForm() {
     } else {
       setToast({
         id: Date.now(),
-        message: data.error || "Failed to sign up",
+        message: data.message || "Failed to sign up",
         type: "error"
       });
     }

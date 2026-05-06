@@ -3,49 +3,190 @@ import clientPromise from "@/lib/mongodb";
 export async function GET(req) {
   try {
     const url = new URL(req.url);
+
     const q = url.searchParams.get("q")?.toLowerCase().trim() || "";
 
-    if (!q) {
-      return new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } });
-    }
+    const minPrice = Number(url.searchParams.get("minPrice") || 0);
+    const maxPriceParam = url.searchParams.get("maxPrice");
+
+    const maxPrice =
+      maxPriceParam && maxPriceParam !== "Infinity"
+        ? Number(maxPriceParam)
+        : Number.MAX_SAFE_INTEGER;
+
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+
+    const skip = (page - 1) * limit;
+
+    const regex = new RegExp(q, "i");
 
     const client = await clientPromise;
     const db = client.db("my_ecommerce_db");
 
-    // MongoDB query to match name, description, category, or variants.options
-    const regex = new RegExp(q, "i"); // case-insensitive
+    const priceMatch = {};
 
-    const products = await db.collection("products").find({
-      $or: [
-        { name: regex },
-        { description: regex },
-        { category: regex },
-        { "variants.options": { $elemMatch: { $exists: true } } } // we will filter options in code below
-      ]
-    }).toArray();
+    if (!isNaN(minPrice)) priceMatch.$gte = minPrice;
+    if (!isNaN(maxPrice)) priceMatch.$lte = maxPrice;
 
-    // Filter variants.options in JS because Mongo can't directly match dynamic object keys
-    const filteredProducts = products.filter(product => {
-      if (regex.test(product.name) || regex.test(product.description) || regex.test(product.category)) {
-        return true;
+    const result = await db.collection("products").aggregate([
+
+      // 1️⃣ Match product-level filters
+      {
+        $match: {
+          status: "active",
+        }
+      },
+
+      // 2️⃣ explode variants
+      { $unwind: "$variants" },
+
+      // 3️⃣ 🔥 FILTER VARIANTS HERE
+      ...(q
+        ? [{
+          $match: {
+            $or: [
+              { name: regex },
+              { description: regex },
+              { category: regex },
+              { collectionIds: regex },
+              // ✅ info search AGAIN
+              {
+                $expr: {
+                  $gt: [
+                    {
+                      $size: {
+                        $filter: {
+                          input: { $objectToArray: "$info" },
+                          as: "item",
+                          cond: {
+                            $regexMatch: {
+                              input: { $toString: "$$item.v" },
+                              regex: q,
+                              options: "i"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    0
+                  ]
+                }
+              },
+              {
+                "variants.options": {
+                  $elemMatch: {
+                    $or: [
+                      { name: regex },
+                      { value: regex }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }]
+        : []),
+
+      // 3️⃣ compute final price per variant
+      {
+        $addFields: {
+          finalPrice: {
+            $ceil: {
+              $subtract: [
+                "$variants.price",
+                {
+                  $multiply: [
+                    "$variants.price",
+                    { $divide: ["$variants.discount", 100] }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        $facet: {
+          products: [
+            {
+              $match: {
+                finalPrice: { $gte: minPrice, $lte: maxPrice }
+              }
+            },
+
+            {
+              $group: {
+                _id: "$_id",
+                name: { $first: "$name" },
+                description: { $first: "$description" },
+                category: { $first: "$category" },
+                collectionIds: { $first: "$collectionIds" },
+                status: { $first: "$status" },
+                createdAt: { $first: "$createdAt" },
+                updatedAt: { $first: "$updatedAt" },
+                info: { $first: "$info" },
+
+                variants: {
+                  $push: {
+                    id: "$variants.id",
+                    options: "$variants.options",
+                    price: "$variants.price",
+                    discount: "$variants.discount",
+                    stock: "$variants.stock",
+                    default: "$variants.default",
+                    images: "$variants.images"
+                  }
+                }
+              }
+            },
+
+            { $sort: { createdAt: -1 } }, // 🔥 move before skip/limit (important)
+            { $skip: skip },
+            { $limit: limit }
+          ],
+
+          count: [
+            {
+              $match: {
+                finalPrice: { $gte: minPrice, $lte: maxPrice }
+              }
+            },
+            { $group: { _id: "$_id" } },
+            { $count: "total" }
+          ],
+
+          priceRange: [
+            {
+              $group: {
+                _id: null,
+                minPrice: { $min: "$finalPrice" },
+                maxPrice: { $max: "$finalPrice" }
+              }
+            }
+          ]
+        }
       }
+    ]).toArray();
 
-      if (product.variants?.some(variant => {
-        const options = variant.options || {};
-        return Object.entries(options).some(([key, value]) => {
-          return regex.test(key) || regex.test(String(value));
-        });
-      })) {
-        return true;
-      }
 
-      return false;
-    });
+    const products_data = result[0].products;
+    const total = result[0].count[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+    const priceRange = result[0].priceRange[0] || { minPrice: 0, maxPrice: 0 };
 
-    // Convert _id to string for frontend
-    const formattedProducts = filteredProducts.map(p => ({ ...p, _id: p._id.toString() }));
+    const formattedProducts = products_data.map(p => ({
+      ...p,
+      _id: p._id.toString()
+    }));
 
-    return new Response(JSON.stringify(formattedProducts), {
+    return new Response(JSON.stringify({
+      total,
+      page,
+      totalPages,
+      priceRange,
+      data: formattedProducts
+    }), {
       headers: { "Content-Type": "application/json" }
     });
 

@@ -17,6 +17,7 @@ import YesNoModal from "@/components/modals/YesNoModal";
 import { convertTextStringToDashString, parseDimensions, parseWeight } from "@/utils/utilities";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import CenteringUI from "@/components/auth/CenteringUI";
+import { useQuery } from "@tanstack/react-query";
 
 
 export default function Cart() {
@@ -37,37 +38,29 @@ export default function Cart() {
     return variantCount;
   }, [cartState]);
 
-  const [cartProductsData, setCartProductsData] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const productIds = [...new Set(cartState.items.map(i => i.product_id))];
 
-  useEffect(() => {
-    if (!cartState.items.length) {
-      setCartProductsData([]);
-      setLoadingProducts(false);
-      return;
-    }
-
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
+  const {
+    data: cartProductsData = [],
+    isLoading: loadingProducts,
+  } = useQuery({
+    queryKey: ["cart-products", productIds],
+    queryFn: async () => {
+      if (!productIds.length) return [];
 
       const res = await fetch("/api/products/by-ids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ids: cartState.items.map(i => i.product_id)
-        }),
+        body: JSON.stringify({ ids: productIds }),
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message);
 
-      setCartProductsData(data);
-      setLoadingProducts(false);
-    };
-
-    fetchProducts();
-  }, []);
+      return data;
+    },
+    enabled: productIds.length > 0,
+  });
 
   const [activeVariantsSize, setActiveVariantsSize] = useState(0);
   const [subTotal, setSubTotal] = useState(0);
@@ -202,7 +195,8 @@ export default function Cart() {
             {`
           relative
           w-full
-          min-h-[calc(100vh-100px)]
+          min-h-[calc(100vh-250px)]
+          md:min-h-[calc(100vh-220px)]
           bg-background_1
           mb-3
           flex
