@@ -143,8 +143,6 @@ export async function DELETE(req) {
     .find({ user_id: session.user.id })
     .toArray();
 
-  console.log("updated addresses after delete: ", updatedAddresses);
-
   return new Response(
     JSON.stringify(
       updatedAddresses.map(a => ({

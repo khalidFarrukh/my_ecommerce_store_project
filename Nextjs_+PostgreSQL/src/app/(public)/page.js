@@ -19,18 +19,38 @@ export default async function Home() {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$status", "active"] }, // ✅ only active products
+                    { $eq: ["$status", "active"] },
                     {
                       $or: [
-                        { $in: ["$$collectionSlug", "$collectionIds"] }, // normal collections
-                        { $eq: ["$$collectionSlug", "all-products"] }    // all products collection
+                        { $in: ["$$collectionSlug", "$collectionIds"] },
+                        { $eq: ["$$collectionSlug", "all-products"] },
+                        { $eq: ["$$collectionSlug", "latest-products"] }
                       ]
                     }
                   ]
                 }
               }
             },
-            { $limit: 3 }, // only need to know if at least 1 product exists
+
+            {
+              $addFields: {
+                sortPriority: {
+                  $cond: [
+                    { $eq: ["$$collectionSlug", "latest-products"] },
+                    "$createdAt",
+                    null
+                  ]
+                }
+              }
+            },
+
+            {
+              $sort: {
+                sortPriority: -1
+              }
+            },
+
+            { $limit: 3 }
           ],
           as: "products",
         },

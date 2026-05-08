@@ -223,7 +223,7 @@ export default function AdminCollectionsClient() {
                 <div className="grid grid-cols-[250px_1fr_120px_120px_50px] border-b border-myBorderColor py-2 font-medium">
                   <div>ID</div>
                   <div>Name</div>
-                  <div>Shown</div>
+                  <div>Visibility</div>
                   <div className="text-center">Actions</div>
                   <div></div> {/* drag */}
                 </div>

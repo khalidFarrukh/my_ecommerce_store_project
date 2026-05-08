@@ -22,8 +22,6 @@ export async function PUT(req) {
     default: true,
   });
 
-  console.log("current default address: ", currentDefault);
-
   // 🔥 Step 2: unset only that one (if exists)
   if (currentDefault) {
     await db.collection("addresses").updateOne(
@@ -43,8 +41,6 @@ export async function PUT(req) {
     .collection("addresses")
     .find({ user_id: session.user.id })
     .toArray();
-
-  console.log(updatedAddresses);
 
   return new Response(
     JSON.stringify(

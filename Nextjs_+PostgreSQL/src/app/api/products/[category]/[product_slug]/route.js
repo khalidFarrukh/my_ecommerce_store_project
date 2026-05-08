@@ -91,8 +91,6 @@ export async function GET(req, context) {
       _id: product._id?.toString?.() ?? null,
     };
 
-    console.log(formattedProduct);
-
     // =========================
     // 7️⃣ Success response
     // =========================

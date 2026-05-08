@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { BaseProductSchema, StrictProductSchema } from "@/schemas/productSchema";
+import { buildOptionsFromVariantsByUnion } from "@/utils/buildOptionsFromVariantsByUnion";
 
 // ==========================
 // API ROUTE
@@ -78,6 +79,60 @@ export async function PUT(req, context) {
     }
 
     safeData = parsed.data;
+  }
+
+  const createShortFormString = (str) => {
+    const wordArr = String(str).split(" ");
+    let shortForm = [];
+    wordArr.map(word => shortForm.push(word[0]))
+
+    return shortForm.join('');
+  }
+
+  const normalizeSkuPart = (value) =>
+    String(value)
+      .trim()
+      .replaceAll(" ", "_")
+      .toUpperCase();
+
+  const productBaseCode = createShortFormString(safeData.name);
+  if (safeData.variants.length > 0) {
+    const availableOptions = buildOptionsFromVariantsByUnion(safeData.variants);
+
+    // STEP 1 → normalize all variants
+    Object.entries(availableOptions).forEach(([label]) => {
+      safeData.variants.forEach(variant => {
+        if (variant.options.every(option => option.name !== label)) {
+          variant.options.push({
+            id: crypto.randomUUID(),
+            name: label,
+            value: "-",
+          });
+        }
+      });
+    });
+
+    if (safeData.status === "active") {
+
+      // STEP 2 → generate SKU only after normalization
+      safeData.variants.forEach(variant => {
+        variant.sku ??= "";
+
+        if (variant?.sku !== "") return;
+
+        const hasMissingOption = variant.options.some(
+          option => option.value === "-"
+        );
+
+        if (!hasMissingOption) {
+          variant.sku = [
+            String(safeData._id).slice(-4),
+            productBaseCode,
+            ...variant.options.map(option => normalizeSkuPart(option.value))
+          ].join("-");
+        }
+      });
+    }
   }
 
   const session = client.startSession();

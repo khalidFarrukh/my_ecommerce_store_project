@@ -304,7 +304,7 @@ export default function Cart() {
                                             <button
                                               onClick={() => decreaseQty(cartProductIndex, cartVariantIndex)}
                                               disabled={cartVariant.quantity === 1}
-                                              className="px-3 py-1 inc_dec_2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                              className="px-3 py-1 inc_dec_2 rounded-md! cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                               -
                                             </button>
@@ -316,7 +316,7 @@ export default function Cart() {
                                             <button
                                               onClick={() => increaseQty(cartProductIndex, cartVariantIndex)}
                                               disabled={cartVariant.quantity === 3}
-                                              className="px-3 py-1 inc_dec_2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                              className="px-3 py-1 inc_dec_2 rounded-md! cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                               +
                                             </button>

@@ -246,25 +246,41 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
   return (
     <>
       <div
-        className={`relative w-full bg-background_1 my-3 lg:my-5 flex flex-col gap-5 items-center`}
+        className={`relative w-full bg-background_1 my-4 flex flex-col gap-5 items-center`}
       >
         <section className="w-full space-y-3">
           {
             windowWidth < 1024 &&
             <div className="space-y-3">
-              {
-                selected_product.collectionIds.map((collectionId, index) => (
-                  <Link
-                    key={index}
-                    href={"/collections/" + collectionId}
-                    className="flex w-fit"
-                  >
-                    <h3 className="text-myTextColorLightGray text-base font-bold hover:text-foreground">
-                      {convertDashStringToTextString(collectionId)}
-                    </h3>
-                  </Link>
-                ))
-              }
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                {[
+                  selected_product.category,
+                  ...(selected_product.collectionIds || []),
+                ].map((item, index, arr) => (
+                  <React.Fragment key={item}>
+                    <Link
+                      href={
+                        index === 0
+                          ? `/products/${item}`
+                          : `/collections/${item}`
+                      }
+                      className="
+                              w-fit
+                              button1
+                              px-3
+                              py-1
+                              rounded-md!
+                            "
+                    >
+                      {convertDashStringToTextString(item)}
+                    </Link>
+
+                    {index !== arr.length - 1 && (
+                      <span className="text-myTextColorLightGray">•</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
 
               <div className="flex gap-4 justify-between">
 
@@ -299,19 +315,35 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                 {
                   windowWidth >= 1024 &&
                   <div className="space-y-3">
-                    {
-                      selected_product.collectionIds.map((collectionId, index) => (
-                        <Link
-                          key={index}
-                          href={"/collections/" + collectionId}
-                          className="flex w-fit"
-                        >
-                          <h3 className="text-myTextColorLightGray text-base font-bold hover:text-foreground">
-                            {convertDashStringToTextString(collectionId)}
-                          </h3>
-                        </Link>
-                      ))
-                    }
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      {[
+                        selected_product.category,
+                        ...(selected_product.collectionIds || []),
+                      ].map((item, index, arr) => (
+                        <React.Fragment key={item}>
+                          <Link
+                            href={
+                              index === 0
+                                ? `/products/${item}`
+                                : `/collections/${item}`
+                            }
+                            className="
+                              w-fit
+                              button1
+                              px-3
+                              py-1
+                              rounded-md!
+                            "
+                          >
+                            {convertDashStringToTextString(item)}
+                          </Link>
+
+                          {index !== arr.length - 1 && (
+                            <span className="text-myTextColorLightGray">•</span>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
                     <div className="flex gap-4 justify-between">
 
                       <div className="space-y-3">
@@ -533,7 +565,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                             <button
                               onClick={decreaseQty}
                               disabled={selected_quantity === 1}
-                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-1 inc_dec rounded-md! cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               -
                             </button>
@@ -545,7 +577,7 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                             <button
                               onClick={increaseQty}
                               disabled={selected_quantity === 3}
-                              className="px-3 py-1 inc_dec cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-1 inc_dec  rounded-md! cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               +
                             </button>

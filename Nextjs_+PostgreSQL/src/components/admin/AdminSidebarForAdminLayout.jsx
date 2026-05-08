@@ -9,10 +9,10 @@ export default function AdminSidebarForAdminLayout() {
   const pathname = usePathname();
   const { windowWidth } = useWindowSizeContext();
 
-  if (windowWidth < 768) return null;
+  // if (windowWidth < 768) return null;
 
   return (
-    <aside className="w-56 border-r border-myBorderColor pr-5 sticky top-[calc(60px+20px)] h-[calc(100vh-60px-24px)] flex flex-col justify-center">
+    <aside className="w-56 border-r border-myBorderColor pr-5 sticky top-[calc(60px)] h-[calc(100vh-60px)] hidden md:flex flex-col justify-center">
       <div className="h-fit ">
         {/* Sidebar title */}
         <div className="mb-6 shrink-0">

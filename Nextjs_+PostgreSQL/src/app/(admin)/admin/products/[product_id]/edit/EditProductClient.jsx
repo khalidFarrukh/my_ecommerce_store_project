@@ -20,7 +20,7 @@ import {
 } from "@/schemas/productSchema";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-export default function EditProductForm({
+export default function EditProductClient({
   // session,
   product: initialProduct,
   categories = [],
@@ -74,14 +74,7 @@ export default function EditProductForm({
       try {
         const parsed = JSON.parse(saved);
 
-        const isValid = BaseProductSchema.partial().safeParse(
-          parsed.data,
-        ).success;
-
-        if (
-          isValid &&
-          parsed.updatedAt > new Date(initialProduct.updatedAt).getTime()
-        ) {
+        if (parsed.updatedAt > new Date(initialProduct.updatedAt).getTime()) {
           finalProduct = parsed.data;
         } else {
           localStorage.removeItem(key);
@@ -117,6 +110,7 @@ export default function EditProductForm({
   }, [product, isHydrated]);
 
   useEffect(() => {
+    if (!isHydrated) return;
     const result = StrictProductSchema.safeParse(product);
 
     if (!result.success) {
@@ -212,18 +206,43 @@ export default function EditProductForm({
   };
 
   const addVariant = () => {
+    const isDraft = product.status === "draft";
+
+    let options = [
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        value: "",
+      },
+    ];
+
+    if (!isDraft && product.variants.length > 0) {
+      options = product.variants[0].options.map((option) => ({
+        id: crypto.randomUUID(),
+        name: option.name,
+        value: "",
+      }));
+    }
+
     setProduct((prev) => ({
       ...prev,
       variants: [
         ...prev.variants,
         {
           id: crypto.randomUUID(),
-          options: [],
+          sku: "",
+          options,
           price: 0,
           discount: 0,
           stock: 0,
           default: false,
-          images: [],
+          images: [
+            {
+              id: crypto.randomUUID(),
+              src: "",
+              alt: "",
+            },
+          ],
         },
       ],
     }));
@@ -369,11 +388,13 @@ export default function EditProductForm({
 
   if (!product) {
     return (
-      <div className="min-h-[calc(100vh-60px-80px-24px-192px)] md:min-h-[calc(100vh-60px-130px)] flex items-center justify-center">
-        <LoadingSpinner />
+      <div className="min-h-[calc(100vh-60px)] flex items-center justify-center">
+        <LoadingSpinner text="Loading" />
       </div>
     );
   }
+
+  const canEditStructure = product.status === "draft";
 
   return (
     <div className="space-y-6 mb-20">
@@ -384,10 +405,11 @@ export default function EditProductForm({
         <FloatingInput
           id="product_name"
           label="Product Name"
-          inputClassName=""
+          inputClassName="disabled:cursor-not-allowed!"
           error={getFieldError(["name"])}
           type="text"
           value={product.name}
+          disabled={!canEditStructure}
           onChange={(e) => updateField("name", e.target.value)}
         />
         <FloatingTextArea
@@ -598,16 +620,13 @@ export default function EditProductForm({
                   ref={(el) => {
                     if (el) variantRefs.current[variant.id] = el;
                   }}
-                  className={`relative border rounded-lg p-4 flex flex-col gap-4 ${
-                    variant.stock < 10
-                      ? "border-red-500 bg-red-500/5"
-                      : "bg-background_3 border-myBorderColor"
-                  }`}
+                  className={`relative border rounded-lg p-4 flex flex-col gap-4 "bg-background_3 border-myBorderColor`}
                 >
-                  <div className="z-48 absolute -top-3 -right-3">
-                    <button
-                      onClick={() => deleteVariant(i)}
-                      className="
+                  {canEditStructure && (
+                    <div className="z-48 absolute -top-3 -right-3">
+                      <button
+                        onClick={() => deleteVariant(i)}
+                        className="
                     w-6
                     h-6
                     button2
@@ -617,10 +636,11 @@ export default function EditProductForm({
                     items-center
                     justify-center
                     "
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 gap-3">
                     <FloatingInput
                       id="price"
@@ -676,13 +696,14 @@ export default function EditProductForm({
                           </p>
                         )}
                       </div>
-
-                      <button
-                        onClick={() => addOption(i)}
-                        className="cursor-pointer text-sm button2 px-2 py-1"
-                      >
-                        + Add Option
-                      </button>
+                      {canEditStructure && (
+                        <button
+                          onClick={() => addOption(i)}
+                          className="cursor-pointer text-sm button2 px-2 py-1"
+                        >
+                          + Add Option
+                        </button>
+                      )}
                     </div>
                     {variant.options.length > 0 && (
                       <div className="flex flex-col gap-10">
@@ -691,10 +712,11 @@ export default function EditProductForm({
                             key={option.id}
                             className="relative bg-background_3 border border-myBorderColor rounded-lg p-4 flex flex-col gap-4"
                           >
-                            <div className="absolute -top-3 -right-3">
-                              <button
-                                onClick={() => deleteOption(i, optionIndex)}
-                                className="
+                            {variant.options.length > 1 && canEditStructure && (
+                              <div className="absolute -top-3 -right-3">
+                                <button
+                                  onClick={() => deleteOption(i, optionIndex)}
+                                  className="
                               w-6
                               h-6
                               button2
@@ -704,17 +726,18 @@ export default function EditProductForm({
                               items-center
                               justify-center
                               "
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            )}
 
                             <div className="flex gap-3">
                               <FloatingInput
                                 id={`option_name_${option.id}`}
                                 label="Option Name"
                                 className="w-1/2!"
-                                inputClassName=""
+                                inputClassName="disabled:cursor-not-allowed!"
                                 error={getFieldError([
                                   "variants",
                                   i,
@@ -724,6 +747,7 @@ export default function EditProductForm({
                                 ])}
                                 type="text"
                                 value={option.name}
+                                disabled={!canEditStructure}
                                 onChange={(e) =>
                                   updateOption(
                                     i,
@@ -738,7 +762,7 @@ export default function EditProductForm({
                                 id={`option_value_${option.id}`}
                                 label="Option Value"
                                 className="w-1/2!"
-                                inputClassName=""
+                                inputClassName="disabled:cursor-not-allowed!"
                                 error={getFieldError([
                                   "variants",
                                   i,
@@ -748,6 +772,7 @@ export default function EditProductForm({
                                 ])}
                                 type="text"
                                 value={option.value}
+                                disabled={!canEditStructure}
                                 onChange={(e) =>
                                   updateOption(
                                     i,
@@ -793,10 +818,11 @@ export default function EditProductForm({
                             key={img.id}
                             className="relative bg-background_3 border border-myBorderColor rounded-lg p-4 flex flex-col gap-4"
                           >
-                            <div className="absolute -top-3 -right-3">
-                              <button
-                                onClick={() => deleteImage(i, imgIndex)}
-                                className="
+                            {variant.images.length > 1 && (
+                              <div className="absolute -top-3 -right-3">
+                                <button
+                                  onClick={() => deleteImage(i, imgIndex)}
+                                  className="
                               w-6
                               h-6
                               button2
@@ -806,10 +832,11 @@ export default function EditProductForm({
                               items-center
                               justify-center
                               "
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            )}
 
                             <FloatingInput
                               id={`image_src_${img.id}`}

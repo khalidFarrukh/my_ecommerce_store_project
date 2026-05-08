@@ -81,18 +81,26 @@ export const StrictProductSchema = BaseProductSchema.superRefine((data, ctx) => 
     ctx.addIssue({
       path: ["variants"],
       message: "One variant must be marked as default",
-      code: z.ZodIssueCode.custom,
+      code: "custom",
     });
   }
 
   // ❗ validate each variant deeper
   data.variants.forEach((variant, i) => {
 
+    if (variant.stock < 10 && variant.stock > 0) {
+      ctx.addIssue({
+        path: ["variants", i, "stock"],
+        message: "Low Stock detected",
+        code: "custom",
+      });
+    }
+
     if (variant.stock === 0) {
       ctx.addIssue({
         path: ["variants", i, "stock"],
         message: "Stock should not be zero",
-        code: z.ZodIssueCode.custom,
+        code: "custom",
       });
     }
 

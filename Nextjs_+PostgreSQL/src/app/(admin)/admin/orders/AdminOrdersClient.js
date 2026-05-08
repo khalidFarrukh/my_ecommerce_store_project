@@ -40,15 +40,15 @@ export default function AdminOrdersClient() {
   //   fetchOrders();
   // }, []);
 
-  const updateStatus = async (orderId, status) => {
-    await fetch(`/api/admin/orders/${orderId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
+  // const updateStatus = async (orderId, status) => {
+  //   await fetch(`/api/admin/orders/${orderId}`, {
+  //     method: "PUT",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ status }),
+  //   });
 
-    fetchOrders();
-  };
+  //   fetchOrders();
+  // };
 
   const queryClient = useQueryClient();
 

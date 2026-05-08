@@ -1,29 +1,25 @@
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
-import EditProductForm from "@/components/admin/products/EditProductForm";
 import { getAllCollections, getCategories } from "@/utils/utilities";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import EditProductClient from "./EditProductClient";
 
 export default async function EditProductPage({ params }) {
-  // const session = await auth();
-
-
-  // if (!session) {
-  //   redirect("/signIn?callbackUrl=/admin");
-  // }
-
-  // if (session.user.role !== "ADMIN") {
-  //   redirect("/");
-  // }
   const { product_id } = await params;
   const categories = await getCategories();
   let collections = await getAllCollections();
 
+
+
   collections = collections.sort((a, b) => {
     return a._id.localeCompare(b._id);
   });
+
+  const filteredCollections = collections.filter((collection) => collection?.type === "manual");
+
+
   const client = await clientPromise;
   const db = client.db("my_ecommerce_db");
 
@@ -44,11 +40,11 @@ export default async function EditProductPage({ params }) {
         description="Edit your product"
       />
 
-      <EditProductForm
+      <EditProductClient
         // session={session}
         product={formattedProduct}
         categories={categories}
-        allCollections={collections}
+        allCollections={filteredCollections}
       />
     </div>
   );

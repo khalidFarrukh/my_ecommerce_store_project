@@ -16,7 +16,12 @@ export async function GET(req, context) {
     const collection = await db.collection("collections").findOne({ _id: new ObjectId(collection_id) });
 
     if (!collection) return new Response(JSON.stringify({ message: "Not found" }), { status: 404 });
-    return new Response(JSON.stringify({ data: collection }), { headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({
+      data: {
+        ...collection,
+        _id: collection._id.toString(),
+      }
+    }), { headers: { "Content-Type": "application/json" } });
   } catch (err) {
     console.error(err);
     return Response.json({ message: "Server error" }, { status: 500 });
@@ -30,6 +35,7 @@ const updateCollectionSchema = z.object({
   name: z.string().min(2).max(100).trim(),
   slug: z.string().min(2).max(100).trim(),
   turnedoff: z.boolean(),
+  type: z.enum(["manual", "system"])
 });
 
 // =========================
@@ -71,7 +77,7 @@ export async function PUT(req, context) {
     );
   }
 
-  const { name, slug, turnedoff } = parsed.data;
+  const { name, slug, turnedoff, type } = parsed.data;
 
   // =========================
   // 4️⃣ DB + Transaction
@@ -107,6 +113,7 @@ export async function PUT(req, context) {
             name,
             slug,
             turnedoff,
+            type,
             updatedAt: new Date(),
           },
         },

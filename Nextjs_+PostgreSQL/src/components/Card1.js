@@ -19,7 +19,7 @@ export default function Card1({ className, productObj, id }) {
         onClick={() => {
           closeSearchModal();
         }}
-        href={"/products/" + String(productObj.category) + "/" + product_route}
+        href={`/products/${String(productObj.category)}/${product_route}`}
         className=
         {`
           w-full

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import AdminTabContentHeader from "@/components/admin/AdminTabContentHeader";
 import FloatingInput from "@/components/FloatingInput";
 import { capitalizeEachFirstCharOfWord, convertTextStringToDashString } from "@/utils/utilities";
@@ -9,15 +9,46 @@ import { useAlertModal } from "@/context/AlertModalContext";
 import ToggleSlideButton from "@/components/ToggleSlideButton";
 import YesNoModal from "@/components/modals/YesNoModal";
 import { useGlobalToast } from "@/context/GlobalToastContext";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useSession } from "next-auth/react";
 
-export default function EditCollectionClient({ collection: initialCollection }) {
+export default function EditCollectionClient() {
+  const { data: session } = useSession();
   const router = useRouter();
   const { setToast } = useGlobalToast();
+  const { collection_id } = useParams();
+  // const { isOpen: isAlertModalOpen, openAlertModal } = useAlertModal();
 
-  const { isOpen: isAlertModalOpen, openAlertModal } = useAlertModal();
-  const [collection, setCollection] = useState(initialCollection);
+  const [collection, setCollection] = useState({});
+  const [isCollectionLoading, setIsCollectionLoading] = useState(true);
+
   const [showDeleteItemModal, setShowDeleteItemModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchCollection = async () => {
+    try {
+      const res = await fetch(`/api/admin/collections/${collection_id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+      setCollection(data.data);
+    } catch (err) {
+      console.error(err);
+      router.push("/admin/collections");
+      setTimeout(() => {
+        setToast({
+          id: Date.now(),
+          message: err.message,
+          type: "error"
+        });
+      }, 0);
+    }
+    finally {
+      setIsCollectionLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchCollection();
+  }, [])
 
 
   // --- Generic field updater (like product form)
@@ -40,6 +71,7 @@ export default function EditCollectionClient({ collection: initialCollection }) 
           name: collection.name,
           slug: convertTextStringToDashString(collection.name),
           turnedoff: collection.turnedoff,
+          type: collection.type,
         }),
       });
 
@@ -62,8 +94,6 @@ export default function EditCollectionClient({ collection: initialCollection }) 
 
   const handleDelete = async () => {
     try {
-      setIsDeleting(true);
-
       const res = await fetch(`/api/admin/collections/${collection._id}`, {
         method: "DELETE",
       });
@@ -83,15 +113,16 @@ export default function EditCollectionClient({ collection: initialCollection }) 
         });
       }, 0);
     } finally {
-      setIsDeleting(false);
       setShowDeleteItemModal(false);
     }
   };
 
-  useEffect(() => {
-    if (isAlertModalOpen)
-      setCollection(initialCollection);
-  }, [isAlertModalOpen]);
+
+  if (isCollectionLoading) {
+    return <div className="min-h-[calc(100vh-60px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading" />
+    </div>
+  }
 
 
   return (
@@ -109,16 +140,63 @@ export default function EditCollectionClient({ collection: initialCollection }) 
           <FloatingInput
             id="collection_name"
             label="Collection Name"
-            inputClassName="input!"
+            inputClassName=""
             type="text"
             value={capitalizeEachFirstCharOfWord(collection.name) || ""}
             onChange={(e) => updateField("name", capitalizeEachFirstCharOfWord(e.target.value))}
           />
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <h2 className="text-sm font-medium">Collection Type</h2>
+              </div>
+
+              {session?.user?.role === "ADMIN" ? (
+                <select
+                  value={collection.type || "manual"}
+                  onChange={(e) => updateField("type", e.target.value)}
+                  className="
+                    bg-background_3
+                    border
+                    border-myBorderColor
+                    rounded-md
+                    px-3
+                    py-1
+                    text-sm
+                    outline-none
+                    cursor-pointer
+                  "
+                >
+                  <option value="manual">Manual</option>
+                  <option value="system">System</option>
+                </select>
+              ) : (
+                <div
+                  className={`
+                    px-3 py-1 rounded-md text-sm border capitalize 
+                    ${collection.type === "system"
+                      ? "bg-blue-500/10 border-blue-500 text-blue-400"
+                      : "bg-green-500/10 border-green-500 text-green-400"
+                    }
+                  `}
+                >
+                  {collection.type || "manual"}
+                </div>
+              )}
+            </div>
+
+            {collection.type === "system" && (
+              <div className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-md p-3">
+                All products in store by design are included in this collection.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Status */}
         <div className="bg-background_2 border border-myBorderColor rounded-lg p-6 flex items-center justify-between">
-          <h2 className="text-lg font-medium">Shown</h2>
+          <h2 className="text-lg font-medium">Visibility</h2>
 
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <ToggleSlideButton

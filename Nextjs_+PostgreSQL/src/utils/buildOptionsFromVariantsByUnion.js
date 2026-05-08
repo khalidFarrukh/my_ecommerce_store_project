@@ -18,22 +18,23 @@
 //   return optionUnion
 // }
 
-export function buildOptionsFromVariantsByUnion(variants) {
-  const optionUnion = {}
+export function buildOptionsFromVariantsByUnion(variants = []) {
+  const optionUnion = new Map()
 
-  variants.forEach(variant => {
-    variant.options.forEach(({ name, value }) => {
-      if (!optionUnion[name]) {
-        optionUnion[name] = new Set()
+  for (const variant of variants) {
+    for (const { name, value } of variant.options || []) {
+      if (!optionUnion.has(name)) {
+        optionUnion.set(name, new Set())
       }
+      optionUnion.get(name).add(value)
+    }
+  }
 
-      optionUnion[name].add(value)
-    })
-  })
+  const result = {}
 
-  Object.keys(optionUnion).forEach(key => {
-    optionUnion[key] = Array.from(optionUnion[key])
-  })
+  for (const [key, set] of optionUnion.entries()) {
+    result[key] = Array.from(set)
+  }
 
-  return optionUnion
+  return result
 }

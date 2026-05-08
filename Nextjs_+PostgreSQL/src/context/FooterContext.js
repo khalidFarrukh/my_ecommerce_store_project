@@ -13,7 +13,6 @@ export function FooterProvider({ children }) {
 
     const rect = footerRef.current.getBoundingClientRect();
     const distance = window.innerHeight - rect.top;
-    console.log("footer distance - ", distance);
 
     setFooterDistance(distance);
   };

@@ -60,6 +60,7 @@ export async function POST() {
     const result = await collections.insertOne({
       name: "New Collection",
       slug,
+      type: "manual",
       orderNo: nextOrder,
       turnedoff: false,
       createdAt: new Date(),

@@ -7,7 +7,6 @@ export async function GET() {
     where: { email: "test@example.com" },
   });
 
-  console.log(user);
 
   const isValid = await bcrypt.compare(
             credentials.password,

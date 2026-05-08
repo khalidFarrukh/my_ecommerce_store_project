@@ -14,7 +14,7 @@ export async function POST(req) {
     const parsed = resetPasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      console.log(parsed.error.issues);
+      // console.log(parsed.error.issues);
 
       return NextResponse.json(
         {

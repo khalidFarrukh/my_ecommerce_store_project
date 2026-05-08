@@ -5,11 +5,58 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 import { useSessionExpiry } from "@/context/SessionExpiryContext";
 import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-export default function AdminDashboardClient({ recentOrders, lowStockProducts, totalProducts, totalOrders, revenueAgg }) {
+export default function AdminDashboardClient(
+  // { recentOrders, lowStockProducts, totalProducts, totalOrders, revenueAgg }
+) {
   // const { sessionData: session } = useSessionExpiry();
   const { data: session } = useSession();
-  const revenue = revenueAgg[0]?.total || 0;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-dashboard"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/dashboard");
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      return data.data;
+    },
+
+    onError: (err) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+    },
+
+    staleTime: 1000 * 60, // 1 min
+  });
+
+  const dashboardData = data || {};
+
+  const recentOrders = dashboardData.recentOrders || [];
+  const lowStockProducts = dashboardData.lowStockProducts || [];
+
+  const stats = dashboardData.stats || {};
+
+  const totalProducts = stats.totalProducts || 0;
+  const totalOrders = stats.totalOrders || 0;
+  const revenue = stats.revenue || 0;
+
+  if (isLoading) {
+    return <div className="min-h-[calc(100vh-60px)] flex items-center justify-center">
+      <LoadingSpinner text="Loading" />
+    </div>
+  }
+
+  // const revenue = revenueAgg[0]?.total || 0;
   return (
     <div className="space-y-6 min-h-[1000px]">
       {/* Header */}
