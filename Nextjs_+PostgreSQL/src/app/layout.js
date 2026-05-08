@@ -32,6 +32,21 @@ export const metadata = {
   title: "FK Store | Full-Stack eCommerce App",
   description:
     "A full-stack eCommerce web application built with Next.js, React, Node.js, and MongoDB. Features include authentication, admin dashboard, inventory management, and complete order workflow.",
+  viewport: "width=device-width, initial-scale=1",
+  openGraph: {
+    title: "FK Store",
+    description: "Full-stack eCommerce app built with Next.js",
+    url: `${process.env.NEXT_PUBLIC_APP_URL}`,
+    siteName: "FK Store",
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
+  },
 };
 
 export default async function RootLayout({ children }) {
