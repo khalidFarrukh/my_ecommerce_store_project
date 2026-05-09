@@ -86,6 +86,13 @@ export default function AdminOrdersClient() {
     },
 
     onSuccess: () => {
+
+      setToast({
+        id: Date.now(),
+        message: "Order status updated successfully",
+        type: "info",
+      });
+
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     },
 
@@ -146,147 +153,156 @@ export default function AdminOrdersClient() {
               <LoadingSpinner text="Loading" />
             </div>
             :
-            <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-myBorderColor text-left">
-                    <th className="pr-2 py-2 text-nowrap">Order ID</th>
-                    <th className="px-2 text-center bg-background_3">User</th>
-                    <th className="px-2 text-center">Total</th>
-                    <th className="px-2 text-center bg-background_3 text-nowrap">Set status</th>
-                    <th className="px-2 text-center ">Status</th>
-                    <th className="px-2 text-center bg-background_3">Payment</th>
-                    <th className="px-2 text-center">Actions</th>
-                  </tr>
-                </thead>
+            <div className="w-full h-fit">
+              <div className="max-w-0 min-w-full overflow-x-auto scrollbar-hide">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-myBorderColor text-left">
+                      <th className="pr-2 py-2 text-nowrap">Order ID</th>
+                      <th className="px-2 text-center bg-background_3">User</th>
+                      <th className="px-2 text-center">Total</th>
+                      <th className="px-2 text-center bg-background_3 text-nowrap">Set status</th>
+                      <th className="px-2 text-center ">Status</th>
+                      <th className="px-2 text-center bg-background_3">Payment</th>
+                      <th className="px-2 text-center">Actions</th>
+                    </tr>
+                  </thead>
 
-                <tbody>
-
-                  {orders.map(order => {
-
-                    return (
-                      <tr key={order._id} className="border-b border-myBorderColor">
-
-                        <td className="min-w-3 max-w-40 truncate py-3 pr-2">
-                          {order._id}
+                  <tbody>
+                    {orders.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center py-6 text-gray-500">
+                          No orders yet
                         </td>
-
-                        <td className="min-w-3 max-w-40 truncate py-3 px-2 text-center bg-background_3">
-                          {order.userEmail || "Guest"}
-                        </td>
-
-                        <td className="py-3 px-2 text-center text-nowrap">
-                          Rs. {order.pricing?.total}
-                        </td>
-
-                        <td className="py-3 px-2 text-center bg-background_3">
-                          {order.status === "pending" &&
-                            <div className="flex gap-4 flex-nowrap w-full items-center justify-center">
-                              <button
-                                disabled={isLoading}
-                                onClick={() =>
-                                  updateStatusMutation.mutate({
-                                    orderId: order._id,
-                                    status: "confirmed",
-                                  })
-                                }
-                                className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
-                              >
-                                Confirm
-                              </button>
-                              <CancelOrderButton
-                                cancelingOrder={cancelingOrder}
-                                handleCancel={() => cancelOrderMutation.mutate(order._id)}
-                              />
-                            </div>
-                          }
-
-                          {order.status === "confirmed" &&
-                            <button
-                              disabled={isLoading}
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "processing",
-                                })
-                              }
-                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
-                            >
-                              Start packing order
-                            </button>
-                          }
-
-                          {order.status === "processing" &&
-                            <button
-                              disabled={isLoading}
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "packed",
-                                })
-                              }
-                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
-                            >
-                              Order packed
-                            </button>
-                          }
-
-                          {order.status === "packed" &&
-                            <button
-                              disabled={isLoading}
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "shipped",
-                                })
-                              }
-                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
-                            >
-                              Shipped
-                            </button>
-                          }
-
-                          {order.status === "shipped" &&
-
-                            <button
-                              disabled={isLoading}
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  orderId: order._id,
-                                  status: "delivered",
-                                })
-                              }
-                              className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
-                            >
-                              Delivered
-                            </button>
-                          }
-                        </td>
-                        <td className="py-3 px-2 text-center">
-                          <div className="bg-background_3 border border-myBorderColor text-sm px-3 py-1 rounded-md">
-                            {order.status}
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-2 text-center bg-background_3">
-                          {order.payment?.method} ({order.payment?.status})
-                        </td>
-
-                        <td className="py-3 px-2 flex gap-3 items-center justify-center">
-                          <Link
-                            href={`/admin/orders/${order._id}`}
-                            className="button2 p-2 rounded-full! flex w-max!"
-                          >
-                            <Eye className="size-4" />
-                          </Link>
-                        </td>
-
                       </tr>
-                    );
-                  })}
+                    ) :
 
-                </tbody>
-              </table>
+                      orders.map(order => {
+
+                        return (
+                          <tr key={order._id} className="border-b border-myBorderColor">
+
+                            <td className="min-w-3 max-w-40 truncate py-3 pr-2">
+                              {order._id}
+                            </td>
+
+                            <td className="min-w-3 max-w-40 truncate py-3 px-2 text-center bg-background_3">
+                              {order.userEmail || "Guest"}
+                            </td>
+
+                            <td className="py-3 px-2 text-center text-nowrap">
+                              Rs. {order.pricing?.total}
+                            </td>
+
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {order.status === "pending" &&
+                                <div className="flex gap-4 flex-nowrap w-full items-center justify-center">
+                                  <button
+                                    disabled={isLoading}
+                                    onClick={() =>
+                                      updateStatusMutation.mutate({
+                                        orderId: order._id,
+                                        status: "confirmed",
+                                      })
+                                    }
+                                    className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
+                                  >
+                                    Confirm
+                                  </button>
+                                  <CancelOrderButton
+                                    cancelingOrder={cancelingOrder}
+                                    handleCancel={() => cancelOrderMutation.mutate(order._id)}
+                                  />
+                                </div>
+                              }
+
+                              {order.status === "confirmed" &&
+                                <button
+                                  disabled={isLoading}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      orderId: order._id,
+                                      status: "processing",
+                                    })
+                                  }
+                                  className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
+                                >
+                                  Start packing order
+                                </button>
+                              }
+
+                              {order.status === "processing" &&
+                                <button
+                                  disabled={isLoading}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      orderId: order._id,
+                                      status: "packed",
+                                    })
+                                  }
+                                  className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
+                                >
+                                  Order packed
+                                </button>
+                              }
+
+                              {order.status === "packed" &&
+                                <button
+                                  disabled={isLoading}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      orderId: order._id,
+                                      status: "shipped",
+                                    })
+                                  }
+                                  className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
+                                >
+                                  Shipped
+                                </button>
+                              }
+
+                              {order.status === "shipped" &&
+
+                                <button
+                                  disabled={isLoading}
+                                  onClick={() =>
+                                    updateStatusMutation.mutate({
+                                      orderId: order._id,
+                                      status: "delivered",
+                                    })
+                                  }
+                                  className={`px-3 py-1 button1 text-sm rounded-md! cursor-pointer`}
+                                >
+                                  Delivered
+                                </button>
+                              }
+                            </td>
+                            <td className="py-3 px-2 text-center">
+                              <div className="bg-background_3 border border-myBorderColor text-sm px-3 py-1 rounded-md">
+                                {order.status}
+                              </div>
+                            </td>
+
+                            <td className="py-3 px-2 text-center bg-background_3">
+                              {order.payment?.method} ({order.payment?.status})
+                            </td>
+
+                            <td className="py-3 px-2 flex gap-3 items-center justify-center">
+                              <Link
+                                href={`/admin/orders/${order._id}`}
+                                className="button2 p-2 rounded-full! flex w-max!"
+                              >
+                                <Eye className="size-4" />
+                              </Link>
+                            </td>
+
+                          </tr>
+                        );
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
             </div>
         }
       </section>

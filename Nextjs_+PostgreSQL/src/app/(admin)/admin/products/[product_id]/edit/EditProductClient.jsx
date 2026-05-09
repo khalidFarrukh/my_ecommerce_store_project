@@ -340,6 +340,13 @@ export default function EditProductClient({
         router.push(
           `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
         );
+        setTimeout(() => {
+          setToast({
+            id: Date.now(),
+            message: data.message,
+            type: "info",
+          });
+        }, 0);
       }
     } catch (err) {
       console.error(err);

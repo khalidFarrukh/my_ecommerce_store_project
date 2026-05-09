@@ -210,6 +210,25 @@ input[type="range"]::-moz-range-track {
   height: 16px;
 }
 
+/* Chrome / Edge / Safari */
+input[type="password"]::-webkit-textfield-decoration-container {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+/* Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Prevent browser styling */
+input[type="password"] {
+  appearance: none;
+  -webkit-appearance: none;
+}
 
 /* bg-background_1 text-foreground border border-myBorderColor hover:bg-foreground hover:text-background_1 hover:border-background_1 focus:bg-background_1 focus:text-foreground focus:border-myBorderColor */
 

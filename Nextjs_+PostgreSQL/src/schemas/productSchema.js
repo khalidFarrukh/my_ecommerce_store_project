@@ -68,7 +68,7 @@ export const BaseProductSchema = z.object({
   info: InfoSchema,
 
   category: z.string()
-    .min(1, "Category is required"),
+    .min(2, "Category is required"),
 
   status: z.enum(["draft", "active", "archive"]),
 });

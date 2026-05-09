@@ -93,6 +93,11 @@ export default function AdminCollectionsClient() {
     },
 
     onSuccess: () => {
+      setToast({
+        id: Date.now(),
+        message: "Toggle successful",
+        type: "info",
+      });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },
     onError: (err) => {
@@ -128,10 +133,22 @@ export default function AdminCollectionsClient() {
     },
 
     onError: (err, _, context) => {
+      setToast({
+        id: Date.now(),
+        message: err.message,
+        type: "error",
+      });
+
       queryClient.setQueryData(["collections"], context.previous);
     },
 
     onSettled: () => {
+
+      setToast({
+        id: Date.now(),
+        message: "re-order successful",
+        type: "info",
+      });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },
   });
