@@ -168,16 +168,15 @@ export default function Header() {
               >
                 <Search className="min-w-[20px] min-h-[20px] size-[20px]" />
               </button>
-              <div className="h-full hidden md:flex">
 
-                {
-                  session?.user.role === "ADMIN" &&
-                  !pathname.startsWith("/admin") &&
-                  (
-                    <Link
-                      className=
-                      {`
-                      flex
+              {
+                session?.user.role === "ADMIN" &&
+                !pathname.startsWith("/admin") &&
+                (
+                  <Link
+                    className=
+                    {`
+                      hidden md:flex
                       cursor-pointer
                       text-[12px]
                       font-semibold
@@ -185,19 +184,17 @@ export default function Header() {
                       h-full
                       items-center
                     `}
-                      href={"/admin"}
-                    >
-                      Dashboard
-                    </Link>
-                  )
-                }
-              </div>
-              <div className="h-full hidden md:flex">
-                {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
-                  <Link
-                    className=
-                    {`
-                        flex
+                    href={"/admin"}
+                  >
+                    Dashboard
+                  </Link>
+                )
+              }
+              {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
+                <Link
+                  className=
+                  {`
+                        hidden md:flex
                         cursor-pointer
                         text-[12px]
                         font-semibold
@@ -205,12 +202,11 @@ export default function Header() {
                         h-full
                         items-center
                       `}
-                    href={selectedUrl}
-                  >
-                    {session?.user ? "Profile" : "Sign in"}
-                  </Link>
-                }
-              </div>
+                  href={selectedUrl}
+                >
+                  {session?.user ? "Profile" : "Sign in"}
+                </Link>
+              }
 
               {
                 pathname !== "/cart" &&
