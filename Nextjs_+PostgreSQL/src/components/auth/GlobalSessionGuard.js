@@ -20,6 +20,7 @@ export default function GlobalSessionGuard() {
     update(); // re-sync session on navigation
   }, [pathname]);
 
+
   useEffect(() => {
     const handlePageShow = (event) => {
       if (event.persisted) {

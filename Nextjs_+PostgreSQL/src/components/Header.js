@@ -19,8 +19,7 @@ import { useAdminSidebar, useSidebar } from "@/context/SidebarContext";
 export default function Header() {
   const { data: session, status } = useSession();
   const { theme, setTheme } = useTheme();
-  const { isCartBtnHovered, setIsCartBtnHovered } = useCartButtonContext();
-  const { windowWidth } = useWindowSizeContext();
+  const { setIsCartBtnHovered } = useCartButtonContext();
   // const { timeLeft, sessionData: session, sessionStatus: status } = useSessionExpiry();
 
   const cartState = useSelector(state => state.cart.cartState);
@@ -28,7 +27,6 @@ export default function Header() {
 
   const pathname = usePathname();
 
-  const isLoading = status === "loading";
   const selectedUrl =
     session
       ? "/profile"
@@ -99,56 +97,51 @@ export default function Header() {
               w375:gap-5
               "
             >
-              {
-                windowWidth < 768 &&
-                <button
-                  onClick={() => openSidebar()}
-                  className=
-                  {`
+              <button
+                onClick={() => openSidebar()}
+                className=
+                {`
+                    flex
+                    md:hidden
                 cursor-pointer
                 text-[12px]
                 font-semibold
                 h-full
                 hover:text-foreground
               `}
-                >
-                  <MenuIcon className="min-w-[20px] min-h-[20px] size-[20px]" />
-                </button>
-              }
+              >
+                <MenuIcon className="min-w-[20px] min-h-[20px] size-[20px]" />
+              </button>
 
-              {
-                windowWidth >= 768 &&
-                <button
-                  onClick={() => {
-                    setTheme(nextTheme[theme] || "system");
-                    localStorage.setItem("theme", nextTheme[theme]);
-                  }}
-                  className="cursor-pointer h-full hover:text-foreground"
-                >
-                  {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
-                </button>
-              }
+              <button
+                onClick={() => {
+                  setTheme(nextTheme[theme] || "system");
+                  localStorage.setItem("theme", nextTheme[theme]);
+                }}
+                className="hidden md:flex cursor-pointer h-full hover:text-foreground"
+              >
+                {themeIcons[theme] || <Laptop className="min-w-[20px] min-h-[20px] size-[20px]" />}
+              </button>
+
             </div>
-            {
-              // windowWidth >= 575 &&
-              (
-                <Link
-                  href="/"
-                  className=
-                  {`
-                    mx-auto
-                    ${windowWidth >= 575 ? "text-lg" : "text-base"}
-                    h-full
-                    text-center
-                    font-semibold
-                    hover:text-foreground
-                    flex
-                    items-center
-                  `}
-                >
-                  FK STORE
-                </Link>
-              )}
+            <Link
+              href="/"
+              className=
+              {`
+                mx-auto
+                text-base
+                w575:text-lg
+                h-full
+                text-center
+                font-semibold
+                hover:text-foreground
+                flex
+                items-center
+              `}
+            >
+              FK STORE
+            </Link>
+
             <div
               className=
               {`
@@ -175,15 +168,16 @@ export default function Header() {
               >
                 <Search className="min-w-[20px] min-h-[20px] size-[20px]" />
               </button>
-              {
-                session?.user.role === "ADMIN" &&
-                !pathname.startsWith("/admin") &&
-                (
-                  <Link
-                    className=
-                    {`
-                      hidden
-                      md:flex
+              <div className="h-full hidden md:flex">
+
+                {
+                  session?.user.role === "ADMIN" &&
+                  !pathname.startsWith("/admin") &&
+                  (
+                    <Link
+                      className=
+                      {`
+                      flex
                       cursor-pointer
                       text-[12px]
                       font-semibold
@@ -191,31 +185,32 @@ export default function Header() {
                       h-full
                       items-center
                     `}
-                    href={"/admin"}
-                  >
-                    Dashboard
-                  </Link>
-                )
-              }
-              {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
-                windowWidth >= 768 &&
-                (
+                      href={"/admin"}
+                    >
+                      Dashboard
+                    </Link>
+                  )
+                }
+              </div>
+              <div className="h-full hidden md:flex">
+                {!["/signIn", "/signUp", "/forgotPassword", "/resetPassword", "/profile"].some((route) => pathname.startsWith(route)) &&
                   <Link
                     className=
                     {`
-                    flex
-                    cursor-pointer
-                    text-[12px]
-                    font-semibold
-                    hover:text-foreground
-                    h-full
-                    items-center
-                  `}
+                        flex
+                        cursor-pointer
+                        text-[12px]
+                        font-semibold
+                        hover:text-foreground
+                        h-full
+                        items-center
+                      `}
                     href={selectedUrl}
                   >
-                    {session ? "Profile" : "Sign in"}
+                    {session?.user ? "Profile" : "Sign in"}
                   </Link>
-                )}
+                }
+              </div>
 
               {
                 pathname !== "/cart" &&

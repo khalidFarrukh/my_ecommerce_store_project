@@ -249,57 +249,55 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
         className={`relative w-full bg-background_1 my-4 flex flex-col gap-5 items-center`}
       >
         <section className="w-full space-y-3">
-          {
-            windowWidth < 1024 &&
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {[
-                  selected_product.category,
-                  ...(selected_product.collectionIds || []),
-                ].map((item, index, arr) => (
-                  <React.Fragment key={item}>
-                    <Link
-                      href={
-                        index === 0
-                          ? `/products/${item}`
-                          : `/collections/${item}`
-                      }
-                      className="
+
+          <div className="lg:hidden space-y-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {[
+                selected_product.category,
+                ...(selected_product.collectionIds || []),
+              ].map((item, index, arr) => (
+                <React.Fragment key={item}>
+                  <Link
+                    href={
+                      index === 0
+                        ? `/products/${item}`
+                        : `/collections/${item}`
+                    }
+                    className="
                               w-fit
                               button1
                               px-3
                               py-1
                               rounded-md!
                             "
-                    >
-                      {convertDashStringToTextString(item)}
-                    </Link>
+                  >
+                    {convertDashStringToTextString(item)}
+                  </Link>
 
-                    {index !== arr.length - 1 && (
-                      <span className="text-myTextColorLightGray">•</span>
-                    )}
-                  </React.Fragment>
-                ))}
+                  {index !== arr.length - 1 && (
+                    <span className="text-myTextColorLightGray">•</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            <div className="flex gap-4 justify-between">
+
+              <div className="space-y-3">
+                < h1 className=" w-full text-4xl font-semibold">
+                  {selected_product.name}
+                </h1>
+
+                <p className=" w-full text-sm">
+                  {selected_product.description}
+                </p>
               </div>
-
-              <div className="flex gap-4 justify-between">
-
-                <div className="space-y-3">
-                  < h1 className=" w-full text-4xl font-semibold">
-                    {selected_product.name}
-                  </h1>
-
-                  <p className=" w-full text-sm">
-                    {selected_product.description}
-                  </p>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <Star className="md:size-8 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm md:text-xl">4.5</span>
-                </div>
+              <div className="flex flex-col items-center gap-2">
+                <Star className="md:size-8 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm md:text-xl">4.5</span>
               </div>
             </div>
-          }
+          </div>
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[270px_1fr_270px] xl:grid-cols-[370px_1fr_370px] gap-6 mx-auto`}
           >
@@ -312,57 +310,55 @@ export default function ProductClient({ selectedProduct, relatedProducts }) {
                 className="lg:sticky"
                 style={{ top: `${leftTop}px` }}
               >
-                {
-                  windowWidth >= 1024 &&
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      {[
-                        selected_product.category,
-                        ...(selected_product.collectionIds || []),
-                      ].map((item, index, arr) => (
-                        <React.Fragment key={item}>
-                          <Link
-                            href={
-                              index === 0
-                                ? `/products/${item}`
-                                : `/collections/${item}`
-                            }
-                            className="
+                <div className="hidden lg:flex flex-col gap-y-3">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {[
+                      selected_product.category,
+                      ...(selected_product.collectionIds || []),
+                    ].map((item, index, arr) => (
+                      <React.Fragment key={item}>
+                        <Link
+                          href={
+                            index === 0
+                              ? `/products/${item}`
+                              : `/collections/${item}`
+                          }
+                          className="
                               w-fit
                               button1
                               px-3
                               py-1
                               rounded-md!
                             "
-                          >
-                            {convertDashStringToTextString(item)}
-                          </Link>
+                        >
+                          {convertDashStringToTextString(item)}
+                        </Link>
 
-                          {index !== arr.length - 1 && (
-                            <span className="text-myTextColorLightGray">•</span>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                    <div className="flex gap-4 justify-between">
-
-                      <div className="space-y-3">
-                        < h1 className=" w-full text-4xl font-semibold">
-                          {selected_product.name}
-                        </h1>
-
-                        <p className=" w-full text-sm">
-                          {selected_product.description}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <Star className="size-6 xl:size-8 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm xl:text-base">4.5</span>
-                      </div>
-                    </div>
-
+                        {index !== arr.length - 1 && (
+                          <span className="text-myTextColorLightGray">•</span>
+                        )}
+                      </React.Fragment>
+                    ))}
                   </div>
-                }
+                  <div className="flex gap-4 justify-between">
+
+                    <div className="space-y-3">
+                      < h1 className=" w-full text-4xl font-semibold">
+                        {selected_product.name}
+                      </h1>
+
+                      <p className=" w-full text-sm">
+                        {selected_product.description}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <Star className="size-6 xl:size-8 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm xl:text-base">4.5</span>
+                    </div>
+                  </div>
+
+                </div>
+
                 <hr className="w-full mt-5 border-t border-myBorderColor" />
 
                 <TextAndPlus

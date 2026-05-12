@@ -26,15 +26,43 @@ function useDebounce(value, delay = 400) {
 }
 
 function getPriceRange(variants) {
-  const prices = variants
-    .map(v => Number(v.price))
-    .filter(Boolean);
+  if (!variants.length) return "—";
 
-  if (!prices.length) return "—";
+  // derive final prices with their variants
+  const pricedVariants = variants.map((variant) => {
+    const price = Number(variant.price) || 0;
+    const discount = Number(variant.discount) || 0;
 
-  if (prices.length === 1) return `Rs. ${prices[0]}`;
+    const finalPrice = Math.ceil(
+      price - (price * discount) / 100
+    );
 
-  return `Rs. ${Math.min(...prices)} – Rs. ${Math.max(...prices)}`;
+    return {
+      ...variant,
+      finalPrice,
+    };
+  });
+
+  // single variant
+  if (pricedVariants.length === 1) {
+    return `Rs. ${pricedVariants[0].finalPrice}`;
+  }
+
+  // min/max variants
+  const minVariant = pricedVariants.reduce((min, current) =>
+    current.finalPrice < min.finalPrice ? current : min
+  );
+
+  const maxVariant = pricedVariants.reduce((max, current) =>
+    current.finalPrice > max.finalPrice ? current : max
+  );
+
+  // same price
+  if (minVariant.finalPrice === maxVariant.finalPrice) {
+    return `Rs. ${minVariant.finalPrice}`;
+  }
+
+  return `Rs. ${minVariant.finalPrice} – Rs. ${maxVariant.finalPrice}`;
 }
 
 function getTotalStock(variants) {

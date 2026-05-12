@@ -7,10 +7,7 @@ import { usePathname } from "next/navigation";
 
 export default function AdminSidebarForAdminLayout() {
   const pathname = usePathname();
-  const { windowWidth } = useWindowSizeContext();
-
-  // if (windowWidth < 768) return null;
-
+  
   return (
     <aside className="w-56 border-r border-myBorderColor pr-5 sticky top-[calc(60px)] h-[calc(100vh-60px)] hidden md:flex flex-col justify-center">
       <div className="h-fit ">
