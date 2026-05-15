@@ -608,12 +608,14 @@ export default function EditProductClient({
             )}
           </div>
 
-          <button
-            onClick={addVariant}
-            className="cursor-pointer button2 px-3 py-1"
-          >
-            + Add Variant
-          </button>
+          {canEditStructure && (
+            <button
+              onClick={addVariant}
+              className="cursor-pointer button2 px-3 py-1"
+            >
+              + Add Variant
+            </button>
+          )}
         </div>
         {product.variants.length > 0 && (
           <div className="flex flex-col gap-10">

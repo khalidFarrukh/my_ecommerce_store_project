@@ -44,6 +44,19 @@ export async function PUT(req, context) {
 
   const dbProduct = await db.collection("products").findOne({ _id: new ObjectId(product_id) });
 
+  if (dbProduct.status !== "draft") {
+    // prevent changing product name
+    if (updateData.name !== dbProduct.name) {
+      return Response.json(
+        {
+          message:
+            "Product name cannot be changed after activation",
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const from = dbProduct.status;
   const to = updateData.status;
 
