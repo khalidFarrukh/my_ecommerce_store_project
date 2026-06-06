@@ -67,6 +67,8 @@ export const BaseProductSchema = z.object({
 
   info: InfoSchema,
 
+  collectionIds: z.array(z.string()).default([]),
+
   category: z.string()
     .min(2, "Category is required"),
 

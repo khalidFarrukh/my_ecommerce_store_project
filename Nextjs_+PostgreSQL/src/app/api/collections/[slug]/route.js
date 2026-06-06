@@ -23,7 +23,7 @@ export async function GET(req, context) {
     let matchStage = { status: "active" };
 
     if (type === "collection") {
-      if (slug !== "all-products") {
+      if (slug !== "all-products" && slug !== "latest-products") {
         matchStage.collectionIds = slug;
       }
     } else if (type === "category") {

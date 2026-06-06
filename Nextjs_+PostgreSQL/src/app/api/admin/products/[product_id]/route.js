@@ -78,6 +78,7 @@ export async function PUT(req, context) {
 
   if (shouldValidate) {
     const parsed = StrictProductSchema.safeParse(updateData);
+    console.log("Validation result:", parsed);
 
     if (!parsed.success) {
       return Response.json({ message: "Validation failed" }, { status: 400 });
@@ -86,6 +87,7 @@ export async function PUT(req, context) {
     safeData = parsed.data;
   } else {
     const parsed = BaseProductSchema.partial().safeParse(updateData);
+    console.log("Partial validation result:", parsed);
 
     if (!parsed.success) {
       return Response.json({ message: "Invalid Data" }, { status: 400 });

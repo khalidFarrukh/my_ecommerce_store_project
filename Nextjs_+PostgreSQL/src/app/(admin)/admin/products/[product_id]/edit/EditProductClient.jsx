@@ -19,6 +19,7 @@ import {
   StrictProductSchema,
 } from "@/schemas/productSchema";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function EditProductClient({
   // session,
@@ -27,6 +28,8 @@ export default function EditProductClient({
   allCollections = [],
 }) {
   // const { sessionData: session } = useSessionExpiry();
+  const queryClient = useQueryClient();
+
   const { data: session } = useSession();
   const { setToast } = useGlobalToast();
 
@@ -142,9 +145,10 @@ export default function EditProductClient({
   );
 
   const addCollection = (col) => {
+    console.log("selected collection", col);
     setProduct((prev) => ({
       ...prev,
-      collectionIds: [...prev.collectionIds, col?.id],
+      collectionIds: [...prev.collectionIds, col?.slug],
     }));
     setShowCollectionDropdown(false);
   };
@@ -322,11 +326,13 @@ export default function EditProductClient({
     setProduct((prev) => ({ ...prev, variants }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (productToSubmit = product) => {
+    console.log("FINAL PRODUCT BEFORE SUBMIT:", productToSubmit);
+    console.log("COLLECTION IDS:", productToSubmit.collectionIds);
     try {
-      const res = await fetch(`/api/admin/products/${product._id}`, {
+      const res = await fetch(`/api/admin/products/${productToSubmit._id}`, {
         method: "PUT",
-        body: JSON.stringify(product),
+        body: JSON.stringify(productToSubmit),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -335,8 +341,11 @@ export default function EditProductClient({
       if (!res.ok) throw new Error(data.message);
 
       if (data.success) {
-        const key = `product_draft_${product._id}`;
+        const key = `product_draft_${productToSubmit._id}`;
         localStorage.removeItem(key); // ✅ ONLY NOW
+        queryClient.invalidateQueries({
+          queryKey: ["admin-products"],
+        });
         router.push(
           `/${session.user.role === "ADMIN" ? "admin" : "seller"}/products`,
         );
@@ -911,7 +920,9 @@ export default function EditProductClient({
       <div className="flex gap-3">
         {/* Update or Save button */}
         <button
-          onClick={handleSubmit}
+          onClick={() => {
+            handleSubmit(product);
+          }}
           className="button1 px-6 py-2 cursor-pointer"
         >
           Update Product
@@ -924,8 +935,13 @@ export default function EditProductClient({
             // if issues exist then don't show the activate button
             <button
               onClick={() => {
-                updateField("status", "active");
-                handleSubmit();
+                const updatedProduct = {
+                  ...product,
+                  status: "active",
+                };
+
+                setProduct(updatedProduct);
+                handleSubmit(updatedProduct);
               }}
               className="button1 px-6 py-2 cursor-pointer"
             >
@@ -938,8 +954,13 @@ export default function EditProductClient({
           !product.variants.some((v) => v.stock > 0) && (
             <button
               onClick={() => {
-                updateField("status", "archive");
-                handleSubmit();
+                const updatedProduct = {
+                  ...product,
+                  status: "archive",
+                };
+
+                setProduct(updatedProduct);
+                handleSubmit(updatedProduct);
               }}
               className="button1 px-6 py-2 cursor-pointer"
             >

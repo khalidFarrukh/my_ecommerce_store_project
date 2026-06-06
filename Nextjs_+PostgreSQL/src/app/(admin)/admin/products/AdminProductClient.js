@@ -577,7 +577,7 @@ export default function AdminProductsClient() {
                                 <Edit2 className="size-4" />
                               </Link>
                               {Number(stock) === 0 && (
-                                <button className="button2 p-2 rounded-full! flex w-max!">
+                                <button className="button2 p-2 rounded-full! flex w-max! cursor-pointer">
                                   <ArchiveIcon className="size-4" />
                                 </button>
                               )}
@@ -673,7 +673,7 @@ export default function AdminProductsClient() {
 
                               {/* Restore button */}
                               <button
-                                className="button1 px-3 py-1"
+                                className="button1 px-3 py-1 cursor-pointer disabled:cursor-not-allowed"
                                 onClick={() => restoreMutation.mutate(product._id)}
                                 disabled={restoreMutation.isPending}
                               >
