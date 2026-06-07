@@ -394,11 +394,11 @@ export default function Cart() {
                       </div>
                     </div>
                     {activeVariantsSize > 0 ? (
-                      <div className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
-                        <Link href="/checkout">
+                      <Link href="/checkout">
+                        <div className="uppercase h-max p-3 button2 text-sm rounded-[10px] cursor-pointer text-center hover:opacity-90">
                           proceed to checkout
-                        </Link>
-                      </div>
+                        </div>
+                      </Link>
                     ) : (
                       <span
                         className="uppercase h-max p-3 rounded-md text-center text-sm cursor-not-allowed opacity-50 button2 block"

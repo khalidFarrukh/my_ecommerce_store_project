@@ -6,6 +6,17 @@ import { auth } from "@/auth";
 import { getShippingPrice } from "@/utils/shipping";
 import { parseDimensions, parseWeight } from "@/utils/utilities";
 
+function generatePublicOrderId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no confusing O/0/I/1
+  let id = "";
+
+  for (let i = 0; i < 6; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return `ORD-${id}`;
+}
+
 export async function POST(req) {
   const session = await auth();
   try {
@@ -116,55 +127,67 @@ export async function POST(req) {
 
     const totalAmount = subtotal + shippingFee;
 
-    // 🧾 CREATE ORDER OBJECT
-    const order = {
-      userId: session?.user?.id, // replace with auth later
-      userEmail: session?.user?.email,
-
-      items: verifiedItems,
-
-      pricing: {
-        subtotal,
-        shippingFee,
-        total: totalAmount,
-      },
-
-      shippingAddress,
-
-      status: "pending",
-
-      payment: {
-        method: payment?.method || "cod",
-        status: payment?.method === "cod" ? "pending" : "pending"
-      },
-
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // // 📦 INSERT ORDER
-    // const result = await ordersCollection.insertOne(order);
-
-    // // 🔥 REDUCE STOCK (IMPORTANT)
-    // for (const item of verifiedItems) {
-    //   await productsCollection.updateOne(
-    //     {
-    //       _id: new ObjectId(item.productId),
-    //       "variants.id": item.variantId,
-    //     },
-    //     {
-    //       $inc: {
-    //         "variants.$.stock": -item.quantity,
-    //       },
-    //     }
-    //   );
-    // }
 
     let result;
+    let order;
+    let publicOrderId;
     const sessionDb = client.startSession();
 
     try {
       await sessionDb.withTransaction(async () => {
+
+        // =========================
+        // generate unique public ID (retry-safe)
+        // =========================
+        let isUnique = false;
+        let attempts = 0;
+
+        while (!isUnique && attempts < 5) {
+          publicOrderId = generatePublicOrderId();
+
+          const exists = await ordersCollection.findOne(
+            { publicOrderId },
+            { session: sessionDb }
+          );
+
+          if (!exists) {
+            isUnique = true;
+          }
+
+          attempts++;
+        }
+
+        if (!isUnique) {
+          throw new Error("Failed to generate unique order ID");
+        }
+
+        // 🧾 CREATE ORDER OBJECT
+        order = {
+          publicOrderId,
+          userId: session?.user?.id, // replace with auth later
+          userEmail: session?.user?.email,
+
+          items: verifiedItems,
+
+          pricing: {
+            subtotal,
+            shippingFee,
+            total: totalAmount,
+          },
+
+          shippingAddress,
+
+          status: "pending",
+
+          payment: {
+            method: payment?.method || "cod",
+            status: payment?.method === "cod" ? "pending" : "pending"
+          },
+
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
         result = await ordersCollection.insertOne(order, { session: sessionDb });
 
         // 🔴 Critical check inside transaction
@@ -215,6 +238,7 @@ export async function POST(req) {
     return NextResponse.json({
       message: "Order placed successfully!",
       orderId: result.insertedId,
+      publicOrderId,
     });
 
   } catch (err) {

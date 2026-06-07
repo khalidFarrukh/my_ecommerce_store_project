@@ -21,17 +21,15 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
   const dispatch = useDispatch();
   const { openAlertModal } = useAlertModal();
   const [checkoutProducts, setCheckoutProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   useEffect(() => {
     if (!cartItems.length) {
       setCheckoutProducts([]);
-      setLoadingProducts(false);
       return;
     }
 
     const fetchProducts = async () => {
       try {
-        setLoadingProducts(true);
         const activeProductIds = cartItems
           .filter(i => i.variants.some(v => v.active))
           .map(i => i.product_id);
@@ -383,7 +381,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
         // ✅ success
         // openAlertModal(data?.message || "Order placed successfully!");
         dispatch(removeActiveVariants());
-        router.push(`/orders/${data?.orderId}`)
+        router.push(`/orders/${data?.publicOrderId}`)
 
         setTimeout(() => {
           setToast({
@@ -459,7 +457,7 @@ export default function CheckoutClient({ user, addresses: initialAddresses }) {
 
         {
           addresses.length === 0 && !showForm ? (
-            <div className="text-center py-10">No addresses found. Please add an address.</div>
+            <div className="text-center py-8">No addresses found. Please add an address.</div>
           ) :
             <div className="flex flex-col gap-10">
               {

@@ -16,7 +16,7 @@ export default function OrderClient({ order }) {
       {/* HEADER */}
       <div className="flex gap-3 flex-col md:flex-row md:justify-between md:items-center">
         <h1 className="order-2 md:order-1 text-sm md:text-2xl font-medium md:font-bold">
-          Order #{order._id}
+          {order?.publicOrderId}
         </h1>
 
         {order.status === "pending" &&

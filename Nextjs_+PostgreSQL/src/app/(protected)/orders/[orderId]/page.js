@@ -8,9 +8,6 @@ export default async function OrderPage({ params }) {
   const session = await auth();
   const { orderId } = await params;
   if (!session?.user?.id) {
-    if (!ObjectId.isValid(orderId)) {
-      redirect("/");
-    }
     redirect(`/signIn?callbackUrl=/orders/${orderId}&error=auth_required`);
   }
 
@@ -19,7 +16,7 @@ export default async function OrderPage({ params }) {
   const ordersCollection = db.collection("orders");
 
   const order = await ordersCollection.findOne({
-    _id: new ObjectId(orderId),
+    publicOrderId: orderId,
     userId: session.user.id, // 🔒 security: user can only see own order
   });
 
