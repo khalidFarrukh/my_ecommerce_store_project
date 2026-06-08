@@ -22,12 +22,14 @@ export default function AdminCollectionsClient() {
   const router = useRouter();
   // const { sessionData: session } = useSessionExpiry();
 
+
   const { data: session } = useSession();
   const { setToast } = useGlobalToast();
   // const [collections, setCollections] = useState([]);
 
   // const [loadingCollections, setLoadingCollections] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
 
   // const fetchCollections = async () => {
   //   try {
@@ -79,6 +81,7 @@ export default function AdminCollectionsClient() {
 
   const toggleMutation = useMutation({
     mutationFn: async (collection) => {
+      setTogglingId(collection._id);
       const res = await fetch(`/api/admin/collections/${collection._id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -107,7 +110,12 @@ export default function AdminCollectionsClient() {
         type: "error",
       });
     },
+    onSettled: () => {
+      setTogglingId(null);
+    },
   });
+
+
 
 
   // useEffect(() => {
@@ -283,13 +291,17 @@ export default function AdminCollectionsClient() {
                                 </div>
 
                                 {/* Toggle */}
-                                <div>
-                                  <ToggleSlideButton
-                                    width={44}
-                                    height={24}
-                                    checked={!collection.turnedoff}
-                                    onChange={() => toggleMutation.mutate(collection)}
-                                  />
+                                <div className="w-fit">
+                                  {togglingId === collection._id ? (
+                                    <LoadingSpinner text="" />
+                                  ) : (
+                                    <ToggleSlideButton
+                                      width={44}
+                                      height={24}
+                                      checked={!collection.turnedoff}
+                                      onChange={() => toggleMutation.mutate(collection)}
+                                    />
+                                  )}
                                 </div>
 
                                 {/* Actions */}
