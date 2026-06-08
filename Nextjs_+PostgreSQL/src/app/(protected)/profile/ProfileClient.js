@@ -224,13 +224,13 @@ export default function ProfileClient() {
                 <div className="space-y-4">
                   {orders.map((order) => (
                     <div
-                      key={order._id}
+                      key={order.publicOrderId}
                       className="group border cursor-pointer border-myBorderColor p-4 rounded-md bg-background_1 space-y-2"
-                      onClick={() => router.push(`/orders/${order._id}`)}
+                      onClick={() => router.push(`/orders/${order.publicOrderId}`)}
                     >
                       <div className="flex justify-between">
                         <p className="font-semibold group-hover:underline">
-                          Order #{order._id}
+                          {order.publicOrderId}
                         </p>
 
                         <span className="text-xs px-2 py-1 rounded bg-background_2 border border-myBorderColor">
