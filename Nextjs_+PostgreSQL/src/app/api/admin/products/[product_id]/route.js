@@ -81,7 +81,7 @@ export async function PUT(req, context) {
     console.log("Validation result:", parsed);
 
     if (!parsed.success) {
-      return Response.json({ message: "Validation failed" }, { status: 400 });
+      return Response.json({ message: "Invalid data can't be saved in db" }, { status: 400 });
     }
 
     safeData = parsed.data;
@@ -90,7 +90,7 @@ export async function PUT(req, context) {
     console.log("Partial validation result:", parsed);
 
     if (!parsed.success) {
-      return Response.json({ message: "Invalid Data" }, { status: 400 });
+      return Response.json({ message: "Invalid data can't be saved in db" }, { status: 400 });
     }
 
     safeData = parsed.data;

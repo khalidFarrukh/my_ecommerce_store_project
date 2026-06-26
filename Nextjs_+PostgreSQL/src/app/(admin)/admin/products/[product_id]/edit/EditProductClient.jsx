@@ -402,6 +402,23 @@ export default function EditProductClient({
     return issue?.message || "";
   };
 
+  const handleNumberInput = (value, fieldType) => {
+    // fieldType: "float" | "int"
+
+    // allow empty
+    if (value === "") return "";
+
+    if (fieldType === "int") {
+      // stock
+      if (!/^\d*$/.test(value)) return null;
+    } else {
+      // price, discount
+      if (!/^\d*\.?\d*$/.test(value)) return null;
+    }
+
+    return value;
+  };
+
   if (!product) {
     return (
       <div className="min-h-[calc(100vh-60px)] flex items-center justify-center">
@@ -509,7 +526,8 @@ export default function EditProductClient({
 
                 {categoryQuery && filteredCategories.length === 0 && (
                   <div className="px-3 py-2 text-sm text-myTextColorMain">
-                    Create new category "{categoryQuery}"
+                    This "{categoryQuery}" Category will be added to your
+                    categories list when your product will be activated.
                   </div>
                 )}
               </div>
@@ -665,26 +683,78 @@ export default function EditProductClient({
                       label="Price"
                       inputClassName="pr-0!"
                       error={getFieldError(["variants", i, "price"])}
-                      type="number"
                       keepPlaceHolderAbove={true}
+                      type="text"
                       value={variant.price}
-                      placeholder={""}
-                      onChange={(e) =>
-                        updateVariant(i, "price", Number(e.target.value))
-                      }
-                    />
+                      onKeyDown={(e) => {
+                        const value = variant.price;
 
+                        // if current value is exactly "0"
+                        if (value === "0") {
+                          if (e.key >= "1" && e.key <= "9") {
+                            e.preventDefault();
+                            updateVariant(i, "price", e.target.value);
+                          }
+
+                          if (e.key === "0") {
+                            e.preventDefault();
+                          }
+
+                          if (e.key === ".") {
+                            e.preventDefault();
+                            updateVariant(i, "price", "0.");
+                          }
+                        }
+                      }}
+                      onChange={(e) => {
+                        const value = handleNumberInput(
+                          e.target.value,
+                          "float",
+                        );
+
+                        if (value !== null) {
+                          updateVariant(i, "price", e.target.value);
+                        }
+                      }}
+                    />
                     <FloatingInput
                       id="discount"
                       label="Discount"
                       inputClassName="pr-0!"
                       error={getFieldError(["variants", i, "discount"])}
-                      type="number"
                       keepPlaceHolderAbove={true}
+                      type="text"
                       value={variant.discount}
-                      onChange={(e) =>
-                        updateVariant(i, "discount", Number(e.target.value))
-                      }
+                      onKeyDown={(e) => {
+                        const value = variant.discount;
+
+                        // if current value is exactly "0"
+                        if (value === "0") {
+                          if (e.key >= "1" && e.key <= "9") {
+                            e.preventDefault();
+                            updateVariant(i, "discount", e.target.value);
+                          }
+
+                          if (e.key === "0") {
+                            e.preventDefault();
+                          }
+
+                          if (e.key === ".") {
+                            e.preventDefault();
+                            updateVariant(i, "discount", "0.");
+                          }
+                        }
+                      }}
+                      onChange={(e) => {
+                        const value = handleNumberInput(
+                          e.target.value,
+                          "float",
+                        );
+
+                        if (value !== null) {
+                          updateVariant(i, "discount", e.target.value);
+                        }
+                      }}
                     />
 
                     <FloatingInput
@@ -692,12 +762,31 @@ export default function EditProductClient({
                       label="Stock"
                       inputClassName="pr-0!"
                       error={getFieldError(["variants", i, "stock"])}
-                      type="number"
                       keepPlaceHolderAbove={true}
+                      type="text"
                       value={variant.stock}
-                      onChange={(e) =>
-                        updateVariant(i, "stock", Number(e.target.value))
-                      }
+                      onKeyDown={(e) => {
+                        const value = variant.stock;
+
+                        if (value === "0") {
+                          if (e.key >= "1" && e.key <= "9") {
+                            e.preventDefault();
+
+                            updateVariant(i, "stock", Number(e.target.value));
+                          }
+
+                          if (e.key === "0") {
+                            e.preventDefault();
+                          }
+                        }
+                      }}
+                      onChange={(e) => {
+                        const value = handleNumberInput(e.target.value, "int");
+
+                        if (value !== null) {
+                          updateVariant(i, "stock", Number(e.target.value));
+                        }
+                      }}
                     />
                   </div>
 

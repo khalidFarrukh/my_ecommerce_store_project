@@ -18,15 +18,21 @@ const VariantSchema = z.object({
   options: z.array(OptionSchema)
     .min(1, "At least one option is required"),
 
-  price: z.number({
-    invalid_type_error: "Price must be a number",
-  }).nonnegative("Price cannot be negative"),
+  price: z.coerce
+    .number({
+      invalid_type_error: "Price must be a number",
+    })
+    .nonnegative("Price cannot be negative")
+    .multipleOf(0.01, "Maximum 2 decimal places"),
 
-  discount: z.number()
+  discount: z.coerce
+    .number()
     .min(0, "Discount cannot be less than 0")
-    .max(100, "Discount cannot exceed 100"),
+    .max(100, "Discount cannot exceed 100")
+    .multipleOf(0.01, "Maximum 2 decimal places"),
 
-  stock: z.number()
+  stock: z.coerce
+    .number()
     .int("Stock must be an integer")
     .nonnegative("Stock cannot be negative"),
 

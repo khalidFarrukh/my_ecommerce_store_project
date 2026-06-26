@@ -293,7 +293,7 @@ export default function AdminCollectionsClient() {
                                 {/* Toggle */}
                                 <div className="w-fit">
                                   {togglingId === collection._id ? (
-                                    <LoadingSpinner text="" />
+                                    <LoadingSpinner text="" className={"w-6! h-6!"} />
                                   ) : (
                                     <ToggleSlideButton
                                       width={44}
