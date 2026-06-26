@@ -403,17 +403,18 @@ export default function EditProductClient({
   };
 
   const handleNumberInput = (value, fieldType) => {
-    // fieldType: "float" | "int"
-
-    // allow empty
+    // Empty while editing
     if (value === "") return "";
 
+    // Replace leading zero
+    if (value.length > 1 && value.startsWith("0") && value[1] !== ".") {
+      value = value.slice(1);
+    }
+
     if (fieldType === "int") {
-      // stock
       if (!/^\d*$/.test(value)) return null;
     } else {
-      // price, discount
-      if (!/^\d*\.?\d*$/.test(value)) return null;
+      if (!/^\d*\.?\d{0,2}$/.test(value)) return null;
     }
 
     return value;
@@ -685,27 +686,7 @@ export default function EditProductClient({
                       error={getFieldError(["variants", i, "price"])}
                       keepPlaceHolderAbove={true}
                       type="text"
-                      value={variant.price}
-                      onKeyDown={(e) => {
-                        const value = variant.price;
-
-                        // if current value is exactly "0"
-                        if (value === "0") {
-                          if (e.key >= "1" && e.key <= "9") {
-                            e.preventDefault();
-                            updateVariant(i, "price", e.target.value);
-                          }
-
-                          if (e.key === "0") {
-                            e.preventDefault();
-                          }
-
-                          if (e.key === ".") {
-                            e.preventDefault();
-                            updateVariant(i, "price", "0.");
-                          }
-                        }
-                      }}
+                      value={variant.price === "" ? "0" : variant.price}
                       onChange={(e) => {
                         const value = handleNumberInput(
                           e.target.value,
@@ -713,7 +694,7 @@ export default function EditProductClient({
                         );
 
                         if (value !== null) {
-                          updateVariant(i, "price", e.target.value);
+                          updateVariant(i, "price", value);
                         }
                       }}
                     />
@@ -724,27 +705,7 @@ export default function EditProductClient({
                       error={getFieldError(["variants", i, "discount"])}
                       keepPlaceHolderAbove={true}
                       type="text"
-                      value={variant.discount}
-                      onKeyDown={(e) => {
-                        const value = variant.discount;
-
-                        // if current value is exactly "0"
-                        if (value === "0") {
-                          if (e.key >= "1" && e.key <= "9") {
-                            e.preventDefault();
-                            updateVariant(i, "discount", e.target.value);
-                          }
-
-                          if (e.key === "0") {
-                            e.preventDefault();
-                          }
-
-                          if (e.key === ".") {
-                            e.preventDefault();
-                            updateVariant(i, "discount", "0.");
-                          }
-                        }
-                      }}
+                      value={variant.discount === "" ? "0" : variant.discount}
                       onChange={(e) => {
                         const value = handleNumberInput(
                           e.target.value,
@@ -752,7 +713,7 @@ export default function EditProductClient({
                         );
 
                         if (value !== null) {
-                          updateVariant(i, "discount", e.target.value);
+                          updateVariant(i, "discount", value);
                         }
                       }}
                     />
@@ -764,27 +725,12 @@ export default function EditProductClient({
                       error={getFieldError(["variants", i, "stock"])}
                       keepPlaceHolderAbove={true}
                       type="text"
-                      value={variant.stock}
-                      onKeyDown={(e) => {
-                        const value = variant.stock;
-
-                        if (value === "0") {
-                          if (e.key >= "1" && e.key <= "9") {
-                            e.preventDefault();
-
-                            updateVariant(i, "stock", Number(e.target.value));
-                          }
-
-                          if (e.key === "0") {
-                            e.preventDefault();
-                          }
-                        }
-                      }}
+                      value={variant.stock === "" ? "0" : variant.stock}
                       onChange={(e) => {
                         const value = handleNumberInput(e.target.value, "int");
 
                         if (value !== null) {
-                          updateVariant(i, "stock", Number(e.target.value));
+                          updateVariant(i, "stock", value);
                         }
                       }}
                     />
